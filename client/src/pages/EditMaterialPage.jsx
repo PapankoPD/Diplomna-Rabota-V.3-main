@@ -31,7 +31,7 @@ export const EditMaterialPage = () => {
         setIsLoading(true);
         try {
             const response = await materialsApi.getMaterialById(id);
-            const material = response.data;
+            const material = response.data?.material || response.data;
 
             // Verify ownership
             if (user && material.uploaded_by !== user.id && user.role !== 'admin') {

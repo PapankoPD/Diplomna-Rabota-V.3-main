@@ -41,7 +41,7 @@ export const MaterialDetailPage = () => {
                 ratingsApi.getUserRating(id),
                 recommendationsApi.getSimilar(id)
             ]);
-            setMaterial(materialData.data);
+            setMaterial(materialData.data?.material || materialData.data);
             if (ratingData.data) {
                 setUserRating(ratingData.data.rating);
             }
