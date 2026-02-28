@@ -1,0 +1,307 @@
+.taxonomy-page .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+/* Taxonomy tabs */
+.taxonomy-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 1.5rem;
+}
+
+.taxonomy-tab {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s;
+}
+
+.taxonomy-tab:hover {
+    color: var(--text-primary);
+}
+
+.taxonomy-tab.active {
+    color: var(--primary-color);
+    border-bottom-color: var(--primary-color);
+}
+
+.tab-count {
+    background: var(--bg-secondary);
+    padding: 0.1rem 0.5rem;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.taxonomy-tab.active .tab-count {
+    background: var(--primary-color);
+    color: white;
+}
+
+/* Table container */
+.table-container {
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.taxonomy-page .data-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.taxonomy-page .data-table th,
+.taxonomy-page .data-table td {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.taxonomy-page .data-table th {
+    background: var(--bg-secondary);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.taxonomy-page .data-table tr:last-child td {
+    border-bottom: none;
+}
+
+.td-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.td-desc {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.empty-cell {
+    text-align: center !important;
+    color: var(--text-secondary);
+    padding: 2rem !important;
+}
+
+/* Badges */
+.code-badge {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: 0.2rem 0.6rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    font-family: monospace;
+    letter-spacing: 0.05em;
+}
+
+.difficulty-badge {
+    display: inline-block;
+    padding: 0.15rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.difficulty-badge.level-1 {
+    background: #dcfce7;
+    color: #16a34a;
+}
+
+.difficulty-badge.level-2 {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.difficulty-badge.level-3 {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.difficulty-badge.level-4 {
+    background: #fed7aa;
+    color: #ea580c;
+}
+
+.difficulty-badge.level-5 {
+    background: #fee2e2;
+    color: #ef4444;
+}
+
+.category-badge {
+    padding: 0.2rem 0.6rem;
+    border-radius: 1rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.cat-k12 {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.cat-undergraduate {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.cat-graduate {
+    background: #fce7f3;
+    color: #db2777;
+}
+
+/* Modal styles (scoped) */
+.taxonomy-page .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.taxonomy-page .modal {
+    background: white;
+    border-radius: 0.75rem;
+    width: 100%;
+    max-width: 550px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.taxonomy-page .modal-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.taxonomy-page .modal-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+}
+
+.taxonomy-page .modal-content {
+    padding: 1.5rem;
+}
+
+.taxonomy-page .modal-footer {
+    padding: 1.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+}
+
+/* Form styles */
+.taxonomy-page .form-group {
+    margin-bottom: 1.25rem;
+    flex: 1;
+}
+
+.taxonomy-page .form-group label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+}
+
+.taxonomy-page .form-group input,
+.taxonomy-page .form-group textarea,
+.taxonomy-page .form-group select {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--border-color);
+    border-radius: 0.375rem;
+    font-size: 0.9rem;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.taxonomy-page .form-group input:focus,
+.taxonomy-page .form-group textarea:focus,
+.taxonomy-page .form-group select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.taxonomy-page .btn-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-secondary);
+}
+
+.taxonomy-page .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.taxonomy-page .btn-primary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.taxonomy-page .btn-cancel {
+    background: white;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 0.5rem 1.5rem;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.taxonomy-page .error-message {
+    background: #fee2e2;
+    color: #ef4444;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+}
