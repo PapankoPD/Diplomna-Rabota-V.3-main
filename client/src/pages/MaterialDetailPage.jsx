@@ -61,10 +61,6 @@ export const MaterialDetailPage = () => {
             setShowVersions(false);
             return;
         }
-        if (versions.length > 0) {
-            setShowVersions(true);
-            return;
-        }
         setIsLoadingVersions(true);
         try {
             const response = await materialsApi.getVersions(id);
@@ -72,6 +68,7 @@ export const MaterialDetailPage = () => {
             setShowVersions(true);
         } catch (err) {
             console.error('Failed to load versions:', err);
+            alert(err.response?.data?.message || 'Failed to load version history. Please try again.');
         } finally {
             setIsLoadingVersions(false);
         }
@@ -93,6 +90,19 @@ export const MaterialDetailPage = () => {
             alert('Failed to restore version. Please try again.');
         } finally {
             setRestoringVersionId(null);
+        }
+    };
+
+    const handleDeleteVersion = async (versionId) => {
+        if (!window.confirm('Are you sure you want to delete this version? This cannot be undone.')) {
+            return;
+        }
+        try {
+            await materialsApi.deleteVersion(id, versionId);
+            setVersions(prev => prev.filter(v => v.id !== versionId));
+        } catch (err) {
+            console.error('Failed to delete version:', err);
+            alert('Failed to delete version. Please try again.');
         }
     };
 
@@ -164,7 +174,7 @@ export const MaterialDetailPage = () => {
             setUserRating(newRating);
             // Refresh material to get updated average
             const updatedMaterial = await materialsApi.getMaterialById(id);
-            setMaterial(updatedMaterial.data);
+            setMaterial(updatedMaterial.data?.material || updatedMaterial.data);
         } catch (err) {
             console.error('Failed to update rating:', err);
             alert('Failed to submit rating. Please try again.');
@@ -354,18 +364,27 @@ export const MaterialDetailPage = () => {
                                                 )}
                                             </div>
                                             {showEditControls && (
-                                                <button
-                                                    className="restore-btn"
-                                                    onClick={() => handleRestoreVersion(version.id)}
-                                                    disabled={restoringVersionId === version.id}
-                                                    title="Restore this version"
-                                                >
-                                                    {restoringVersionId === version.id ? (
-                                                        <LoadingSpinner size="small" />
-                                                    ) : (
-                                                        <><RotateCcw size={14} /> Restore</>
-                                                    )}
-                                                </button>
+                                                <div className="version-actions">
+                                                    <button
+                                                        className="restore-btn"
+                                                        onClick={() => handleRestoreVersion(version.id)}
+                                                        disabled={restoringVersionId === version.id}
+                                                        title="Restore this version"
+                                                    >
+                                                        {restoringVersionId === version.id ? (
+                                                            <LoadingSpinner size="small" />
+                                                        ) : (
+                                                            <><RotateCcw size={14} /> Restore</>
+                                                        )}
+                                                    </button>
+                                                    <button
+                                                        className="delete-version-btn"
+                                                        onClick={() => handleDeleteVersion(version.id)}
+                                                        title="Delete this version"
+                                                    >
+                                                        <Trash2 size={14} />
+                                                    </button>
+                                                </div>
                                             )}
                                         </div>
                                     ))

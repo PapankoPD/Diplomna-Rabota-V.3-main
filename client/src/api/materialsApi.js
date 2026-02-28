@@ -60,4 +60,9 @@ export const materialsApi = {
         const response = await apiClient.post(`/materials/${id}/versions/${versionId}/restore`);
         return response.data;
     },
+
+    deleteVersion: async (id, versionId) => {
+        const response = await apiClient.delete(`/materials/${id}/versions/${versionId}`);
+        return response.data;
+    },
 };

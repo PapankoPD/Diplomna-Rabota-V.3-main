@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useDebounce } from '../hooks/useDebounce';
 import { materialsApi } from '../api/materialsApi';
 import { taxonomyApi } from '../api/taxonomyApi';
 import { searchApi } from '../api/searchApi';
@@ -13,6 +14,7 @@ export const MaterialsPage = () => {
     const [materials, setMaterials] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [search, setSearch] = useState('');
+    const debouncedSearch = useDebounce(search, 400);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [showFilters, setShowFilters] = useState(false);
@@ -47,7 +49,7 @@ export const MaterialsPage = () => {
 
     useEffect(() => {
         loadMaterials();
-    }, [page, search, subjectId, gradeId, sortBy, sortOrder]);
+    }, [page, debouncedSearch, subjectId, gradeId, sortBy, sortOrder]);
 
     const loadMaterials = async () => {
         setIsLoading(true);
@@ -59,13 +61,13 @@ export const MaterialsPage = () => {
                 sortOrder,
             };
 
-            if (search) params.q = search;
+            if (debouncedSearch) params.q = debouncedSearch;
             if (subjectId) params.subjectId = subjectId;
             if (gradeId) params.gradeId = gradeId;
 
             // Use search endpoint if there's a text query or filters
             let response;
-            if (search || subjectId || gradeId || sortBy !== 'created_at') {
+            if (debouncedSearch || subjectId || gradeId || sortBy !== 'created_at') {
                 response = await searchApi.searchMaterials(params);
             } else {
                 response = await materialsApi.getMaterials(params);

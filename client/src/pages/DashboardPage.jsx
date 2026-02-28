@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { materialsApi } from '../api/materialsApi';
 import { recommendationsApi } from '../api/recommendationsApi';
@@ -8,6 +9,7 @@ import './DashboardPage.css';
 
 export const DashboardPage = () => {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [stats, setStats] = useState(null);
     const [recentMaterials, setRecentMaterials] = useState([]);
     const [trendingMaterials, setTrendingMaterials] = useState([]);
@@ -111,7 +113,7 @@ export const DashboardPage = () => {
                 ) : (
                     <div className="materials-list">
                         {trendingMaterials.map((material) => (
-                            <div key={material.id} className="material-item">
+                            <div key={material.id} className="material-item" onClick={() => navigate(`/materials/${material.id}`)} style={{ cursor: 'pointer' }}>
                                 <div className="material-info">
                                     <h3>{material.title}</h3>
                                     <p>{material.description}</p>
@@ -136,7 +138,7 @@ export const DashboardPage = () => {
                 ) : (
                     <div className="materials-list">
                         {recentMaterials.map((material) => (
-                            <div key={material.id} className="material-item">
+                            <div key={material.id} className="material-item" onClick={() => navigate(`/materials/${material.id}`)} style={{ cursor: 'pointer' }}>
                                 <div className="material-info">
                                     <h3>{material.title}</h3>
                                     <p>{material.description}</p>

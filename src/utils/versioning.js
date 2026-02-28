@@ -95,10 +95,31 @@ async function restoreVersion(materialId, versionId, userId) {
 
         const version = versionResult.rows[0];
 
-        // 2. Create a version of the CURRENT state (so we can undo the restore)
+        // 2. Get the current material state
+        const currentResult = await query(
+            'SELECT * FROM materials WHERE id = ?',
+            [materialId]
+        );
+        const current = currentResult.rows[0];
+
+        // 3. Check if the current state already matches the version being restored
+        const isSame = current.title === version.title
+            && current.description === version.description
+            && current.file_name === version.file_name
+            && current.file_path === version.file_path
+            && current.file_type === version.file_type
+            && current.file_size === version.file_size
+            && current.is_public === version.is_public;
+
+        if (isSame) {
+            // No changes needed — skip creating a duplicate version
+            return true;
+        }
+
+        // 4. Save the current state as a new version (so we can undo the restore)
         await createVersion(materialId, userId, `Restoring to version ${version.version_number}`);
 
-        // 3. Update material with version data
+        // 5. Update material with version data
         await query(
             `UPDATE materials SET 
                 title = ?, 

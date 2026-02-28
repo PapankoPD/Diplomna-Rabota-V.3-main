@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useDebounce } from '../hooks/useDebounce';
 import { searchApi } from '../api/searchApi';
 import { taxonomyApi } from '../api/taxonomyApi';
 import { StarRating } from '../components/ratings/StarRating';
@@ -14,6 +15,8 @@ export const SearchPage = () => {
     const initialQuery = searchParams.get('q') || '';
 
     const [query, setQuery] = useState(initialQuery);
+    const debouncedQuery = useDebounce(query, 400);
+
     const [results, setResults] = useState([]);
     const [pagination, setPagination] = useState({ page: 1, total: 0, totalPages: 0 });
     const [isLoading, setIsLoading] = useState(false);
@@ -33,11 +36,29 @@ export const SearchPage = () => {
         loadFilterOptions();
     }, []);
 
+    // Live search when debouncedQuery changes
+    useEffect(() => {
+        if (debouncedQuery.trim() !== (searchParams.get('q') || '')) {
+            if (debouncedQuery.trim()) {
+                setSearchParams({ q: debouncedQuery.trim() });
+            } else if (searchParams.has('q')) {
+                setSearchParams({});
+                setResults([]);
+                setPagination({ page: 1, total: 0, totalPages: 0 });
+            }
+        }
+    }, [debouncedQuery, searchParams, setSearchParams]);
+
+    // Perform search when URL params change
     useEffect(() => {
         const q = searchParams.get('q');
         if (q) {
-            setQuery(q);
+            if (query !== q) setQuery(q); // Sync input if accessed directly via URL
             performSearch(q, 1);
+        } else {
+            setResults([]);
+            setPagination({ page: 1, total: 0, totalPages: 0 });
+            if (query) setQuery('');
         }
     }, [searchParams.get('q')]);
 

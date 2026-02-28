@@ -642,7 +642,7 @@ router.post('/categories', authenticate, requirePermission('materials:admin'), v
  * GET /api/materials/:id/versions
  * Get version history of a material (owner/admin/editor)
  */
-router.get('/:id/versions', authenticate, validateUUID(), requireEditPermission, async (req, res) => {
+router.get('/:id/versions', authenticate, validateUUID(), requireViewPermission, async (req, res) => {
     try {
         const materialId = req.params.id;
         const versions = await getVersions(materialId);
@@ -694,6 +694,47 @@ router.post('/:id/versions/:versionId/restore', authenticate, validateUUID(), re
         });
     } finally {
         client.release();
+    }
+});
+
+/**
+ * DELETE /api/materials/:id/versions/:versionId
+ * Delete a specific version from version history (owner/admin only)
+ */
+router.delete('/:id/versions/:versionId', authenticate, validateUUID(), requireEditPermission, async (req, res) => {
+    try {
+        const materialId = req.params.id;
+        const versionId = req.params.versionId;
+
+        // Check if version exists
+        const versionResult = await query(
+            'SELECT id FROM material_versions WHERE id = ? AND material_id = ?',
+            [versionId, materialId]
+        );
+
+        if (versionResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Version not found'
+            });
+        }
+
+        // Delete the version
+        await query(
+            'DELETE FROM material_versions WHERE id = ? AND material_id = ?',
+            [versionId, materialId]
+        );
+
+        res.json({
+            success: true,
+            message: 'Version deleted successfully'
+        });
+    } catch (error) {
+        console.error('Delete version error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to delete version'
+        });
     }
 });
 
