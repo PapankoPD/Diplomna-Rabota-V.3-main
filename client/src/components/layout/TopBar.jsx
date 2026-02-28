@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Menu, Bell, User, LogOut, Search } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './TopBar.css';
 
 export const TopBar = ({ onMenuClick }) => {
@@ -27,6 +27,7 @@ export const TopBar = ({ onMenuClick }) => {
     };
 
     const [searchQuery, setSearchQuery] = useState('');
+    const location = useLocation();
 
     const handleSearch = (e) => {
         e.preventDefault();
@@ -36,18 +37,22 @@ export const TopBar = ({ onMenuClick }) => {
         }
     };
 
+    const isTransparentPage = ['/search', '/groups', '/profile'].includes(location.pathname);
+
     return (
-        <div className="topbar">
+        <div className={`topbar ${isTransparentPage ? 'topbar-transparent' : ''}`}>
             <div className="topbar-left">
-                <form onSubmit={handleSearch} className="search-bar">
-                    <Search size={20} className="search-icon" />
-                    <input
-                        type="text"
-                        placeholder="Search materials..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                </form>
+                {!isTransparentPage && (
+                    <form onSubmit={handleSearch} className="search-bar">
+                        <Search size={20} className="search-icon" />
+                        <input
+                            type="text"
+                            placeholder="Search materials..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                    </form>
+                )}
             </div>
             <div className="topbar-right">
                 <button className="icon-btn">
