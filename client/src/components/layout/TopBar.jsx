@@ -37,7 +37,7 @@ export const TopBar = ({ onMenuClick }) => {
         }
     };
 
-    const isTransparentPage = ['/search', '/groups', '/profile'].includes(location.pathname);
+    const isTransparentPage = ['/search', '/groups', '/profile'].includes(location.pathname) || location.pathname.startsWith('/admin');
 
     return (
         <div className={`topbar ${isTransparentPage ? 'topbar-transparent' : ''}`}>

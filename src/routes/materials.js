@@ -166,6 +166,50 @@ router.post('/batch', authenticate, requirePermission('materials:create'), uploa
 });
 
 /**
+ * GET /api/materials/stats
+ * Return per-user dashboard statistics (requires authentication)
+ */
+router.get('/stats', authenticate, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+
+        // Run all three queries in parallel
+        const [uploadsResult, downloadsResult, ratingsResult, totalResult] = await Promise.all([
+            // How many materials has this user uploaded?
+            query(
+                'SELECT COUNT(*) AS count FROM materials WHERE uploaded_by = $1',
+                [userId]
+            ),
+            // Total downloads across all materials uploaded by this user
+            query(
+                'SELECT COALESCE(SUM(download_count), 0) AS total FROM materials WHERE uploaded_by = $1',
+                [userId]
+            ),
+            // How many ratings has this user given?
+            query(
+                'SELECT COUNT(*) AS count FROM material_ratings WHERE user_id = $1',
+                [userId]
+            ),
+            // Total materials on the platform
+            query('SELECT COUNT(*) AS count FROM materials', [])
+        ]);
+
+        res.json({
+            success: true,
+            data: {
+                uploadsCount: parseInt(uploadsResult.rows[0]?.count || 0),
+                downloadsCount: parseInt(downloadsResult.rows[0]?.total || 0),
+                ratingsGiven: parseInt(ratingsResult.rows[0]?.count || 0),
+                totalMaterials: parseInt(totalResult.rows[0]?.count || 0)
+            }
+        });
+    } catch (error) {
+        console.error('Get stats error:', error);
+        res.status(500).json({ success: false, message: 'Failed to retrieve stats' });
+    }
+});
+
+/**
  * GET /api/materials
  * List materials with filtering and pagination
  */

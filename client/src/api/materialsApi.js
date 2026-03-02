@@ -46,6 +46,11 @@ export const materialsApi = {
         return response;
     },
 
+    getStats: async () => {
+        const response = await apiClient.get('/materials/stats');
+        return response.data;
+    },
+
     getCategories: async () => {
         const response = await apiClient.get('/materials/categories/all');
         return response.data;

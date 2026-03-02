@@ -3,7 +3,7 @@ import { usersApi } from '../../api/usersApi';
 import { rolesApi } from '../../api/rolesApi';
 import { useAuth } from '../../hooks/useAuth';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
-import { Search, UserCog, Trash2, Check, X } from 'lucide-react';
+import { UserCog, Trash2, Check, X } from 'lucide-react';
 import './UsersPage.css';
 
 export const UsersPage = () => {
@@ -13,7 +13,7 @@ export const UsersPage = () => {
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [searchTerm, setSearchTerm] = useState('');
+
     const [editingUser, setEditingUser] = useState(null);
     const [selectedRoles, setSelectedRoles] = useState([]);
     const [error, setError] = useState(null);
@@ -87,10 +87,7 @@ export const UsersPage = () => {
         }
     };
 
-    const filteredUsers = users.filter(user =>
-        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+
 
     if (isLoading) return <LoadingSpinner fullScreen />;
 
@@ -98,15 +95,6 @@ export const UsersPage = () => {
         <div className="admin-page">
             <div className="page-header">
                 <h1>User Management</h1>
-                <div className="search-bar">
-                    <Search size={20} />
-                    <input
-                        type="text"
-                        placeholder="Search users..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
             </div>
 
             {error && <div className="error-message">{error}</div>}
@@ -122,7 +110,7 @@ export const UsersPage = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {filteredUsers.map(user => (
+                        {users.map(user => (
                             <tr key={user.id}>
                                 <td>{user.username}</td>
                                 <td>{user.email}</td>

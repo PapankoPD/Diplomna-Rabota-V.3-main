@@ -1,14 +1,16 @@
+/* ── Sidebar shell ─────────────────────────────────────────────────────── */
 .sidebar {
     position: fixed;
     left: 0;
     top: 0;
     bottom: 0;
-    background: #1f2937;
+    background: linear-gradient(180deg, #312e81 0%, #4c1d95 60%, #5b21b6 100%);
     color: white;
     transition: width 0.3s ease;
     z-index: 1000;
     display: flex;
     flex-direction: column;
+    box-shadow: 4px 0 24px rgba(49, 46, 129, 0.30);
 }
 
 .sidebar.open {
@@ -19,67 +21,88 @@
     width: 70px;
 }
 
+/* ── Header ────────────────────────────────────────────────────────────── */
 .sidebar-header {
-    padding: 20px;
+    padding: 22px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.10);
 }
 
 .sidebar-title {
     font-size: 20px;
-    font-weight: 600;
+    font-weight: 900;
     margin: 0;
     white-space: nowrap;
+    letter-spacing: -0.3px;
+    background: linear-gradient(90deg, #fde68a, #fbbf24);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .sidebar-toggle {
-    background: none;
-    border: none;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1.5px solid rgba(255, 255, 255, 0.15);
     color: white;
     cursor: pointer;
-    padding: 8px;
-    border-radius: 4px;
+    padding: 6px;
+    border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: background 0.2s, transform 0.2s var(--spring);
 }
 
 .sidebar-toggle:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.20);
+    transform: scale(1.12);
 }
 
+/* ── Nav ───────────────────────────────────────────────────────────────── */
 .sidebar-nav {
     flex: 1;
-    padding: 20px 0;
+    padding: 16px 10px;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .nav-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 12px 20px;
-    color: #d1d5db;
+    padding: 12px 14px;
+    color: rgba(255, 255, 255, 0.72);
     text-decoration: none;
-    transition: all 0.2s ease;
+    border-radius: 14px;
+    transition: background 0.2s, color 0.2s, transform 0.2s var(--spring);
     white-space: nowrap;
+    font-weight: 600;
+    font-size: 14.5px;
 }
 
 .nav-item:hover {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.12);
     color: white;
+    transform: translateX(4px);
 }
 
 .nav-item.active {
-    background: #3b82f6;
+    background: rgba(255, 255, 255, 0.20);
     color: white;
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.18);
 }
 
 .sidebar.closed .nav-item {
     justify-content: center;
     padding: 12px;
+}
+
+.sidebar.closed .nav-item:hover {
+    transform: scale(1.12);
 }
 
 @media (max-width: 768px) {
