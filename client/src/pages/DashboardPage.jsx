@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { materialsApi } from '../api/materialsApi';
 import { recommendationsApi } from '../api/recommendationsApi';
@@ -81,6 +81,7 @@ const fileEmoji = (type) => {
 export const DashboardPage = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
     const [stats, setStats] = useState(null);
     const [recentMaterials, setRecentMaterials] = useState([]);
     const [trendingMaterials, setTrendingMaterials] = useState([]);
@@ -111,7 +112,7 @@ export const DashboardPage = () => {
             }
         };
         loadDashboardData();
-    }, []);
+    }, [location.key]);
 
     if (isLoading) return <LoadingSpinner fullScreen />;
 

@@ -21,6 +21,43 @@
     font-weight: 600;
 }
 
+/* ── Class filter banner ─────────────────────────────────────────────── */
+.class-filter-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: linear-gradient(135deg, #ede9fe, #f5f3ff);
+    border: 2px solid #c4b5fd;
+    border-radius: var(--radius-lg);
+    padding: 12px 18px;
+    margin-bottom: 20px;
+    color: var(--primary-dark);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.class-filter-banner strong {
+    font-weight: 900;
+}
+
+.class-filter-clear {
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #a78bfa;
+    display: flex;
+    align-items: center;
+    border-radius: 50%;
+    padding: 4px;
+    transition: color 0.15s, background 0.15s;
+}
+
+.class-filter-clear:hover {
+    color: #dc2626;
+    background: #fef2f2;
+}
+
 /* ── Controls bar ─────────────────────────────────────────────────────── */
 .materials-controls {
     display: flex;

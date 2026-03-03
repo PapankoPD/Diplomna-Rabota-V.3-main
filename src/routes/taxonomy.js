@@ -456,28 +456,87 @@ router.delete('/topics/:id', authenticate, requirePermission('materials:admin'),
 router.delete('/grades/:id', authenticate, requirePermission('materials:admin'), async (req, res) => {
     try {
         const { id } = req.params;
-
         const existing = await query('SELECT id, name FROM grades WHERE id = $1', [id]);
         if (existing.rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: 'Grade not found'
-            });
+            return res.status(404).json({ success: false, message: 'Grade not found' });
         }
-
         await query('UPDATE grades SET is_active = 0 WHERE id = $1', [id]);
-
-        res.json({
-            success: true,
-            message: `Grade "${existing.rows[0].name}" deleted successfully`
-        });
+        res.json({ success: true, message: `Grade "${existing.rows[0].name}" deleted successfully` });
     } catch (error) {
         console.error('Delete grade error:', error);
-        res.status(500).json({
-            success: false,
-            message: 'Failed to delete grade'
-        });
+        res.status(500).json({ success: false, message: 'Failed to delete grade' });
+    }
+});
+
+/**
+ * GET /api/taxonomy/grades/:id/classes
+ * Get all classes (e.g. 9-a, 9-b) for a grade
+ */
+router.get('/grades/:id/classes', authenticate, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const result = await query(
+            `SELECT id, grade_id, name, created_at
+             FROM grade_classes
+             WHERE grade_id = $1 AND is_active = 1
+             ORDER BY name`,
+            [id]
+        );
+        res.json({ success: true, data: { classes: result.rows } });
+    } catch (error) {
+        console.error('Get grade classes error:', error);
+        res.status(500).json({ success: false, message: 'Failed to retrieve grade classes' });
+    }
+});
+
+/**
+ * POST /api/taxonomy/grades/:id/classes
+ * Create a new class for a grade (admin only)
+ */
+router.post('/grades/:id/classes', authenticate, requirePermission('materials:admin'), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name } = req.body;
+        if (!name || !name.trim()) {
+            return res.status(400).json({ success: false, message: 'Class name is required' });
+        }
+        const result = await query(
+            `INSERT INTO grade_classes (grade_id, name)
+             VALUES ($1, $2)
+             RETURNING id, grade_id, name, created_at`,
+            [id, name.trim()]
+        );
+        res.status(201).json({ success: true, data: { class: result.rows[0] } });
+    } catch (error) {
+        console.error('Create grade class error:', error);
+        if (error.code === 'SQLITE_CONSTRAINT_UNIQUE' || error.code === 'SQLITE_CONSTRAINT') {
+            return res.status(409).json({ success: false, message: 'A class with that name already exists for this grade' });
+        }
+        res.status(500).json({ success: false, message: 'Failed to create grade class' });
+    }
+});
+
+/**
+ * DELETE /api/taxonomy/grades/:gradeId/classes/:classId
+ * Delete a grade class (admin only)
+ */
+router.delete('/grades/:gradeId/classes/:classId', authenticate, requirePermission('materials:admin'), async (req, res) => {
+    try {
+        const { gradeId, classId } = req.params;
+        const existing = await query(
+            `SELECT id, name FROM grade_classes WHERE id = $1 AND grade_id = $2`,
+            [classId, gradeId]
+        );
+        if (existing.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Class not found' });
+        }
+        await query(`UPDATE grade_classes SET is_active = 0 WHERE id = $1`, [classId]);
+        res.json({ success: true, message: `Class "${existing.rows[0].name}" deleted` });
+    } catch (error) {
+        console.error('Delete grade class error:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete grade class' });
     }
 });
 
 module.exports = router;
+

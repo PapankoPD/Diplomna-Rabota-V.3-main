@@ -32,12 +32,12 @@ export const TopBar = ({ onMenuClick }) => {
     const handleSearch = (e) => {
         e.preventDefault();
         if (searchQuery.trim()) {
-            navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+            navigate(`/materials?q=${encodeURIComponent(searchQuery.trim())}`);
             setSearchQuery('');
         }
     };
 
-    const isTransparentPage = ['/search', '/groups', '/profile'].includes(location.pathname) || location.pathname.startsWith('/admin');
+    const isTransparentPage = ['/groups', '/profile'].includes(location.pathname) || location.pathname.startsWith('/admin');
 
     return (
         <div className={`topbar ${isTransparentPage ? 'topbar-transparent' : ''}`}>

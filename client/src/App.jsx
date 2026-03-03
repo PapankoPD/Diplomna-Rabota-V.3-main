@@ -11,8 +11,8 @@ import { MaterialDetailPage } from './pages/MaterialDetailPage';
 import { UploadMaterialPage } from './pages/UploadMaterialPage';
 import { EditMaterialPage } from './pages/EditMaterialPage';
 import { ProfilePage } from './pages/ProfilePage';
-import { SearchPage } from './pages/SearchPage';
-import { GroupsPage } from './pages/GroupsPage';
+
+import { ClassesPage } from './pages/ClassesPage';
 import { UsersPage } from './pages/admin/UsersPage';
 import { RolesPage } from './pages/admin/RolesPage';
 import { TaxonomyPage } from './pages/admin/TaxonomyPage';
@@ -41,8 +41,8 @@ function App() {
             <Route path="materials/:id" element={<MaterialDetailPage />} />
             <Route path="materials/:id/edit" element={<EditMaterialPage />} />
             <Route path="upload" element={<UploadMaterialPage />} />
-            <Route path="search" element={<SearchPage />} />
-            <Route path="groups" element={<GroupsPage />} />
+
+            <Route path="classes" element={<ClassesPage />} />
             <Route path="profile" element={<ProfilePage />} />
 
             {/* Admin routes */}

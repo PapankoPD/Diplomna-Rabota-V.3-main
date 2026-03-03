@@ -13,15 +13,18 @@
 
 .main-content.sidebar-open {
     margin-left: 260px;
+    --sidebar-width: 260px;
 }
 
 .main-content.sidebar-closed {
     margin-left: 70px;
+    --sidebar-width: 70px;
 }
 
 .content-area {
     flex: 1;
     padding: 28px;
+    padding-top: calc(68px + 28px);
     overflow-y: auto;
 }
 
@@ -30,5 +33,6 @@
     .main-content.sidebar-open,
     .main-content.sidebar-closed {
         margin-left: 0;
+        --sidebar-width: 0px;
     }
 }

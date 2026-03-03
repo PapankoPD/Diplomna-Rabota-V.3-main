@@ -42,6 +42,7 @@ app.use('/api/users', require('./routes/users'));
 app.use('/api/roles', require('./routes/roles'));
 app.use('/api/materials', require('./routes/materials'));
 app.use('/api/taxonomy', require('./routes/taxonomy'));
+app.use('/api/classes', require('./routes/classes'));
 app.use('/api/search', require('./routes/search'));
 app.use('/api/groups', require('./routes/groups'));
 app.use('/api/recommendations', require('./routes/recommendations'));

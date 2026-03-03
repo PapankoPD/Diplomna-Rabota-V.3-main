@@ -56,5 +56,20 @@ export const taxonomyApi = {
     deleteGrade: async (id) => {
         const response = await apiClient.delete(`/taxonomy/grades/${id}`);
         return response.data;
-    }
+    },
+
+    getGradeClasses: async (gradeId) => {
+        const response = await apiClient.get(`/taxonomy/grades/${gradeId}/classes`);
+        return response.data;
+    },
+
+    createGradeClass: async (gradeId, name) => {
+        const response = await apiClient.post(`/taxonomy/grades/${gradeId}/classes`, { name });
+        return response.data;
+    },
+
+    deleteGradeClass: async (gradeId, classId) => {
+        const response = await apiClient.delete(`/taxonomy/grades/${gradeId}/classes/${classId}`);
+        return response.data;
+    },
 };

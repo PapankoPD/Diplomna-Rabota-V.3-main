@@ -2,16 +2,18 @@ import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { materialsApi } from '../api/materialsApi';
 import { taxonomyApi } from '../api/taxonomyApi';
+import { authApi } from '../api/authApi';
 import { useAuth } from '../hooks/useAuth';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { Upload, X, FileText, AlertCircle } from 'lucide-react';
+import { Upload, X, FileText, AlertCircle, BookOpen } from 'lucide-react';
 import { validateFileSize, validateFileType, ACCEPTED_FILE_TYPES } from '../utils/validators';
 import { formatFileSize } from '../utils/formatters';
 import './UploadMaterialPage.css';
 
 export const UploadMaterialPage = () => {
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const { user, hasRole } = useAuth();
+    const isTeacher = hasRole('teacher');
     const fileInputRef = useRef(null);
 
     const [formData, setFormData] = useState({
@@ -22,21 +24,25 @@ export const UploadMaterialPage = () => {
     });
 
     const [categories, setCategories] = useState([]);
+    const [teacherSubjects, setTeacherSubjects] = useState(null); // null = not loaded yet
 
-    // Fetch categories on mount
     React.useEffect(() => {
         const fetchCategories = async () => {
             try {
-                const response = await taxonomyApi.getSubjects();
-                if (response.success) {
-                    setCategories(response.data.subjects);
+                if (isTeacher) {
+                    // Load only this teacher's subjects
+                    const res = await authApi.getMySubjects();
+                    setTeacherSubjects(res.data?.subjects || []);
+                } else {
+                    const response = await taxonomyApi.getSubjects();
+                    if (response.success) setCategories(response.data.subjects);
                 }
             } catch (err) {
                 console.error('Failed to fetch categories:', err);
             }
         };
         fetchCategories();
-    }, []);
+    }, [isTeacher]);
 
     const [files, setFiles] = useState([]);
     const [dragActive, setDragActive] = useState(false);
@@ -273,23 +279,32 @@ export const UploadMaterialPage = () => {
                         />
                     </div>
 
+                    {/* Subject / Category */}
                     <div className="form-group">
                         <label htmlFor="category_id">Subject / Category</label>
-                        <select
-                            id="category_id"
-                            name="category_id"
-                            value={formData.category_id}
-                            onChange={handleInputChange}
-                            disabled={isUploading}
-                            className="form-select"
-                        >
-                            <option value="">Select a subject...</option>
-                            {categories.map(category => (
-                                <option key={category.id} value={category.id}>
-                                    {category.name}
-                                </option>
-                            ))}
-                        </select>
+
+                        {isTeacher && teacherSubjects === null ? (
+                            <p style={{ color: 'var(--gray-400)', fontSize: 14 }}>Loading subjects...</p>
+                        ) : isTeacher && teacherSubjects?.length === 0 ? (
+                            <div className="error-alert" style={{ marginTop: 0 }}>
+                                <BookOpen size={18} />
+                                <span>You have no subjects assigned. Please contact an administrator.</span>
+                            </div>
+                        ) : (
+                            <select
+                                id="category_id"
+                                name="category_id"
+                                value={formData.category_id}
+                                onChange={handleInputChange}
+                                disabled={isUploading}
+                                className="form-select"
+                            >
+                                <option value="">Select a subject...</option>
+                                {(isTeacher ? teacherSubjects : categories).map(cat => (
+                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                ))}
+                            </select>
+                        )}
                     </div>
 
                     <div className="form-group">

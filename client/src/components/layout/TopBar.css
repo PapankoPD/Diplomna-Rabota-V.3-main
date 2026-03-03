@@ -7,15 +7,20 @@
     justify-content: space-between;
     align-items: center;
     padding: 0 24px;
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 10;
+    right: 0;
+    left: var(--sidebar-width, 260px);
+    z-index: 1001;
     box-shadow: 0 2px 12px rgba(99, 102, 241, 0.08);
+    transition: left 0.3s ease;
 }
 
 .topbar-transparent {
-    background: transparent;
-    border-bottom: none;
+    background: rgba(240, 238, 255, 0.85);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 2.5px solid rgba(196, 181, 253, 0.3);
     box-shadow: none;
 }
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, FileText, Upload, Users, Shield, User, ChevronLeft, ChevronRight, Search, UsersRound, Tags } from 'lucide-react';
+import { Home, FileText, Upload, Users, Shield, User, ChevronLeft, ChevronRight, School, Tags } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import './Sidebar.css';
 
@@ -10,9 +10,9 @@ export const Sidebar = ({ isOpen, onToggle }) => {
     const menuItems = [
         { to: '/dashboard', icon: Home, label: 'Dashboard', show: true },
         { to: '/materials', icon: FileText, label: 'Materials', show: true },
-        { to: '/search', icon: Search, label: 'Search', show: true },
+
         { to: '/upload', icon: Upload, label: 'Upload', show: hasPermission('materials:create') },
-        { to: '/groups', icon: UsersRound, label: 'Groups', show: true },
+        { to: '/classes', icon: School, label: 'Classes', show: true },
         { to: '/profile', icon: User, label: 'Profile', show: true },
         { to: '/admin/users', icon: Users, label: 'Users', show: hasRole('admin') },
         { to: '/admin/roles', icon: Shield, label: 'Roles', show: hasRole('admin') },

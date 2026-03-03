@@ -19,90 +19,78 @@ router.post('/register', authLimiter, validateRegistration, async (req, res) => 
     const client = await getClient();
 
     try {
-        const { email, username, password } = req.body;
+        const { email, username, password, role, subjectIds } = req.body;
 
         await client.query('BEGIN');
 
-        // Check if email already exists
-        const emailCheck = await client.query(
-            'SELECT id FROM users WHERE email = $1',
-            [email]
-        );
-
+        const emailCheck = await client.query('SELECT id FROM users WHERE email = $1', [email]);
         if (emailCheck.rows.length > 0) {
             await client.query('ROLLBACK');
-            return res.status(409).json({
-                success: false,
-                message: 'Email already registered'
-            });
+            return res.status(409).json({ success: false, message: 'Email already registered' });
         }
 
-        // Check if username already exists
-        const usernameCheck = await client.query(
-            'SELECT id FROM users WHERE username = $1',
-            [username]
-        );
-
+        const usernameCheck = await client.query('SELECT id FROM users WHERE username = $1', [username]);
         if (usernameCheck.rows.length > 0) {
             await client.query('ROLLBACK');
-            return res.status(409).json({
-                success: false,
-                message: 'Username already taken'
-            });
+            return res.status(409).json({ success: false, message: 'Username already taken' });
         }
 
-        // Hash password
         const passwordHash = await hashPassword(password);
 
-        // Create user
         const userResult = await client.query(
-            `INSERT INTO users (email, username, password_hash)
-             VALUES ($1, $2, $3)
+            `INSERT INTO users (email, username, password_hash) VALUES ($1, $2, $3)
              RETURNING id, email, username, created_at`,
             [email, username, passwordHash]
         );
 
         const user = userResult.rows[0];
 
-        // Assign default 'user' role
-        const roleResult = await client.query(
-            'SELECT id FROM roles WHERE name = $1',
-            ['user']
-        );
+        // Determine role: 'teacher' or default 'user'
+        const roleName = role === 'teacher' ? 'teacher' : 'user';
+        const roleResult = await client.query('SELECT id FROM roles WHERE name = $1', [roleName]);
 
-        if (roleResult.rows.length > 0) {
+        // Fallback to user role if teacher role doesn't exist
+        const finalRoleName = roleResult.rows.length > 0 ? roleName : 'user';
+        const finalRoleRes = roleResult.rows.length > 0
+            ? roleResult
+            : await client.query('SELECT id FROM roles WHERE name = $1', ['user']);
+
+        if (finalRoleRes.rows.length > 0) {
             await client.query(
                 'INSERT INTO user_roles (user_id, role_id) VALUES ($1, $2)',
-                [user.id, roleResult.rows[0].id]
+                [user.id, finalRoleRes.rows[0].id]
             );
+        }
+
+        // If teacher, also give materials:create permission via the teacher role
+        // and save selected subjects
+        if (roleName === 'teacher' && Array.isArray(subjectIds) && subjectIds.length > 0) {
+            for (const subjectId of subjectIds) {
+                await client.query(
+                    'INSERT OR IGNORE INTO teacher_subjects (teacher_id, subject_id) VALUES ($1, $2)',
+                    [user.id, subjectId]
+                );
+            }
         }
 
         await client.query('COMMIT');
 
-        // Generate tokens
         const { accessToken, refreshToken } = generateTokenPair(user);
-
-        // Store refresh token hash
         const tokenHash = hashToken(refreshToken);
-        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
         await query(
-            `INSERT INTO refresh_tokens (user_id, token_hash, expires_at)
-             VALUES ($1, $2, $3)`,
+            `INSERT INTO refresh_tokens (user_id, token_hash, expires_at) VALUES ($1, $2, $3)`,
             [user.id, tokenHash, expiresAt]
         );
 
-        // Get user's roles
-        const userRolesResult = await client.query(
-            `SELECT r.id, r.name, r.description
-             FROM roles r
-             INNER JOIN user_roles ur ON r.id = ur.role_id
-             WHERE ur.user_id = $1`,
+        const userRolesResult = await query(
+            `SELECT r.id, r.name, r.description FROM roles r
+             INNER JOIN user_roles ur ON r.id = ur.role_id WHERE ur.user_id = $1`,
             [user.id]
         );
 
-        // Get user's permissions
-        const userPermissionsResult = await client.query(
+        const userPermissionsResult = await query(
             `SELECT DISTINCT p.id, p.name, p.resource, p.action, p.description
              FROM permissions p
              INNER JOIN role_permissions rp ON p.id = rp.permission_id
@@ -130,35 +118,44 @@ router.post('/register', authLimiter, validateRegistration, async (req, res) => 
     } catch (error) {
         await client.query('ROLLBACK');
         console.error('Registration error:', error);
-
-        // Check for specific database errors
         let message = 'Registration failed';
         let statusCode = 500;
-
-        if (error.message && error.message.includes('UNIQUE constraint failed: users.email')) {
-            message = 'Email already registered';
-            statusCode = 409;
-        } else if (error.message && error.message.includes('UNIQUE constraint failed: users.username')) {
-            message = 'Username already taken';
-            statusCode = 409;
-        } else if (error.message) {
-            message = `Registration failed: ${error.message}`;
-        }
-
-        res.status(statusCode).json({
-            success: false,
-            message
-        });
+        if (error.message?.includes('UNIQUE constraint failed: users.email')) { message = 'Email already registered'; statusCode = 409; }
+        else if (error.message?.includes('UNIQUE constraint failed: users.username')) { message = 'Username already taken'; statusCode = 409; }
+        else if (error.message) { message = `Registration failed: ${error.message}`; }
+        res.status(statusCode).json({ success: false, message });
     } finally {
         client.release();
     }
 });
 
 /**
+ * GET /api/auth/my-subjects
+ * Returns subjects assigned to the current teacher
+ */
+router.get('/my-subjects', authenticate, async (req, res) => {
+    try {
+        const result = await query(
+            `SELECT s.id, s.name, s.code, s.description
+             FROM subjects s
+             INNER JOIN teacher_subjects ts ON s.id = ts.subject_id
+             WHERE ts.teacher_id = $1`,
+            [req.user.userId]
+        );
+        res.json({ success: true, data: { subjects: result.rows } });
+    } catch (error) {
+        console.error('Get teacher subjects error:', error);
+        res.status(500).json({ success: false, message: 'Failed to retrieve subjects' });
+    }
+});
+
+
+/**
  * POST /api/auth/login
  * Login user
  */
 router.post('/login', authLimiter, validateLogin, async (req, res) => {
+
     try {
         const { email, password } = req.body;
 

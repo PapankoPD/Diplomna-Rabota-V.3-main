@@ -1,28 +1,42 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useDebounce } from '../hooks/useDebounce';
 import { materialsApi } from '../api/materialsApi';
 import { taxonomyApi } from '../api/taxonomyApi';
 import { searchApi } from '../api/searchApi';
 import { StarRating } from '../components/ratings/StarRating';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { Search, Filter, Download, X, ChevronDown } from 'lucide-react';
+import { Search, Filter, Download, X, ChevronDown, GraduationCap } from 'lucide-react';
 import { formatFileSize, formatRelativeTime } from '../utils/formatters';
 import './MaterialsPage.css';
 
+const FILE_TYPES = [
+    { value: '', label: 'All Types' },
+    { value: 'pdf', label: 'PDF' },
+    { value: 'document', label: 'Documents' },
+    { value: 'image', label: 'Images' },
+    { value: 'video', label: 'Videos' },
+    { value: 'application', label: 'Applications' },
+];
+
 export const MaterialsPage = () => {
+    const [searchParams] = useSearchParams();
     const [materials, setMaterials] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [search, setSearch] = useState('');
+    const [search, setSearch] = useState(() => searchParams.get('q') || '');
     const debouncedSearch = useDebounce(search, 400);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const [showFilters, setShowFilters] = useState(false);
     const navigate = useNavigate();
 
+    // Class filter banner (from grade class navigation)
+    const [activeClassName, setActiveClassName] = useState(() => searchParams.get('class') || '');
+
     // Filter state
+    const [fileType, setFileType] = useState('');
     const [subjectId, setSubjectId] = useState('');
-    const [gradeId, setGradeId] = useState('');
+    const [gradeId, setGradeId] = useState(() => searchParams.get('gradeId') || '');
     const [sortBy, setSortBy] = useState('created_at');
     const [sortOrder, setSortOrder] = useState('desc');
 
@@ -49,7 +63,7 @@ export const MaterialsPage = () => {
 
     useEffect(() => {
         loadMaterials();
-    }, [page, debouncedSearch, subjectId, gradeId, sortBy, sortOrder]);
+    }, [page, debouncedSearch, fileType, subjectId, gradeId, sortBy, sortOrder]);
 
     const loadMaterials = async () => {
         setIsLoading(true);
@@ -62,12 +76,13 @@ export const MaterialsPage = () => {
             };
 
             if (debouncedSearch) params.q = debouncedSearch;
+            if (fileType) params.fileType = fileType;
             if (subjectId) params.subjectId = subjectId;
             if (gradeId) params.gradeId = gradeId;
 
             // Use search endpoint if there's a text query or filters
             let response;
-            if (debouncedSearch || subjectId || gradeId || sortBy !== 'created_at') {
+            if (debouncedSearch || fileType || subjectId || gradeId || sortBy !== 'created_at') {
                 response = await searchApi.searchMaterials(params);
             } else {
                 response = await materialsApi.getMaterials(params);
@@ -92,15 +107,17 @@ export const MaterialsPage = () => {
     };
 
     const clearFilters = () => {
+        setFileType('');
         setSubjectId('');
         setGradeId('');
         setSortBy('created_at');
         setSortOrder('desc');
         setSearch('');
         setPage(1);
+        setActiveClassName('');
     };
 
-    const hasActiveFilters = subjectId || gradeId || sortBy !== 'created_at' || search;
+    const hasActiveFilters = fileType || subjectId || gradeId || sortBy !== 'created_at' || search || activeClassName;
 
     if (isLoading && materials.length === 0) {
         return <LoadingSpinner fullScreen />;
@@ -112,6 +129,16 @@ export const MaterialsPage = () => {
                 <h1>Learning Materials</h1>
                 <p>Browse and download educational resources</p>
             </div>
+
+            {activeClassName && (
+                <div className="class-filter-banner">
+                    <GraduationCap size={16} />
+                    <span>Filtered by class: <strong>{activeClassName}</strong></span>
+                    <button className="class-filter-clear" onClick={clearFilters} title="Clear class filter">
+                        <X size={14} />
+                    </button>
+                </div>
+            )}
 
             <div className="materials-controls">
                 <div className="search-box">
@@ -158,6 +185,17 @@ export const MaterialsPage = () => {
 
             {showFilters && (
                 <div className="filter-panel">
+                    <div className="filter-group">
+                        <label>File Type</label>
+                        <select
+                            value={fileType}
+                            onChange={(e) => { setFileType(e.target.value); setPage(1); }}
+                        >
+                            {FILE_TYPES.map(ft => (
+                                <option key={ft.value} value={ft.value}>{ft.label}</option>
+                            ))}
+                        </select>
+                    </div>
                     <div className="filter-group">
                         <label>Subject</label>
                         <select

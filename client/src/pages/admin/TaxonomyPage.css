@@ -1,3 +1,173 @@
+/* ── Page header title ─────────────────────────────────────────────────── */
+.page-header-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--primary-dark);
+}
+
+.page-header-title h1 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 900;
+}
+
+.page-header-title .tab-count {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 800;
+}
+
+/* ── Grade row expand ─────────────────────────────────────────────────── */
+.grade-row {
+    transition: background 0.15s;
+}
+
+.grade-row:hover td {
+    background: #f0eeff !important;
+}
+
+.grade-row-open td {
+    background: #f5f3ff !important;
+    border-bottom: none !important;
+}
+
+.expand-icon {
+    display: flex;
+    align-items: center;
+    color: var(--primary);
+    opacity: 0.6;
+}
+
+/* ── Classes panel (expanded row) ─────────────────────────────────────── */
+.classes-row td {
+    padding: 0 !important;
+    border-bottom: 2px solid #ede9fe !important;
+    background: #faf9ff !important;
+}
+
+.classes-panel {
+    padding: 14px 20px 14px 52px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.classes-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.classes-title {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.classes-loading {
+    padding: 8px 0;
+}
+
+.classes-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 28px;
+}
+
+.classes-empty {
+    font-size: 13px;
+    color: var(--gray-400);
+    font-style: italic;
+}
+
+.class-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+    border: 1.5px solid #c4b5fd;
+    border-radius: var(--radius-pill);
+    padding: 4px 10px 4px 12px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--primary-dark);
+}
+
+.class-chip-del {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #a78bfa;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    border-radius: 50%;
+    transition: color 0.15s, background 0.15s;
+}
+
+.class-chip-del:hover {
+    color: #dc2626;
+    background: #fef2f2;
+}
+
+.add-class-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.add-class-input {
+    flex: 1;
+    max-width: 260px;
+    padding: 7px 12px;
+    border: 2px solid #c4b5fd;
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    outline: none;
+    background: white;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.add-class-input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.add-class-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border: none;
+    padding: 7px 16px;
+    border-radius: var(--radius-pill);
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+}
+
+.add-class-btn:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: scale(1.03);
+}
+
+.add-class-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* ── Taxonomy page header ─────────────────────────────────────────────── */
 .taxonomy-page .page-header {
     display: flex;

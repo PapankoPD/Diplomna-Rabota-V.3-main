@@ -6,8 +6,13 @@ export const authApi = {
         return response.data;
     },
 
-    register: async (email, username, password) => {
-        const response = await apiClient.post('/auth/register', { email, username, password });
+    register: async (email, username, password, role, subjectIds) => {
+        const response = await apiClient.post('/auth/register', { email, username, password, role, subjectIds });
+        return response.data;
+    },
+
+    getMySubjects: async () => {
+        const response = await apiClient.get('/auth/my-subjects');
         return response.data;
     },
 

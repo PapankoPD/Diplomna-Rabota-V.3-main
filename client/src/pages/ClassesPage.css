@@ -1,0 +1,363 @@
+/* ── Page ─────────────────────────────────────────────────────────────── */
+.classes-page {
+    max-width: 900px;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────── */
+.classes-header {
+    margin-bottom: 28px;
+}
+
+.classes-header-title {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: var(--primary);
+}
+
+.classes-header-title h1 {
+    margin: 0 0 4px 0;
+    font-size: 28px;
+    font-weight: 900;
+    color: var(--gray-900);
+}
+
+.classes-header-title p {
+    margin: 0;
+    color: var(--gray-500);
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* ── Error banner ─────────────────────────────────────────────────────── */
+.classes-error {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #fef2f2;
+    border: 2px solid #fecaca;
+    color: #dc2626;
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.classes-error button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #dc2626;
+    display: flex;
+    align-items: center;
+}
+
+/* ── Empty state ──────────────────────────────────────────────────────── */
+.classes-empty-state {
+    text-align: center;
+    padding: 64px 24px;
+    color: var(--gray-400);
+}
+
+.classes-empty-state h3 {
+    font-size: 20px;
+    font-weight: 800;
+    margin: 16px 0 8px;
+    color: var(--gray-600);
+}
+
+.classes-empty-state p {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* ── Grades list ──────────────────────────────────────────────────────── */
+.grades-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.grade-block {
+    background: white;
+    border-radius: var(--radius-lg);
+    border: 2.5px solid var(--gray-100);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    transition: border-color 0.2s;
+}
+
+.grade-block.open {
+    border-color: #c4b5fd;
+}
+
+.grade-block-header {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.15s;
+    font-family: inherit;
+}
+
+.grade-block-header:hover {
+    background: #f5f3ff;
+}
+
+.grade-block-left {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--primary);
+}
+
+.grade-block-name {
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--gray-900);
+}
+
+.grade-cat-badge {
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.cat-k12 {
+    background: #dbeafe;
+    color: #2563eb;
+    border: 1.5px solid #bfdbfe;
+}
+
+.cat-undergraduate {
+    background: #ede9fe;
+    color: #7c3aed;
+    border: 1.5px solid #c4b5fd;
+}
+
+.cat-graduate {
+    background: #fce7f3;
+    color: #db2777;
+    border: 1.5px solid #fbcfe8;
+}
+
+.grade-class-count {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gray-400);
+}
+
+/* ── Classes panel ────────────────────────────────────────────────────── */
+.classes-panel {
+    padding: 16px 20px 20px;
+    border-top: 2px dashed #ede9fe;
+    background: #faf9ff;
+}
+
+.no-classes-msg {
+    color: var(--gray-400);
+    font-size: 14px;
+    font-weight: 600;
+    font-style: italic;
+}
+
+.classes-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 14px;
+}
+
+/* ── Class card ───────────────────────────────────────────────────────── */
+.class-card {
+    background: white;
+    border-radius: var(--radius-md);
+    border: 2px solid #ede9fe;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.class-card:hover {
+    border-color: #c4b5fd;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.08);
+}
+
+.class-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.class-name {
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--primary-dark);
+}
+
+.teacher-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #dcfce7;
+    color: #15803d;
+    border: 1.5px solid #86efac;
+    border-radius: var(--radius-pill);
+    padding: 3px 9px;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+.teacher-info {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.teacher-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.teacher-name {
+    display: block;
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--gray-800);
+}
+
+.teacher-email {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-400);
+}
+
+.no-teacher {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--gray-400);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* ── Assign controls ──────────────────────────────────────────────────── */
+.btn-assign-teacher {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #f5f3ff;
+    border: 1.5px solid #c4b5fd;
+    color: var(--primary);
+    padding: 7px 12px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    align-self: flex-start;
+}
+
+.btn-assign-teacher:hover {
+    background: #ede9fe;
+    transform: scale(1.03);
+}
+
+.btn-remove-teacher {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #fef2f2;
+    border: 1.5px solid #fecaca;
+    color: #dc2626;
+    padding: 5px 10px;
+    border-radius: var(--radius-pill);
+    font-size: 11px;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.2s;
+}
+
+.btn-remove-teacher:hover {
+    background: #fee2e2;
+}
+
+.assign-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.teacher-select {
+    flex: 1;
+    min-width: 0;
+    padding: 7px 10px;
+    border: 2px solid #c4b5fd;
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    outline: none;
+    background: white;
+}
+
+.teacher-select:focus {
+    border-color: var(--primary);
+}
+
+.btn-save-assign {
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border: none;
+    padding: 7px 14px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.btn-save-assign:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn-cancel-assign {
+    background: white;
+    border: 2px solid var(--gray-200);
+    color: var(--gray-600);
+    padding: 7px 12px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.btn-cancel-assign:hover {
+    border-color: var(--gray-400);
+}
