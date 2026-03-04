@@ -13,9 +13,10 @@ import { EditMaterialPage } from './pages/EditMaterialPage';
 import { ProfilePage } from './pages/ProfilePage';
 
 import { ClassesPage } from './pages/ClassesPage';
+import { ClassMaterialsPage } from './pages/ClassMaterialsPage';
 import { UsersPage } from './pages/admin/UsersPage';
 import { RolesPage } from './pages/admin/RolesPage';
-import { TaxonomyPage } from './pages/admin/TaxonomyPage';
+import { TeacherCodesPage } from './pages/admin/TeacherCodesPage';
 
 function App() {
   return (
@@ -43,12 +44,13 @@ function App() {
             <Route path="upload" element={<UploadMaterialPage />} />
 
             <Route path="classes" element={<ClassesPage />} />
+            <Route path="classes/:classId/materials" element={<ClassMaterialsPage />} />
             <Route path="profile" element={<ProfilePage />} />
 
             {/* Admin routes */}
             <Route path="admin/users" element={<UsersPage />} />
             <Route path="admin/roles" element={<RolesPage />} />
-            <Route path="admin/taxonomy" element={<TaxonomyPage />} />
+            <Route path="admin/teacher-codes" element={<TeacherCodesPage />} />
           </Route>
 
           {/* Catch all */}

@@ -185,21 +185,21 @@ export const DashboardPage = () => {
                     <div className="materials-list">
                         {trendingMaterials.map((material, i) => (
                             <div
-                                key={material.id}
+                                key={material.materialId}
                                 className="material-item"
-                                onClick={() => navigate(`/materials/${material.id}`)}
+                                onClick={() => navigate(`/materials/${material.materialId}`)}
                             >
                                 <div className="material-rank">#{i + 1}</div>
-                                <div className="material-file-icon">{fileEmoji(material.file_type)}</div>
+                                <div className="material-file-icon">{fileEmoji(material.fileType || material.file_type)}</div>
                                 <div className="material-info">
                                     <h3>{material.title}</h3>
                                     <p>{material.description}</p>
                                 </div>
                                 <div className="material-meta">
-                                    {material.file_type && (
-                                        <span className="meta-chip chip-type">{material.file_type.toUpperCase()}</span>
+                                    {(material.fileType || material.file_type) && (
+                                        <span className="meta-chip chip-type">{(material.fileType || material.file_type).toUpperCase()}</span>
                                     )}
-                                    <span className="meta-chip chip-downloads">⬇️ {material.download_count}</span>
+                                    <span className="meta-chip chip-downloads">⬇️ {material.downloadCount ?? material.download_count ?? 0}</span>
                                 </div>
                             </div>
                         ))}

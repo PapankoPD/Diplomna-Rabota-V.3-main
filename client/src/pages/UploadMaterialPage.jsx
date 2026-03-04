@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { materialsApi } from '../api/materialsApi';
 import { taxonomyApi } from '../api/taxonomyApi';
 import { authApi } from '../api/authApi';
+import apiClient from '../api/apiClient';
 import { useAuth } from '../hooks/useAuth';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { Upload, X, FileText, AlertCircle, BookOpen } from 'lucide-react';
@@ -20,19 +21,29 @@ export const UploadMaterialPage = () => {
         title: '',
         description: '',
         is_public: true,
-        category_id: ''
+        category_id: '',
+        class_id: ''
     });
 
     const [categories, setCategories] = useState([]);
-    const [teacherSubjects, setTeacherSubjects] = useState(null); // null = not loaded yet
+    const [teacherSubjects, setTeacherSubjects] = useState(null);
+    const [teacherClasses, setTeacherClasses] = useState(null); // null = loading
 
     React.useEffect(() => {
         const fetchCategories = async () => {
             try {
                 if (isTeacher) {
-                    // Load only this teacher's subjects
-                    const res = await authApi.getMySubjects();
-                    setTeacherSubjects(res.data?.subjects || []);
+                    const [subjRes, classRes] = await Promise.all([
+                        authApi.getMySubjects(),
+                        apiClient.get('/classes')
+                    ]);
+                    setTeacherSubjects(subjRes.data?.subjects || []);
+                    // Flatten all classes across grades
+                    const grades = classRes.data?.data?.grades || [];
+                    const allClasses = grades.flatMap(g =>
+                        (g.classes || []).map(c => ({ id: c.id, label: `${g.name} — ${c.name}` }))
+                    );
+                    setTeacherClasses(allClasses);
                 } else {
                     const response = await taxonomyApi.getSubjects();
                     if (response.success) setCategories(response.data.subjects);
@@ -199,6 +210,10 @@ export const UploadMaterialPage = () => {
                 data.append('subjectIds', JSON.stringify([formData.category_id]));
             }
 
+            if (formData.class_id) {
+                data.append('classId', formData.class_id);
+            }
+
             // Real progress tracking via axios onUploadProgress
             const onUploadProgress = (progressEvent) => {
                 if (progressEvent.total) {
@@ -306,6 +321,34 @@ export const UploadMaterialPage = () => {
                             </select>
                         )}
                     </div>
+
+                    {/* Class dropdown — teachers only */}
+                    {isTeacher && (
+                        <div className="form-group">
+                            <label htmlFor="class_id">Class</label>
+                            {teacherClasses === null ? (
+                                <p style={{ color: 'var(--gray-400)', fontSize: 14 }}>Loading classes...</p>
+                            ) : teacherClasses.length === 0 ? (
+                                <p style={{ color: 'var(--gray-400)', fontSize: 14, fontWeight: 600 }}>
+                                    No classes assigned — contact an admin.
+                                </p>
+                            ) : (
+                                <select
+                                    id="class_id"
+                                    name="class_id"
+                                    value={formData.class_id}
+                                    onChange={handleInputChange}
+                                    disabled={isUploading}
+                                    className="form-select"
+                                >
+                                    <option value="">Select a class...</option>
+                                    {teacherClasses.map(cls => (
+                                        <option key={cls.id} value={cls.id}>{cls.label}</option>
+                                    ))}
+                                </select>
+                            )}
+                        </div>
+                    )}
 
                     <div className="form-group">
                         <label>Files * <span className="file-count-badge">{files.length}/10</span></label>

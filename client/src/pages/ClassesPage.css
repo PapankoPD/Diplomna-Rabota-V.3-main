@@ -361,3 +361,194 @@
 .btn-cancel-assign:hover {
     border-color: var(--gray-400);
 }
+
+/* ── Teacher-view (personal classes) ─────────────────────────────────── */
+.class-card.teacher-view {
+    border-color: #c4b5fd;
+    background: linear-gradient(145deg, #faf5ff, #f5f3ff);
+}
+
+.teacher-badge.self {
+    background: #ede9fe;
+    color: var(--primary);
+    border-color: #c4b5fd;
+}
+
+/* ── Student view ─────────────────────────────────────────────────────── */
+.student-class-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Hero card */
+.student-class-hero {
+    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 60%, #6366f1 100%);
+    border-radius: var(--radius-lg);
+    padding: 32px 28px;
+    color: white;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 20px;
+    box-shadow: 0 8px 32px rgba(99, 102, 241, 0.28);
+    flex-wrap: wrap;
+}
+
+.hero-left {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.hero-grade-badge {
+    display: inline-block;
+    background: rgba(255, 255, 255, 0.18);
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    border-radius: var(--radius-pill);
+    padding: 3px 12px;
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    width: fit-content;
+}
+
+.hero-class-name {
+    font-size: 36px;
+    font-weight: 900;
+    margin: 0;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.hero-teacher,
+.hero-students-count {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    opacity: 0.9;
+}
+
+.hero-teacher.no-teacher {
+    opacity: 0.55;
+    font-style: italic;
+}
+
+.hero-materials-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: white;
+    color: #4f46e5;
+    border: none;
+    border-radius: var(--radius-pill);
+    padding: 12px 22px;
+    font-size: 14px;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.hero-materials-btn:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+}
+
+/* Classmates */
+.classmates-card {
+    background: white;
+    border: 2.5px solid var(--gray-100);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-sm);
+}
+
+.classmates-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    color: var(--primary);
+}
+
+.classmates-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 900;
+    color: var(--gray-900);
+    flex: 1;
+}
+
+.classmates-count {
+    background: var(--primary);
+    color: white;
+    border-radius: var(--radius-pill);
+    padding: 2px 10px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.classmates-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+}
+
+.classmate-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f8f7ff;
+    border: 1.5px solid #ede9fe;
+    border-radius: var(--radius-md);
+    padding: 8px 12px;
+    transition: border-color 0.18s, background 0.18s, transform 0.18s;
+    cursor: default;
+}
+
+.classmate-chip:hover {
+    border-color: #c4b5fd;
+    background: #f5f3ff;
+    transform: translateY(-1px);
+}
+
+.classmate-chip.classmate-self {
+    border-color: #a5b4fc;
+    background: #eef2ff;
+}
+
+.classmate-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 900;
+    color: white;
+    flex-shrink: 0;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.classmate-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--gray-800);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.classmate-name em {
+    font-style: normal;
+    font-weight: 600;
+    color: var(--primary);
+    font-size: 11px;
+}

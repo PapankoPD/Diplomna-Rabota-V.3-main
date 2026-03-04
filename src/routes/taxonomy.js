@@ -13,7 +13,7 @@ const {
  * GET /api/taxonomy/subjects
  * Get all subjects with statistics
  */
-router.get('/subjects', authenticate, async (req, res) => {
+router.get('/subjects', async (req, res) => {
     try {
         const includeStats = req.query.stats === 'true';
 

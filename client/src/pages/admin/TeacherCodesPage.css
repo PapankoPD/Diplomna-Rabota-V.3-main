@@ -1,0 +1,221 @@
+.tcp-page {
+    max-width: 820px;
+}
+
+.tcp-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.tcp-header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.tcp-icon {
+    color: var(--primary);
+}
+
+.tcp-header-left h1 {
+    margin: 0 0 4px;
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--gray-900);
+}
+
+.tcp-header-left p {
+    margin: 0;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-500);
+}
+
+.tcp-header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.btn-refresh {
+    background: white;
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-md);
+    padding: 8px;
+    cursor: pointer;
+    color: var(--gray-500);
+    display: flex;
+    align-items: center;
+    transition: border-color 0.2s, color 0.2s;
+}
+
+.btn-refresh:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.btn-generate {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: linear-gradient(135deg, var(--primary), var(--secondary));
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: var(--radius-pill);
+    font-size: 14px;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+}
+
+.btn-generate:hover:not(:disabled) {
+    transform: translateY(-2px);
+    opacity: 0.92;
+}
+
+.btn-generate:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.tcp-error {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fef2f2;
+    border: 2px solid #fecaca;
+    color: #dc2626;
+    padding: 12px 16px;
+    border-radius: var(--radius-md);
+    margin-bottom: 20px;
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.tcp-error button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #dc2626;
+    font-size: 16px;
+}
+
+.tcp-empty {
+    text-align: center;
+    padding: 60px 24px;
+    color: var(--gray-400);
+}
+
+.tcp-empty p {
+    margin-top: 12px;
+    font-weight: 600;
+}
+
+.tcp-section {
+    margin-bottom: 32px;
+}
+
+.tcp-section-title {
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--gray-500);
+    margin-bottom: 14px;
+}
+
+.tcp-codes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 14px;
+}
+
+.tcp-code-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    border: 2.5px solid var(--gray-100);
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    box-shadow: var(--shadow-sm);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.tcp-code-card.available {
+    border-color: #c4b5fd;
+}
+
+.tcp-code-card.available:hover {
+    box-shadow: 0 4px 16px rgba(99, 102, 241, 0.12);
+}
+
+.tcp-code-card.used {
+    opacity: 0.65;
+    border-style: dashed;
+}
+
+.tcp-code-value {
+    font-size: 22px;
+    font-weight: 900;
+    letter-spacing: 0.18em;
+    color: var(--primary-dark);
+    font-family: 'Courier New', monospace;
+}
+
+.tcp-code-meta {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--gray-400);
+}
+
+.tcp-code-actions {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.btn-copy {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+    justify-content: center;
+    background: #ede9fe;
+    border: 1.5px solid #c4b5fd;
+    color: var(--primary);
+    padding: 7px 12px;
+    border-radius: var(--radius-pill);
+    font-size: 12px;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-copy:hover {
+    background: #ddd6fe;
+}
+
+.btn-delete {
+    display: inline-flex;
+    align-items: center;
+    background: #fef2f2;
+    border: 1.5px solid #fecaca;
+    color: #dc2626;
+    padding: 7px 10px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.btn-delete:hover {
+    background: #fee2e2;
+}

@@ -13,6 +13,7 @@ export const RegisterPage = () => {
     const [role, setRole] = useState('student');
     const [subjects, setSubjects] = useState([]);           // all subjects from API
     const [selectedSubjects, setSelectedSubjects] = useState([]); // teacher's chosen subjects
+    const [teacherCode, setTeacherCode] = useState('');
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const { register } = useAuth();
@@ -45,13 +46,18 @@ export const RegisterPage = () => {
         if (!passwordValidation.isValid) { setError('Password must be at least 8 characters with uppercase, lowercase, number, and special character'); return; }
         if (password !== confirmPassword) { setError('Passwords do not match'); return; }
 
+        if (role === 'teacher' && !teacherCode.trim()) {
+            setError('Please enter the teacher registration code.');
+            return;
+        }
+
         if (role === 'teacher' && selectedSubjects.length === 0) {
             setError('Please select at least one subject you will be teaching.');
             return;
         }
 
         setIsLoading(true);
-        const result = await register(email, username, password, role, role === 'teacher' ? selectedSubjects : []);
+        const result = await register(email, username, password, role, role === 'teacher' ? selectedSubjects : [], role === 'teacher' ? teacherCode.trim() : undefined);
         setIsLoading(false);
 
         if (result.success) {
@@ -107,7 +113,7 @@ export const RegisterPage = () => {
                             <button
                                 type="button"
                                 className={`role-btn ${role === 'student' ? 'active' : ''}`}
-                                onClick={() => { setRole('student'); setSelectedSubjects([]); }}
+                                onClick={() => { setRole('student'); setSelectedSubjects([]); setTeacherCode(''); }}
                                 disabled={isLoading}
                             >
                                 🎓 Student
@@ -123,29 +129,47 @@ export const RegisterPage = () => {
                         </div>
                     </div>
 
-                    {/* Subject picker — only for teachers */}
+                    {/* Teacher-only fields */}
                     {role === 'teacher' && (
-                        <div className="form-group">
-                            <label>Subjects you will teach <span className="req">*</span></label>
-                            <p className="form-hint">Select all subjects that apply</p>
-                            {subjects.length === 0 ? (
-                                <p className="form-hint">Loading subjects...</p>
-                            ) : (
-                                <div className="subject-chips">
-                                    {subjects.map(s => (
-                                        <button
-                                            key={s.id}
-                                            type="button"
-                                            className={`subject-chip ${selectedSubjects.includes(s.id) ? 'selected' : ''}`}
-                                            onClick={() => toggleSubject(s.id)}
-                                            disabled={isLoading}
-                                        >
-                                            {s.name}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
+                        <>
+                            {/* Registration code */}
+                            <div className="form-group">
+                                <label htmlFor="teacherCode">Teacher Registration Code <span className="req">*</span></label>
+                                <p className="form-hint">Enter the code provided by your administrator</p>
+                                <input
+                                    id="teacherCode"
+                                    type="text"
+                                    value={teacherCode}
+                                    onChange={e => setTeacherCode(e.target.value.toUpperCase())}
+                                    placeholder="e.g. 3806F183"
+                                    disabled={isLoading}
+                                    style={{ letterSpacing: '0.15em', fontWeight: 700 }}
+                                />
+                            </div>
+
+                            {/* Subject picker */}
+                            <div className="form-group">
+                                <label>Subjects you will teach <span className="req">*</span></label>
+                                <p className="form-hint">Select all subjects that apply</p>
+                                {subjects.length === 0 ? (
+                                    <p className="form-hint">Loading subjects...</p>
+                                ) : (
+                                    <div className="subject-chips">
+                                        {subjects.map(s => (
+                                            <button
+                                                key={s.id}
+                                                type="button"
+                                                className={`subject-chip ${selectedSubjects.includes(s.id) ? 'selected' : ''}`}
+                                                onClick={() => toggleSubject(s.id)}
+                                                disabled={isLoading}
+                                            >
+                                                {s.name}
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </>
                     )}
 
                     <button type="submit" className="register-btn" disabled={isLoading}>

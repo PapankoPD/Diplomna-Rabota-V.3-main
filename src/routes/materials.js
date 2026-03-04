@@ -55,7 +55,17 @@ router.post('/', authenticate, requirePermission('materials:create'), uploadMidd
         // Assign taxonomy (subjects, topics, grades, categories)
         await assignTaxonomy(client, material.id, taxonomy);
 
+        // Link to a specific grade class if provided
+        const classId = req.body.classId ? parseInt(req.body.classId) : null;
+        if (classId) {
+            await client.query(
+                `INSERT OR IGNORE INTO material_grade_classes (material_id, class_id) VALUES ($1, $2)`,
+                [material.id, classId]
+            );
+        }
+
         await client.query('COMMIT');
+
 
         res.status(201).json({
             success: true,

@@ -19,7 +19,7 @@ router.post('/register', authLimiter, validateRegistration, async (req, res) => 
     const client = await getClient();
 
     try {
-        const { email, username, password, role, subjectIds } = req.body;
+        const { email, username, password, role, subjectIds, teacherCode } = req.body;
 
         await client.query('BEGIN');
 
@@ -35,6 +35,39 @@ router.post('/register', authLimiter, validateRegistration, async (req, res) => 
             return res.status(409).json({ success: false, message: 'Username already taken' });
         }
 
+        // Validate teacher code if registering as teacher
+        let validCode = null;
+        if (role === 'teacher') {
+            if (!teacherCode) {
+                await client.query('ROLLBACK');
+                return res.status(400).json({ success: false, message: 'A teacher registration code is required' });
+            }
+
+            const codeRes = await client.query(
+                `SELECT id, is_used, expires_at FROM teacher_registration_codes WHERE code = $1`,
+                [teacherCode.trim().toUpperCase()]
+            );
+
+            if (codeRes.rows.length === 0) {
+                await client.query('ROLLBACK');
+                return res.status(400).json({ success: false, message: 'Invalid teacher registration code' });
+            }
+
+            const codeRow = codeRes.rows[0];
+
+            if (codeRow.is_used) {
+                await client.query('ROLLBACK');
+                return res.status(400).json({ success: false, message: 'This code has already been used' });
+            }
+
+            if (codeRow.expires_at && new Date(codeRow.expires_at) < new Date()) {
+                await client.query('ROLLBACK');
+                return res.status(400).json({ success: false, message: 'This code has expired' });
+            }
+
+            validCode = codeRow.id;
+        }
+
         const passwordHash = await hashPassword(password);
 
         const userResult = await client.query(
@@ -45,15 +78,14 @@ router.post('/register', authLimiter, validateRegistration, async (req, res) => 
 
         const user = userResult.rows[0];
 
-        // Determine role: 'teacher' or default 'user'
-        const roleName = role === 'teacher' ? 'teacher' : 'user';
+        // Determine role: 'teacher' or default 'student'
+        const roleName = role === 'teacher' ? 'teacher' : 'student';
         const roleResult = await client.query('SELECT id FROM roles WHERE name = $1', [roleName]);
 
-        // Fallback to user role if teacher role doesn't exist
-        const finalRoleName = roleResult.rows.length > 0 ? roleName : 'user';
+        // Fallback to student role if not found
         const finalRoleRes = roleResult.rows.length > 0
             ? roleResult
-            : await client.query('SELECT id FROM roles WHERE name = $1', ['user']);
+            : await client.query('SELECT id FROM roles WHERE name = $1', ['student']);
 
         if (finalRoleRes.rows.length > 0) {
             await client.query(
@@ -62,8 +94,7 @@ router.post('/register', authLimiter, validateRegistration, async (req, res) => 
             );
         }
 
-        // If teacher, also give materials:create permission via the teacher role
-        // and save selected subjects
+        // Save teacher subjects
         if (roleName === 'teacher' && Array.isArray(subjectIds) && subjectIds.length > 0) {
             for (const subjectId of subjectIds) {
                 await client.query(
@@ -73,7 +104,16 @@ router.post('/register', authLimiter, validateRegistration, async (req, res) => 
             }
         }
 
+        // Mark code as used
+        if (validCode) {
+            await client.query(
+                `UPDATE teacher_registration_codes SET is_used = 1, used_by = $1 WHERE id = $2`,
+                [user.id, validCode]
+            );
+        }
+
         await client.query('COMMIT');
+
 
         const { accessToken, refreshToken } = generateTokenPair(user);
         const tokenHash = hashToken(refreshToken);

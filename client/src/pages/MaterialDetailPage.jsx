@@ -36,17 +36,27 @@ export const MaterialDetailPage = () => {
     const loadMaterialData = async () => {
         setIsLoading(true);
         try {
-            const [materialData, ratingData, similarData] = await Promise.all([
+            const [materialResult, ratingResult, similarResult] = await Promise.allSettled([
                 materialsApi.getMaterialById(id),
                 ratingsApi.getUserRating(id),
                 recommendationsApi.getSimilar(id)
             ]);
-            setMaterial(materialData.data?.material || materialData.data);
-            if (ratingData.data) {
-                setUserRating(ratingData.data.rating);
+
+            // Material is required — if it failed, show error
+            if (materialResult.status === 'rejected') {
+                throw materialResult.reason;
             }
-            if (similarData.success) {
-                setSimilarMaterials(similarData.data.similar);
+            const materialData = materialResult.value;
+            setMaterial(materialData.data?.material || materialData.data);
+
+            // Ratings are optional
+            if (ratingResult.status === 'fulfilled' && ratingResult.value?.data) {
+                setUserRating(ratingResult.value.data.rating);
+            }
+
+            // Similar materials are optional
+            if (similarResult.status === 'fulfilled' && similarResult.value?.success) {
+                setSimilarMaterials(similarResult.value.data.similar);
             }
         } catch (err) {
             console.error('Failed to load material:', err);

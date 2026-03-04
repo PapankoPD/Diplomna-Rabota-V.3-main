@@ -1,6 +1,7 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Home, FileText, Upload, Users, Shield, User, ChevronLeft, ChevronRight, School, Tags } from 'lucide-react';
+import { Home, FileText, Upload, Users, Shield, User, ChevronLeft, ChevronRight, School, Tags, Key } from 'lucide-react';
+
 import { useAuth } from '../../hooks/useAuth';
 import './Sidebar.css';
 
@@ -16,7 +17,8 @@ export const Sidebar = ({ isOpen, onToggle }) => {
         { to: '/profile', icon: User, label: 'Profile', show: true },
         { to: '/admin/users', icon: Users, label: 'Users', show: hasRole('admin') },
         { to: '/admin/roles', icon: Shield, label: 'Roles', show: hasRole('admin') },
-        { to: '/admin/taxonomy', icon: Tags, label: 'Taxonomy', show: hasRole('admin') },
+        { to: '/admin/teacher-codes', icon: Key, label: 'Teacher Codes', show: hasRole('admin') },
+
     ];
 
 

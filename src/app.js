@@ -48,6 +48,8 @@ app.use('/api/groups', require('./routes/groups'));
 app.use('/api/recommendations', require('./routes/recommendations'));
 app.use('/api/comments', require('./routes/comments'));
 app.use('/api/ratings', require('./routes/ratings'));
+app.use('/api/admin', require('./routes/admin'));
+
 
 // Root endpoint
 app.get('/', (req, res) => {
