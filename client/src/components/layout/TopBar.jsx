@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, Bell, User, LogOut, Search } from 'lucide-react';
+import { Menu, User, LogOut, Search } from 'lucide-react';
+import { NotificationsDropdown } from './NotificationsDropdown';
 import { useAuth } from '../../hooks/useAuth';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './TopBar.css';
 
-export const TopBar = ({ onMenuClick }) => {
+export const TopBar = () => {
     const { user, logout } = useAuth();
     const [showUserMenu, setShowUserMenu] = useState(false);
     const menuRef = useRef(null);
@@ -60,9 +61,7 @@ export const TopBar = ({ onMenuClick }) => {
                 )}
             </div>
             <div className="topbar-right">
-                <button className="icon-btn">
-                    <Bell size={20} />
-                </button>
+                <NotificationsDropdown />
 
                 <div className="user-menu" ref={menuRef}>
                     <button

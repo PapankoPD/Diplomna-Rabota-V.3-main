@@ -82,7 +82,7 @@ export const SearchPage = () => {
             const params = {
                 q: searchQuery.trim(),
                 page,
-                limit: 12,
+                limit: 9,
                 sortBy,
                 sortOrder: 'desc'
             };

@@ -280,6 +280,26 @@
     border: 1.5px solid #fecaca;
 }
 
+.badge.archived {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #fff7ed;
+    color: #c2410c;
+    border: 1.5px solid #fed7aa;
+}
+
+.btn-archive {
+    background: #fff7ed;
+    border-color: #fed7aa;
+    color: #c2410c;
+}
+
+.btn-archive:hover {
+    background: #ffedd5;
+    transform: scale(1.04);
+}
+
 /* ── Error ───────────────────────────────────────────────────────────────── */
 .error-container {
     text-align: center;

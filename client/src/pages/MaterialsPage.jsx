@@ -6,7 +6,7 @@ import { taxonomyApi } from '../api/taxonomyApi';
 import { searchApi } from '../api/searchApi';
 import { StarRating } from '../components/ratings/StarRating';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { Search, Filter, Download, X, ChevronDown, GraduationCap } from 'lucide-react';
+import { Search, Filter, Download, X, ChevronDown, GraduationCap, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatFileSize, formatRelativeTime } from '../utils/formatters';
 import './MaterialsPage.css';
 
@@ -70,7 +70,7 @@ export const MaterialsPage = () => {
         try {
             const params = {
                 page,
-                limit: 12,
+                limit: 9,
                 sortBy,
                 sortOrder,
             };
@@ -80,16 +80,22 @@ export const MaterialsPage = () => {
             if (subjectId) params.subjectId = subjectId;
             if (gradeId) params.gradeId = gradeId;
 
-            // Use search endpoint if there's a text query or filters
+            // Use search endpoint ONLY if there's a text query or taxonomy filters
             let response;
-            if (debouncedSearch || fileType || subjectId || gradeId || sortBy !== 'created_at') {
+            if (debouncedSearch || fileType || subjectId || gradeId) {
                 response = await searchApi.searchMaterials(params);
             } else {
                 response = await materialsApi.getMaterials(params);
             }
 
-            setMaterials(response.data?.materials || response.data || []);
-            setTotalPages(response.data?.pagination?.totalPages || 1);
+            // searchApi returns { success, data: { materials: [], pagination: {} } }
+            // materialsApi returns { success, data: [], pagination: {} }
+            
+            const materialsArray = response.data?.materials || response.data || [];
+            const paginationData = response.data?.pagination || response.pagination || {};
+
+            setMaterials(materialsArray);
+            setTotalPages(paginationData.totalPages || 1);
         } catch (error) {
             console.error('Failed to load materials:', error);
         } finally {
@@ -115,6 +121,48 @@ export const MaterialsPage = () => {
         setSearch('');
         setPage(1);
         setActiveClassName('');
+    };
+
+    const renderPagination = () => {
+        const pages = [];
+        const maxVisiblePages = 5;
+
+        let startPage = Math.max(1, page - Math.floor(maxVisiblePages / 2));
+        let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+        if (endPage - startPage + 1 < maxVisiblePages) {
+            startPage = Math.max(1, endPage - maxVisiblePages + 1);
+        }
+
+        if (startPage > 1) {
+            pages.push(
+                <button key={1} onClick={() => setPage(1)} className={page === 1 ? 'active' : ''}>1</button>
+            );
+            if (startPage > 2) {
+                pages.push(<span key="ellipsis-start" className="pagination-ellipsis">...</span>);
+            }
+        }
+
+        for (let p = startPage; p <= endPage; p++) {
+            pages.push(
+                <button key={p} onClick={() => setPage(p)} className={page === p ? 'active' : ''}>
+                    {p}
+                </button>
+            );
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                pages.push(<span key="ellipsis-end" className="pagination-ellipsis">...</span>);
+            }
+            pages.push(
+                <button key={totalPages} onClick={() => setPage(totalPages)} className={page === totalPages ? 'active' : ''}>
+                    {totalPages}
+                </button>
+            );
+        }
+
+        return pages;
     };
 
     const hasActiveFilters = fileType || subjectId || gradeId || sortBy !== 'created_at' || search || activeClassName;
@@ -278,15 +326,23 @@ export const MaterialsPage = () => {
                             <button
                                 onClick={() => setPage(p => Math.max(1, p - 1))}
                                 disabled={page === 1}
+                                className="pagination-nav-btn"
                             >
+                                <ChevronLeft size={16} />
                                 Previous
                             </button>
-                            <span>Page {page} of {totalPages}</span>
+
+                            <div className="pagination-numbers">
+                                {renderPagination()}
+                            </div>
+
                             <button
                                 onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                                 disabled={page === totalPages}
+                                className="pagination-nav-btn"
                             >
                                 Next
+                                <ChevronRight size={16} />
                             </button>
                         </div>
                     )}

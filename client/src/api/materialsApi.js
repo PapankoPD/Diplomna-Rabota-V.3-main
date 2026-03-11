@@ -70,4 +70,19 @@ export const materialsApi = {
         const response = await apiClient.delete(`/materials/${id}/versions/${versionId}`);
         return response.data;
     },
+
+    archiveMaterial: async (id) => {
+        const response = await apiClient.put(`/materials/${id}/archive`);
+        return response.data;
+    },
+
+    unarchiveMaterial: async (id) => {
+        const response = await apiClient.put(`/materials/${id}/unarchive`);
+        return response.data;
+    },
+
+    getArchivedMaterials: async () => {
+        const response = await apiClient.get('/materials/archived');
+        return response.data;
+    },
 };

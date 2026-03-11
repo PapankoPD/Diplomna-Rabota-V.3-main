@@ -23,7 +23,7 @@ export const ClassMaterialsPage = () => {
     const loadMaterials = async () => {
         setIsLoading(true);
         try {
-            const res = await apiClient.get(`/classes/${classId}/materials`, { params: { page, limit: 20 } });
+            const res = await apiClient.get(`/classes/${classId}/materials`, { params: { page, limit: 9 } });
             const data = res.data.data;
             setClassInfo(data.classInfo);
             setMaterials(data.materials);

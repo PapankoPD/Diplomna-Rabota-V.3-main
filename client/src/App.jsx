@@ -11,6 +11,7 @@ import { MaterialDetailPage } from './pages/MaterialDetailPage';
 import { UploadMaterialPage } from './pages/UploadMaterialPage';
 import { EditMaterialPage } from './pages/EditMaterialPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { ArchivedMaterialsPage } from './pages/ArchivedMaterialsPage';
 
 import { ClassesPage } from './pages/ClassesPage';
 import { ClassMaterialsPage } from './pages/ClassMaterialsPage';
@@ -42,6 +43,7 @@ function App() {
             <Route path="materials/:id" element={<MaterialDetailPage />} />
             <Route path="materials/:id/edit" element={<EditMaterialPage />} />
             <Route path="upload" element={<UploadMaterialPage />} />
+            <Route path="archived" element={<ArchivedMaterialsPage />} />
 
             <Route path="classes" element={<ClassesPage />} />
             <Route path="classes/:classId/materials" element={<ClassMaterialsPage />} />

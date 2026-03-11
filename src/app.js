@@ -49,6 +49,7 @@ app.use('/api/recommendations', require('./routes/recommendations'));
 app.use('/api/comments', require('./routes/comments'));
 app.use('/api/ratings', require('./routes/ratings'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/notifications', require('./routes/notifications'));
 
 
 // Root endpoint
@@ -68,7 +69,8 @@ app.get('/', (req, res) => {
             groups: '/api/groups',
             recommendations: '/api/recommendations',
             comments: '/api/comments',
-            ratings: '/api/ratings'
+            ratings: '/api/ratings',
+            notifications: '/api/notifications'
         }
     });
 });

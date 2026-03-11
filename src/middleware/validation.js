@@ -159,10 +159,12 @@ const validatePagination = [
  * Material upload validation
  */
 const validateMaterialUpload = [
+    // Title is optional for batch uploads (backend uses filename as title when blank)
     body('title')
+        .optional({ checkFalsy: true })
         .trim()
-        .isLength({ min: 3, max: 255 })
-        .withMessage('Title must be between 3 and 255 characters'),
+        .isLength({ min: 1, max: 255 })
+        .withMessage('Title must be between 1 and 255 characters'),
     body('description')
         .optional()
         .trim()
@@ -245,10 +247,14 @@ const validateMaterialUpload = [
         .optional()
         .isInt({ min: 1 })
         .withMessage('primaryGradeId must be a valid positive integer'),
+    // FormData always sends strings; accept 'true'/'false' strings as well as real booleans
     body('isPublic')
         .optional()
-        .isBoolean()
-        .withMessage('isPublic must be a boolean'),
+        .custom((value) => {
+            if (value === true || value === false) return true;
+            if (value === 'true' || value === 'false') return true;
+            throw new Error('isPublic must be a boolean');
+        }),
     handleValidationErrors
 ];
 

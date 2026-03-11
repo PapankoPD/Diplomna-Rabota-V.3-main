@@ -44,7 +44,7 @@ async function searchMaterials(queryTerm, options = {}) {
         FROM materials m
         JOIN materials_fts fts ON m.id = fts.rowid
         LEFT JOIN users u ON m.uploaded_by = u.id
-        WHERE materials_fts MATCH ?
+        WHERE materials_fts MATCH ? AND (m.is_archived = 0 OR m.is_archived IS NULL)
     `;
 
     const params = [sanitizeFtsQuery(queryTerm)];
@@ -119,7 +119,7 @@ async function countSearchResults(queryTerm, options = {}) {
         SELECT COUNT(*) AS total
         FROM materials m
         JOIN materials_fts fts ON m.id = fts.rowid
-        WHERE materials_fts MATCH ?
+        WHERE materials_fts MATCH ? AND (m.is_archived = 0 OR m.is_archived IS NULL)
     `;
 
     const params = [sanitizeFtsQuery(queryTerm)];
@@ -289,7 +289,7 @@ async function listMaterials(options = {}) {
             u.username AS uploader_username
         FROM materials m
         LEFT JOIN users u ON m.uploaded_by = u.id
-        WHERE 1=1
+        WHERE (m.is_archived = 0 OR m.is_archived IS NULL)
     `;
 
     const params = [];
@@ -359,7 +359,7 @@ async function countMaterials(options = {}) {
         uploadedBy = null
     } = options;
 
-    let sql = `SELECT COUNT(*) AS total FROM materials m WHERE 1=1`;
+    let sql = `SELECT COUNT(*) AS total FROM materials m WHERE (m.is_archived = 0 OR m.is_archived IS NULL)`;
     const params = [];
 
     if (categoryId !== null) {

@@ -7,7 +7,7 @@ import { useAuth } from '../hooks/useAuth';
 import { StarRating } from '../components/ratings/StarRating';
 import { CommentsSection } from '../components/materials/CommentsSection';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { Download, Calendar, User, FileText, ArrowLeft, Trash2, Edit, Clock, RotateCcw } from 'lucide-react';
+import { Download, Calendar, User, FileText, ArrowLeft, Trash2, Edit, Clock, RotateCcw, Archive } from 'lucide-react';
 import { formatFileSize, formatDateTime } from '../utils/formatters';
 import { canEditMaterial, canDeleteMaterial } from '../utils/permissions';
 import './MaterialDetailPage.css';
@@ -192,7 +192,7 @@ export const MaterialDetailPage = () => {
     };
 
     const handleDelete = async () => {
-        if (!window.confirm('Are you sure you want to delete this material? This action cannot be undone.')) {
+        if (!window.confirm('Are you sure you want to permanently delete this material? This action cannot be undone.')) {
             return;
         }
 
@@ -202,6 +202,30 @@ export const MaterialDetailPage = () => {
         } catch (err) {
             console.error('Delete failed:', err);
             alert('Failed to delete material.');
+        }
+    };
+
+    const handleArchive = async () => {
+        if (!window.confirm('Archive this material? It will be hidden from the main library but can be restored later.')) {
+            return;
+        }
+        try {
+            await materialsApi.archiveMaterial(id);
+            navigate('/materials');
+        } catch (err) {
+            console.error('Archive failed:', err);
+            alert(err.response?.data?.message || 'Failed to archive material.');
+        }
+    };
+
+    const handleUnarchive = async () => {
+        try {
+            await materialsApi.unarchiveMaterial(id);
+            // Refresh material data to reflect new state
+            await loadMaterialData();
+        } catch (err) {
+            console.error('Unarchive failed:', err);
+            alert(err.response?.data?.message || 'Failed to unarchive material.');
         }
     };
 
@@ -258,6 +282,23 @@ export const MaterialDetailPage = () => {
                         >
                             <Edit size={16} /> Edit
                         </button>
+                    )}
+                    {showEditControls && (
+                        material.is_archived ? (
+                            <button
+                                className="btn btn-archive"
+                                onClick={handleUnarchive}
+                            >
+                                <RotateCcw size={16} /> Unarchive
+                            </button>
+                        ) : (
+                            <button
+                                className="btn btn-archive"
+                                onClick={handleArchive}
+                            >
+                                <Archive size={16} /> Archive
+                            </button>
+                        )
                     )}
                     {showDeleteControls && (
                         <button
@@ -339,6 +380,14 @@ export const MaterialDetailPage = () => {
                                 {material.is_public ? 'Public' : 'Private'}
                             </span>
                         </div>
+                        {material.is_archived && (
+                            <div className="stat-row">
+                                <span>Status</span>
+                                <span className="badge archived">
+                                    <Archive size={11} /> Archived
+                                </span>
+                            </div>
+                        )}
                     </div>
 
                     {/* Version History Card */}

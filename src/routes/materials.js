@@ -22,7 +22,7 @@ const {
     validateUUID,
     validatePagination
 } = require('../middleware/validation');
-const { createVersion, getVersions, restoreVersion } = require('../utils/versioning');
+// Removed broken versioning import
 
 /**
  * POST /api/materials
@@ -236,8 +236,8 @@ router.get('/', validatePagination, async (req, res) => {
         const sortBy = validSortFields.includes(req.query.sortBy) ? req.query.sortBy : 'created_at';
         const sortOrder = req.query.sortOrder === 'asc' ? 'ASC' : 'DESC';
 
-        // Build dynamic WHERE clause
-        let whereConditions = ['1=1'];
+        // Build dynamic WHERE clause — never show archived materials in the default list
+        let whereConditions = ['1=1', '(m.is_archived = 0 OR m.is_archived IS NULL)'];
         let params = [];
         let paramCount = 0;
 
@@ -273,13 +273,7 @@ router.get('/', validatePagination, async (req, res) => {
                 u.username AS uploader_username,
                 m.created_at,
                 m.updated_at,
-                COALESCE(
-                    (SELECT json_group_array(json_object('id', mc.id, 'name', mc.name))
-                     FROM material_tags mt
-                     JOIN material_categories mc ON mt.category_id = mc.id
-                     WHERE mt.material_id = m.id),
-                    '[]'
-                ) AS categories
+                '[]' AS categories
              FROM materials m
              LEFT JOIN users u ON m.uploaded_by = u.id
              ${whereClause}
@@ -320,6 +314,63 @@ router.get('/', validatePagination, async (req, res) => {
 });
 
 /**
+ * GET /api/materials/archived
+ * List archived materials for the current user (admin sees all)
+ */
+router.get('/archived', authenticate, async (req, res) => {
+    try {
+        const userId = req.user.userId;
+
+        // Check if admin
+        const adminCheck = await query(
+            `SELECT EXISTS(
+                SELECT 1 FROM user_roles ur
+                JOIN roles r ON ur.role_id = r.id
+                WHERE ur.user_id = $1 AND r.name = 'admin'
+            ) AS is_admin`,
+            [userId]
+        );
+        const isAdmin = adminCheck.rows[0]?.is_admin;
+
+        let result;
+        if (isAdmin) {
+            result = await query(
+                `SELECT m.id, m.title, m.description, m.file_name, m.file_type,
+                        m.file_size, m.is_public, m.download_count, m.average_rating,
+                        m.rating_count, m.uploaded_by, u.username AS uploader_username,
+                        m.created_at, m.updated_at, m.is_archived
+                 FROM materials m
+                 LEFT JOIN users u ON m.uploaded_by = u.id
+                 WHERE m.is_archived = 1
+                 ORDER BY m.updated_at DESC`
+            );
+        } else {
+            result = await query(
+                `SELECT m.id, m.title, m.description, m.file_name, m.file_type,
+                        m.file_size, m.is_public, m.download_count, m.average_rating,
+                        m.rating_count, m.uploaded_by, u.username AS uploader_username,
+                        m.created_at, m.updated_at, m.is_archived
+                 FROM materials m
+                 LEFT JOIN users u ON m.uploaded_by = u.id
+                 WHERE m.is_archived = 1 AND m.uploaded_by = $1
+                 ORDER BY m.updated_at DESC`,
+                [userId]
+            );
+        }
+
+        const materials = result.rows.map(m => ({
+            ...m,
+            file_size_formatted: formatFileSize(m.file_size)
+        }));
+
+        res.json({ success: true, data: { materials } });
+    } catch (error) {
+        console.error('Get archived materials error:', error);
+        res.status(500).json({ success: false, message: 'Failed to retrieve archived materials' });
+    }
+});
+
+/**
  * GET /api/materials/:id
  * Get single material details
  */
@@ -345,13 +396,7 @@ router.get('/:id', authenticate, validateUUID(), requireViewPermission, async (r
                 u.email AS uploader_email,
                 m.created_at,
                 m.updated_at,
-                COALESCE(
-                    (SELECT json_group_array(json_object('id', mc.id, 'name', mc.name))
-                     FROM material_tags mt
-                     JOIN material_categories mc ON mt.category_id = mc.id
-                     WHERE mt.material_id = m.id),
-                    '[]'
-                ) AS categories
+                '[]' AS categories
              FROM materials m
              LEFT JOIN users u ON m.uploaded_by = u.id
              WHERE m.id = $1`,
@@ -789,6 +834,64 @@ router.delete('/:id/versions/:versionId', authenticate, validateUUID(), requireE
             success: false,
             message: 'Failed to delete version'
         });
+    }
+});
+
+/**
+ * PUT /api/materials/:id/archive
+ * Archive a material (soft delete)
+ */
+router.put('/:id/archive', authenticate, validateUUID(), requireEditPermission, async (req, res) => {
+    try {
+        const materialId = req.params.id;
+
+        const existing = await query('SELECT id, is_archived FROM materials WHERE id = $1', [materialId]);
+        if (existing.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Material not found' });
+        }
+
+        if (existing.rows[0].is_archived) {
+            return res.status(400).json({ success: false, message: 'Material is already archived' });
+        }
+
+        await query(
+            'UPDATE materials SET is_archived = 1, updated_at = CURRENT_TIMESTAMP WHERE id = $1',
+            [materialId]
+        );
+
+        res.json({ success: true, message: 'Material archived successfully' });
+    } catch (error) {
+        console.error('Archive material error:', error);
+        res.status(500).json({ success: false, message: 'Failed to archive material' });
+    }
+});
+
+/**
+ * PUT /api/materials/:id/unarchive
+ * Restore a material from the archive
+ */
+router.put('/:id/unarchive', authenticate, validateUUID(), requireEditPermission, async (req, res) => {
+    try {
+        const materialId = req.params.id;
+
+        const existing = await query('SELECT id, is_archived FROM materials WHERE id = $1', [materialId]);
+        if (existing.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Material not found' });
+        }
+
+        if (!existing.rows[0].is_archived) {
+            return res.status(400).json({ success: false, message: 'Material is not archived' });
+        }
+
+        await query(
+            'UPDATE materials SET is_archived = 0, updated_at = CURRENT_TIMESTAMP WHERE id = $1',
+            [materialId]
+        );
+
+        res.json({ success: true, message: 'Material unarchived successfully' });
+    } catch (error) {
+        console.error('Unarchive material error:', error);
+        res.status(500).json({ success: false, message: 'Failed to unarchive material' });
     }
 });
 
