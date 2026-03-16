@@ -22,7 +22,16 @@ const {
     validateUUID,
     validatePagination
 } = require('../middleware/validation');
-// Removed broken versioning import
+// Versioning stubs (module not yet implemented — prevents ReferenceError crashes)
+const createVersion = async (materialId, userId, reason) => {
+    // No-op: version module not implemented yet
+};
+const getVersions = async (materialId) => {
+    return [];
+};
+const restoreVersion = async (materialId, versionId, userId) => {
+    throw new Error('Version not found');
+};
 const { emitNotificationToUser } = require('../config/socketManager');
 
 /**
