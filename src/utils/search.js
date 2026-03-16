@@ -22,7 +22,9 @@ async function searchMaterials(queryTerm, options = {}) {
         isPublic = null,
         uploadedBy = null,
         sortBy = 'relevance', // 'relevance', 'date', 'downloads', 'title'
-        sortOrder = 'desc'
+        sortOrder = 'desc',
+        isStrictStudent = false,
+        studentClassId = null
     } = options;
 
     // Build the base query with FTS5
@@ -75,8 +77,12 @@ async function searchMaterials(queryTerm, options = {}) {
     }
 
     if (fileType !== null) {
-        sql += ` AND m.file_type = ?`;
-        params.push(fileType);
+        if (fileType === 'document') {
+            sql += ` AND (m.file_type LIKE '%document%' OR m.file_type LIKE '%msword%' OR m.file_type LIKE '%powerpoint%' OR m.file_type LIKE '%presentation%' OR m.file_type LIKE '%excel%' OR m.file_type LIKE '%spreadsheet%')`;
+        } else {
+            sql += ` AND m.file_type LIKE ?`;
+            params.push(`%${fileType}%`);
+        }
     }
 
     if (isPublic !== null) {
@@ -87,6 +93,15 @@ async function searchMaterials(queryTerm, options = {}) {
     if (uploadedBy !== null) {
         sql += ` AND m.uploaded_by = ?`;
         params.push(uploadedBy);
+    }
+
+    if (isStrictStudent) {
+        if (studentClassId) {
+            sql += ` AND EXISTS (SELECT 1 FROM material_grade_classes mgc WHERE mgc.material_id = m.id AND mgc.class_id = ?)`;
+            params.push(studentClassId);
+        } else {
+            sql += ` AND (m.is_public = 1 AND NOT EXISTS (SELECT 1 FROM material_grade_classes mgc3 WHERE mgc3.material_id = m.id))`;
+        }
     }
 
     // Apply sorting
@@ -112,7 +127,9 @@ async function countSearchResults(queryTerm, options = {}) {
         gradeId = null,
         fileType = null,
         isPublic = null,
-        uploadedBy = null
+        uploadedBy = null,
+        isStrictStudent = false,
+        studentClassId = null
     } = options;
 
     let sql = `
@@ -149,8 +166,12 @@ async function countSearchResults(queryTerm, options = {}) {
     }
 
     if (fileType !== null) {
-        sql += ` AND m.file_type = ?`;
-        params.push(fileType);
+        if (fileType === 'document') {
+            sql += ` AND (m.file_type LIKE '%document%' OR m.file_type LIKE '%msword%' OR m.file_type LIKE '%powerpoint%' OR m.file_type LIKE '%presentation%' OR m.file_type LIKE '%excel%' OR m.file_type LIKE '%spreadsheet%')`;
+        } else {
+            sql += ` AND m.file_type LIKE ?`;
+            params.push(`%${fileType}%`);
+        }
     }
 
     if (isPublic !== null) {
@@ -161,6 +182,15 @@ async function countSearchResults(queryTerm, options = {}) {
     if (uploadedBy !== null) {
         sql += ` AND m.uploaded_by = ?`;
         params.push(uploadedBy);
+    }
+
+    if (isStrictStudent) {
+        if (studentClassId) {
+            sql += ` AND EXISTS (SELECT 1 FROM material_grade_classes mgc WHERE mgc.material_id = m.id AND mgc.class_id = ?)`;
+            params.push(studentClassId);
+        } else {
+            sql += ` AND (m.is_public = 1 AND NOT EXISTS (SELECT 1 FROM material_grade_classes mgc3 WHERE mgc3.material_id = m.id))`;
+        }
     }
 
     const result = await query(sql, params);
@@ -270,7 +300,9 @@ async function listMaterials(options = {}) {
         isPublic = null,
         uploadedBy = null,
         sortBy = 'date',
-        sortOrder = 'desc'
+        sortOrder = 'desc',
+        isStrictStudent = false,
+        studentClassId = null
     } = options;
 
     let sql = `
@@ -319,8 +351,12 @@ async function listMaterials(options = {}) {
     }
 
     if (fileType !== null) {
-        sql += ` AND m.file_type = ?`;
-        params.push(fileType);
+        if (fileType === 'document') {
+            sql += ` AND (m.file_type LIKE '%document%' OR m.file_type LIKE '%msword%' OR m.file_type LIKE '%powerpoint%' OR m.file_type LIKE '%presentation%' OR m.file_type LIKE '%excel%' OR m.file_type LIKE '%spreadsheet%')`;
+        } else {
+            sql += ` AND m.file_type LIKE ?`;
+            params.push(`%${fileType}%`);
+        }
     }
 
     if (isPublic !== null) {
@@ -331,6 +367,15 @@ async function listMaterials(options = {}) {
     if (uploadedBy !== null) {
         sql += ` AND m.uploaded_by = ?`;
         params.push(uploadedBy);
+    }
+
+    if (isStrictStudent) {
+        if (studentClassId) {
+            sql += ` AND EXISTS (SELECT 1 FROM material_grade_classes mgc WHERE mgc.material_id = m.id AND mgc.class_id = ?)`;
+            params.push(studentClassId);
+        } else {
+            sql += ` AND (m.is_public = 1 AND NOT EXISTS (SELECT 1 FROM material_grade_classes mgc3 WHERE mgc3.material_id = m.id))`;
+        }
     }
 
     // Apply sorting
@@ -356,7 +401,9 @@ async function countMaterials(options = {}) {
         gradeId = null,
         fileType = null,
         isPublic = null,
-        uploadedBy = null
+        uploadedBy = null,
+        isStrictStudent = false,
+        studentClassId = null
     } = options;
 
     let sql = `SELECT COUNT(*) AS total FROM materials m WHERE (m.is_archived = 0 OR m.is_archived IS NULL)`;
@@ -387,8 +434,12 @@ async function countMaterials(options = {}) {
     }
 
     if (fileType !== null) {
-        sql += ` AND m.file_type = ?`;
-        params.push(fileType);
+        if (fileType === 'document') {
+            sql += ` AND (m.file_type LIKE '%document%' OR m.file_type LIKE '%msword%' OR m.file_type LIKE '%powerpoint%' OR m.file_type LIKE '%presentation%' OR m.file_type LIKE '%excel%' OR m.file_type LIKE '%spreadsheet%')`;
+        } else {
+            sql += ` AND m.file_type LIKE ?`;
+            params.push(`%${fileType}%`);
+        }
     }
 
     if (isPublic !== null) {
@@ -399,6 +450,15 @@ async function countMaterials(options = {}) {
     if (uploadedBy !== null) {
         sql += ` AND m.uploaded_by = ?`;
         params.push(uploadedBy);
+    }
+
+    if (isStrictStudent) {
+        if (studentClassId) {
+            sql += ` AND EXISTS (SELECT 1 FROM material_grade_classes mgc WHERE mgc.material_id = m.id AND mgc.class_id = ?)`;
+            params.push(studentClassId);
+        } else {
+            sql += ` AND (m.is_public = 1 AND NOT EXISTS (SELECT 1 FROM material_grade_classes mgc3 WHERE mgc3.material_id = m.id))`;
+        }
     }
 
     const result = await query(sql, params);

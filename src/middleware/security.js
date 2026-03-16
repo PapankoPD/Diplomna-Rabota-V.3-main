@@ -24,7 +24,7 @@ const globalLimiter = rateLimit({
  */
 const authLimiter = rateLimit({
     windowMs: parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
-    max: parseInt(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS || '100'),
+    max: parseInt(process.env.AUTH_RATE_LIMIT_MAX_REQUESTS || '500'), // Increased for testing
     message: {
         success: false,
         message: 'Too many authentication attempts, please try again after 15 minutes'

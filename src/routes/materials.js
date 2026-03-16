@@ -23,6 +23,7 @@ const {
     validatePagination
 } = require('../middleware/validation');
 // Removed broken versioning import
+const { emitNotificationToUser } = require('../config/socketManager');
 
 /**
  * POST /api/materials
@@ -62,6 +63,28 @@ router.post('/', authenticate, requirePermission('materials:create'), uploadMidd
                 `INSERT OR IGNORE INTO material_grade_classes (material_id, class_id) VALUES ($1, $2)`,
                 [material.id, classId]
             );
+
+            // Fetch all students enrolled in this class
+            const studentsResult = await client.query(
+                `SELECT student_id FROM student_class_enrollments WHERE class_id = $1`,
+                [classId]
+            );
+
+            // Create notification for each student
+            if (studentsResult.rows.length > 0) {
+                const message = `New material uploaded to your class: ${material.title}`;
+                const link = `/materials`; // Link to the materials page
+                const notificationType = 'material_upload';
+
+                for (const student of studentsResult.rows) {
+                    const notifResult = await client.query(
+                        `INSERT INTO notifications (user_id, type, message, link) VALUES ($1, $2, $3, $4) RETURNING id, user_id, type, message, link, is_read, created_at`,
+                        [student.student_id, notificationType, message, link]
+                    );
+                    // Emit real-time notification to the connected student
+                    emitNotificationToUser(student.student_id, notifResult.rows[0]);
+                }
+            }
         }
 
         await client.query('COMMIT');
@@ -135,10 +158,43 @@ router.post('/batch', authenticate, requirePermission('materials:create'), uploa
             // Assign taxonomy if provided
             await assignTaxonomy(client, material.id, taxonomy);
 
+            // Link to a specific grade class if provided
+            const classId = req.body.classId ? parseInt(req.body.classId) : null;
+            if (classId) {
+                await client.query(
+                    `INSERT OR IGNORE INTO material_grade_classes (material_id, class_id) VALUES ($1, $2)`,
+                    [material.id, classId]
+                );
+            }
+
             createdMaterials.push({
                 ...material,
                 file_size_formatted: formatFileSize(material.file_size)
             });
+        }
+
+        // Send a single notification for batch upload if assigned to a class
+        const classId = req.body.classId ? parseInt(req.body.classId) : null;
+        if (classId && createdMaterials.length > 0) {
+            const studentsResult = await client.query(
+                `SELECT student_id FROM student_class_enrollments WHERE class_id = $1`,
+                [classId]
+            );
+
+            if (studentsResult.rows.length > 0) {
+                const message = `${createdMaterials.length} new materials uploaded to your class.`;
+                const link = `/materials`;
+                const notificationType = 'batch_material_upload';
+
+                for (const student of studentsResult.rows) {
+                    const notifResult = await client.query(
+                        `INSERT INTO notifications (user_id, type, message, link) VALUES ($1, $2, $3, $4) RETURNING id, user_id, type, message, link, is_read, created_at`,
+                        [student.student_id, notificationType, message, link]
+                    );
+                    // Emit real-time notification to the connected student
+                    emitNotificationToUser(student.student_id, notifResult.rows[0]);
+                }
+            }
         }
 
         await client.query('COMMIT');
@@ -223,18 +279,42 @@ router.get('/stats', authenticate, async (req, res) => {
  * GET /api/materials
  * List materials with filtering and pagination
  */
-router.get('/', validatePagination, async (req, res) => {
+router.get('/', authenticate, validatePagination, async (req, res) => {
     try {
         const page = parseInt(req.query.page || '1');
         const limit = parseInt(req.query.limit || '20');
         const offset = (page - 1) * limit;
+        const userId = req.user.userId;
 
         const search = req.query.search || '';
         const category = req.query.category || '';
         const fileType = req.query.fileType || '';
+        const gradeId = req.query.grade || ''; // Assuming grade filtering works by ID or code
         const validSortFields = ['created_at', 'title', 'download_count', 'average_rating'];
         const sortBy = validSortFields.includes(req.query.sortBy) ? req.query.sortBy : 'created_at';
         const sortOrder = req.query.sortOrder === 'asc' ? 'ASC' : 'DESC';
+
+        // Check user roles
+        const rolesCheck = await query(
+            `SELECT r.name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = $1`,
+            [userId]
+        );
+        const roles = rolesCheck.rows.map(r => r.name);
+        const isStudent = roles.includes('student') || roles.includes('user');
+        const isAdminOrTeacher = roles.includes('admin') || roles.includes('teacher');
+        const isStrictStudent = isStudent && !isAdminOrTeacher;
+
+        // Fetch student's class if they are a student
+        let studentClassId = null;
+        if (isStrictStudent) {
+            const classCheck = await query(
+                `SELECT class_id FROM student_class_enrollments WHERE student_id = $1`,
+                [userId]
+            );
+            if (classCheck.rows.length > 0) {
+                studentClassId = classCheck.rows[0].class_id;
+            }
+        }
 
         // Build dynamic WHERE clause — never show archived materials in the default list
         let whereConditions = ['1=1', '(m.is_archived = 0 OR m.is_archived IS NULL)'];
@@ -252,13 +332,34 @@ router.get('/', validatePagination, async (req, res) => {
             whereConditions.push(`m.file_type LIKE $${paramCount}`);
             params.push(`%${fileType}%`);
         }
+        
+        // Filter by grade if provided
+        if (gradeId) {
+            paramCount++;
+            whereConditions.push(`EXISTS (
+                SELECT 1 FROM material_grades mg
+                WHERE mg.material_id = m.id AND mg.grade_id = $${paramCount}
+            )`);
+            params.push(gradeId);
+        }
+
+        // Apply strict student filtering
+        if (isStrictStudent) {
+            if (studentClassId) {
+                // Show ONLY materials that are specifically assigned to their class
+                whereConditions.push(`EXISTS (SELECT 1 FROM material_grade_classes mgc WHERE mgc.material_id = m.id AND mgc.class_id = ${studentClassId})`);
+            } else {
+                // If student has no class, only show public materials that are NOT assigned to ANY class
+                whereConditions.push(`(m.is_public = 1 AND NOT EXISTS (SELECT 1 FROM material_grade_classes mgc3 WHERE mgc3.material_id = m.id))`);
+            }
+        }
 
         const whereClause = 'WHERE ' + whereConditions.join(' AND ');
 
         // Get materials
         params.push(limit, offset);
         const result = await query(
-            `SELECT 
+            `SELECT DISTINCT
                 m.id,
                 m.title,
                 m.description,
@@ -284,7 +385,7 @@ router.get('/', validatePagination, async (req, res) => {
 
         // Get total count for pagination
         const countResult = await query(
-            `SELECT COUNT(*) as total FROM materials m ${whereClause}`,
+            `SELECT COUNT(DISTINCT m.id) as total FROM materials m ${whereClause}`,
             params.slice(0, paramCount)
         );
 

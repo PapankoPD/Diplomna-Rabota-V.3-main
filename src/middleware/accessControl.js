@@ -67,7 +67,47 @@ const checkMaterialAccess = async (materialId, userId, permissionType = 'view') 
 
         // 2. Public check (only for view)
         if (permissionType === 'view' && material.is_public) {
-            return true;
+            if (userId) {
+                const rolesCheck = await query(
+                    `SELECT r.name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = $1`,
+                    [userId]
+                );
+                const roles = rolesCheck.rows.map(r => r.name);
+                const isStudent = roles.includes('student') || roles.includes('user');
+                const isAdminOrTeacher = roles.includes('admin') || roles.includes('teacher');
+                
+                if (isStudent && !isAdminOrTeacher) {
+                    const classCheck = await query(
+                        `SELECT class_id FROM student_class_enrollments WHERE student_id = $1`,
+                        [userId]
+                    );
+                    const studentClassId = classCheck.rows.length > 0 ? classCheck.rows[0].class_id : null;
+                    
+                    const classAssignmentsCheck = await query(
+                        `SELECT class_id FROM material_grade_classes WHERE material_id = $1`,
+                        [materialId]
+                    );
+                    
+                    if (studentClassId) {
+                        if (classAssignmentsCheck.rows.some(row => row.class_id === studentClassId)) {
+                            return true;
+                        } else {
+                            // Fall through to explicit permission checking just in case
+                        }
+                    } else {
+                        if (classAssignmentsCheck.rows.length === 0) {
+                            return true;
+                        } else {
+                            // Fall through
+                        }
+                    }
+                    // If assigned to a different class, fall through to explicit permission checks
+                } else {
+                    return true;
+                }
+            } else {
+                return true;
+            }
         }
 
         // 3. Ownership check

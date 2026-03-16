@@ -23,6 +23,11 @@ export const taxonomyApi = {
         return response.data;
     },
 
+    getAllClasses: async () => {
+        const response = await apiClient.get('/taxonomy/classes');
+        return response.data;
+    },
+
     getHierarchy: async () => {
         const response = await apiClient.get('/taxonomy/hierarchy');
         return response.data;
@@ -70,6 +75,21 @@ export const taxonomyApi = {
 
     deleteGradeClass: async (gradeId, classId) => {
         const response = await apiClient.delete(`/taxonomy/grades/${gradeId}/classes/${classId}`);
+        return response.data;
+    },
+
+    getClassStudents: async (gradeId, classId) => {
+        const response = await apiClient.get(`/taxonomy/grades/${gradeId}/classes/${classId}/students`);
+        return response.data;
+    },
+
+    enrollStudent: async (gradeId, classId, studentId) => {
+        const response = await apiClient.post(`/taxonomy/grades/${gradeId}/classes/${classId}/students`, { studentId });
+        return response.data;
+    },
+
+    unenrollStudent: async (gradeId, classId, studentId) => {
+        const response = await apiClient.delete(`/taxonomy/grades/${gradeId}/classes/${classId}/students/${studentId}`);
         return response.data;
     },
 };

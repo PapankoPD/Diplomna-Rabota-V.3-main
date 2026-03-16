@@ -1,6 +1,7 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
 import { authApi } from '../api/authApi';
 import { hasPermission, hasRole } from '../utils/permissions';
+import { connectSocket, disconnectSocket } from '../api/socketClient';
 
 export const AuthContext = createContext(null);
 
@@ -22,6 +23,8 @@ export const AuthProvider = ({ children }) => {
                 const response = await authApi.getCurrentUser();
                 setUser(response.data.user);
                 setIsAuthenticated(true);
+                // Re-establish socket connection for already-logged-in users
+                connectSocket();
             } catch (error) {
                 console.error('Failed to load user:', error);
                 localStorage.removeItem('accessToken');
@@ -44,6 +47,8 @@ export const AuthProvider = ({ children }) => {
 
             setUser(user);
             setIsAuthenticated(true);
+            // Connect socket for real-time notifications
+            connectSocket();
 
             return { success: true };
         } catch (error) {
@@ -93,6 +98,8 @@ export const AuthProvider = ({ children }) => {
             localStorage.removeItem('refreshToken');
             setUser(null);
             setIsAuthenticated(false);
+            // Disconnect socket on logout
+            disconnectSocket();
         }
     }, []);
 

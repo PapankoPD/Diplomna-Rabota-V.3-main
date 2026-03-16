@@ -15,6 +15,7 @@ export const UploadMaterialPage = () => {
     const navigate = useNavigate();
     const { user, hasRole } = useAuth();
     const isTeacher = hasRole('teacher');
+    const isAdmin = hasRole('admin');
     const fileInputRef = useRef(null);
 
     const [formData, setFormData] = useState({
@@ -22,28 +23,34 @@ export const UploadMaterialPage = () => {
         description: '',
         is_public: true,
         category_id: '',
+        grade_id: '',
         class_id: ''
     });
 
     const [categories, setCategories] = useState([]);
     const [teacherSubjects, setTeacherSubjects] = useState(null);
+    const [teacherGrades, setTeacherGrades] = useState(null);
     const [teacherClasses, setTeacherClasses] = useState(null); // null = loading
 
     React.useEffect(() => {
         const fetchCategories = async () => {
             try {
-                if (isTeacher) {
-                    const [subjRes, classRes] = await Promise.all([
+                if (isTeacher || isAdmin) {
+                    const [subjRes, classRes, gradesRes] = await Promise.all([
                         authApi.getMySubjects(),
-                        apiClient.get('/classes')
+                        taxonomyApi.getAllClasses(),
+                        taxonomyApi.getGrades()
                     ]);
                     setTeacherSubjects(subjRes.data?.subjects || []);
-                    // Flatten all classes across grades
-                    const grades = classRes.data?.data?.grades || [];
-                    const allClasses = grades.flatMap(g =>
-                        (g.classes || []).map(c => ({ id: c.id, label: `${g.name} — ${c.name}` }))
-                    );
-                    setTeacherClasses(allClasses);
+                    
+                    const allGrades = gradesRes.data?.grades || [];
+                    const allowedGrades = ['8', '9', '10', '11', '12'];
+                    const filteredGrades = allGrades.filter(g => allowedGrades.includes(g.code));
+                    setTeacherGrades(filteredGrades);
+                    
+                    const classes = classRes.data?.classes || [];
+                    const mappedClasses = classes.map(c => ({ id: c.id, label: c.name, grade_id: c.grade_id }));
+                    setTeacherClasses(mappedClasses);
                 } else {
                     const response = await taxonomyApi.getSubjects();
                     if (response.success) setCategories(response.data.subjects);
@@ -53,7 +60,7 @@ export const UploadMaterialPage = () => {
             }
         };
         fetchCategories();
-    }, [isTeacher]);
+    }, [isTeacher, isAdmin]);
 
     const [files, setFiles] = useState([]);
     const [dragActive, setDragActive] = useState(false);
@@ -165,10 +172,16 @@ export const UploadMaterialPage = () => {
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: type === 'checkbox' ? checked : value
-        }));
+        setFormData(prev => {
+            const newData = {
+                ...prev,
+                [name]: type === 'checkbox' ? checked : value
+            };
+            if (name === 'grade_id') {
+                newData.class_id = ''; // reset class when grade changes
+            }
+            return newData;
+        });
     };
 
     const handleSubmit = async (e) => {
@@ -298,9 +311,9 @@ export const UploadMaterialPage = () => {
                     <div className="form-group">
                         <label htmlFor="category_id">Subject / Category</label>
 
-                        {isTeacher && teacherSubjects === null ? (
+                        {(isTeacher || isAdmin) && teacherSubjects === null ? (
                             <p style={{ color: 'var(--gray-400)', fontSize: 14 }}>Loading subjects...</p>
-                        ) : isTeacher && teacherSubjects?.length === 0 ? (
+                        ) : (isTeacher || isAdmin) && teacherSubjects?.length === 0 ? (
                             <div className="error-alert" style={{ marginTop: 0 }}>
                                 <BookOpen size={18} />
                                 <span>You have no subjects assigned. Please contact an administrator.</span>
@@ -315,22 +328,50 @@ export const UploadMaterialPage = () => {
                                 className="form-select"
                             >
                                 <option value="">Select a subject...</option>
-                                {(isTeacher ? teacherSubjects : categories).map(cat => (
+                                {((isTeacher || isAdmin) ? teacherSubjects : categories).map(cat => (
                                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                                 ))}
                             </select>
                         )}
                     </div>
 
-                    {/* Class dropdown — teachers only */}
-                    {isTeacher && (
+                    {/* Grade dropdown — teachers and admins only */}
+                    {(isTeacher || isAdmin) && (
+                        <div className="form-group">
+                            <label htmlFor="grade_id">Grade</label>
+                            {teacherGrades === null ? (
+                                <p style={{ color: 'var(--gray-400)', fontSize: 14 }}>Loading grades...</p>
+                            ) : teacherGrades.length === 0 ? (
+                                <p style={{ color: 'var(--gray-400)', fontSize: 14, fontWeight: 600 }}>
+                                    No grades found.
+                                </p>
+                            ) : (
+                                <select
+                                    id="grade_id"
+                                    name="grade_id"
+                                    value={formData.grade_id}
+                                    onChange={handleInputChange}
+                                    disabled={isUploading}
+                                    className="form-select"
+                                >
+                                    <option value="">Select a grade...</option>
+                                    {teacherGrades.map(grade => (
+                                        <option key={grade.id} value={grade.id}>{grade.name}</option>
+                                    ))}
+                                </select>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Class dropdown — teachers and admins only */}
+                    {(isTeacher || isAdmin) && formData.grade_id && (
                         <div className="form-group">
                             <label htmlFor="class_id">Class</label>
                             {teacherClasses === null ? (
                                 <p style={{ color: 'var(--gray-400)', fontSize: 14 }}>Loading classes...</p>
-                            ) : teacherClasses.length === 0 ? (
+                            ) : teacherClasses.filter(c => c.grade_id === parseInt(formData.grade_id)).length === 0 ? (
                                 <p style={{ color: 'var(--gray-400)', fontSize: 14, fontWeight: 600 }}>
-                                    No classes assigned — contact an admin.
+                                    No classes found for this grade.
                                 </p>
                             ) : (
                                 <select
@@ -342,8 +383,10 @@ export const UploadMaterialPage = () => {
                                     className="form-select"
                                 >
                                     <option value="">Select a class...</option>
-                                    {teacherClasses.map(cls => (
-                                        <option key={cls.id} value={cls.id}>{cls.label}</option>
+                                    {teacherClasses
+                                        .filter(cls => cls.grade_id === parseInt(formData.grade_id))
+                                        .map(cls => (
+                                            <option key={cls.id} value={cls.id}>{cls.label}</option>
                                     ))}
                                 </select>
                             )}
@@ -364,7 +407,14 @@ export const UploadMaterialPage = () => {
                             <Upload size={48} className="upload-icon" />
                             <p className="drop-text">Drag & drop your files here</p>
                             <p className="drop-text-or">or</p>
-                            <button type="button" className="btn-browse" onClick={onButtonClick}>
+                            <button 
+                                type="button" 
+                                className="btn-browse" 
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    onButtonClick();
+                                }}
+                            >
                                 Browse Files
                             </button>
                             <p className="file-hint">Max 10 files, 50MB each • PDF, Word, PowerPoint, images, videos, archives, APK</p>

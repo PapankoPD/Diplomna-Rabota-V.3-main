@@ -260,4 +260,47 @@ router.delete('/:id', authenticate, requirePermission('users:delete'), validateU
     }
 });
 
+/**
+ * GET /api/users/students/unassigned
+ * Get students not assigned to a class (or allow search by username/email)
+ */
+router.get('/students/unassigned', authenticate, requireRole('admin'), async (req, res) => {
+    try {
+        const { search = '' } = req.query;
+        let queryParams = [];
+        let whereClause = `
+            WHERE u.id NOT IN (SELECT student_id FROM student_class_enrollments)
+            AND r.name IN ('student', 'user')
+        `;
+
+        // If 'student' role doesn't exist, we fallback to 'user' in the query above.
+        // It strictly requires that they do not have 'admin' or 'teacher' roles.
+        // We ensure they only have student/user roles.
+
+        if (search) {
+            whereClause += ` AND (u.username LIKE $1 OR u.email LIKE $1)`;
+            queryParams.push(`%${search}%`);
+        }
+
+        const result = await query(
+            `SELECT DISTINCT u.id, u.username, u.email
+             FROM users u
+             JOIN user_roles ur ON u.id = ur.user_id
+             JOIN roles r ON ur.role_id = r.id
+             ${whereClause}
+             ORDER BY u.username ASC
+             LIMIT 50`,
+            queryParams
+        );
+
+        res.json({
+            success: true,
+            data: { students: result.rows }
+        });
+    } catch (error) {
+        console.error('Get unassigned students error:', error);
+        res.status(500).json({ success: false, message: 'Failed to retrieve unassigned students' });
+    }
+});
+
 module.exports = router;

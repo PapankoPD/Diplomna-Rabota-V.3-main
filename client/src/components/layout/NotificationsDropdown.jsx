@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { notificationsApi } from '../../api/notificationsApi';
+import { getSocket } from '../../api/socketClient';
 import { Bell, Check, Trash2, CheckCircle2, Circle } from 'lucide-react';
 import { formatDateTime } from '../../utils/formatters';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +17,7 @@ export const NotificationsDropdown = () => {
     const dropdownRef = useRef(null);
     const navigate = useNavigate();
 
-    // Fetch unread count on mount
+    // Fetch unread count on mount + poll every 30s as fallback
     useEffect(() => {
         fetchUnreadCount();
 
@@ -27,7 +28,46 @@ export const NotificationsDropdown = () => {
             }
         };
         document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
+
+        // Poll unread count every 30s as a fallback for when socket is unavailable
+        const pollInterval = setInterval(fetchUnreadCount, 30000);
+
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+            clearInterval(pollInterval);
+        };
+    }, []);
+
+    // Listen for real-time notifications via socket
+    // Retry up to 5 times with 500ms delay to wait for socket to connect
+    useEffect(() => {
+        let attempts = 0;
+        let timeoutId = null;
+
+        const attachListener = () => {
+            const socket = getSocket();
+            if (socket) {
+                const handleNewNotification = (notification) => {
+                    setNotifications(prev => [notification, ...prev]);
+                    setUnreadCount(prev => prev + 1);
+                };
+                socket.on('new_notification', handleNewNotification);
+                return () => socket.off('new_notification', handleNewNotification);
+            }
+            // Socket not ready yet, retry
+            if (attempts < 10) {
+                attempts++;
+                timeoutId = setTimeout(attachListener, 500);
+            }
+            return null;
+        };
+
+        let cleanup = attachListener();
+
+        return () => {
+            if (timeoutId) clearTimeout(timeoutId);
+            if (cleanup) cleanup();
+        };
     }, []);
 
     // Load notifications when opened

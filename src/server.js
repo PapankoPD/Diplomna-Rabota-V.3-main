@@ -1,6 +1,7 @@
 require('dotenv').config();
 const app = require('./app');
 const { pool, closePool } = require('./config/database');
+const { initializeSocket } = require('./config/socketManager');
 
 const PORT = process.env.PORT || 3000;
 
@@ -15,6 +16,8 @@ const startServer = async () => {
 
         // Start HTTP server
         server = app.listen(PORT, () => {
+            // Initialize Socket.io on the HTTP server
+            initializeSocket(server);
             console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
             console.log(`✓ Server running on port ${PORT}`);
             console.log(`✓ Environment: ${process.env.NODE_ENV || 'development'}`);

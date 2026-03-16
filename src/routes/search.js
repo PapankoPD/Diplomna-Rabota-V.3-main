@@ -51,7 +51,7 @@ router.get('/', optionalAuth, async (req, res) => {
  * GET /api/search/materials
  * Search materials with filtering and pagination
  */
-router.get('/materials', optionalAuth, async (req, res) => {
+router.get('/materials', authenticate, async (req, res) => {
     try {
         const {
             q,
@@ -69,6 +69,29 @@ router.get('/materials', optionalAuth, async (req, res) => {
         const pageNum = parseInt(page);
         const limitNum = parseInt(limit);
         const offset = (pageNum - 1) * limitNum;
+        const userId = req.user.userId;
+
+        // Fetch user roles
+        const { query: dbQuery } = require('../config/database');
+        const rolesCheck = await dbQuery(
+            `SELECT r.name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = $1`,
+            [userId]
+        );
+        const roles = rolesCheck.rows.map(r => r.name);
+        const isStudent = roles.includes('student') || roles.includes('user');
+        const isAdminOrTeacher = roles.includes('admin') || roles.includes('teacher');
+        const isStrictStudent = isStudent && !isAdminOrTeacher;
+
+        let studentClassId = null;
+        if (isStrictStudent) {
+            const classCheck = await dbQuery(
+                `SELECT class_id FROM student_class_enrollments WHERE student_id = $1`,
+                [userId]
+            );
+            if (classCheck.rows.length > 0) {
+                studentClassId = classCheck.rows[0].class_id;
+            }
+        }
 
         const options = {
             limit: limitNum,
@@ -79,7 +102,9 @@ router.get('/materials', optionalAuth, async (req, res) => {
             fileType: fileType || null,
             isPublic: isPublic !== undefined ? isPublic === 'true' : null,
             sortBy,
-            sortOrder
+            sortOrder,
+            isStrictStudent,
+            studentClassId
         };
 
         let materials, total;
@@ -89,7 +114,7 @@ router.get('/materials', optionalAuth, async (req, res) => {
             materials = await searchMaterials(q, options);
             total = await countSearchResults(q, options);
 
-            // Track search activity (async, only if authenticated)
+            // Track search activity
             if (req.user) {
                 const { trackSearch } = require('../utils/activityTracker');
                 const filters = { categoryId, subjectId, gradeId, fileType };

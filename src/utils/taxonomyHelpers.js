@@ -38,13 +38,6 @@ function parseTaxonomyIds(req) {
             : req.body.gradeIds;
     }
 
-    // Parse classIds (grade class IDs)
-    if (req.body.classIds) {
-        result.classIds = typeof req.body.classIds === 'string'
-            ? JSON.parse(req.body.classIds)
-            : req.body.classIds;
-    }
-
     // Primary IDs
     result.primarySubjectId = req.body.primarySubjectId || null;
     result.primaryGradeId = req.body.primaryGradeId || null;
@@ -84,16 +77,6 @@ async function assignTaxonomy(client, materialId, taxonomy) {
             await client.query(
                 'INSERT INTO material_grades (material_id, grade_id, is_primary) VALUES ($1, $2, $3)',
                 [materialId, gradeId, isPrimary]
-            );
-        }
-    }
-
-    // Assign grade classes
-    if (classIds && Array.isArray(classIds) && classIds.length > 0) {
-        for (const classId of classIds) {
-            await client.query(
-                'INSERT OR IGNORE INTO material_grade_classes (material_id, class_id) VALUES ($1, $2)',
-                [materialId, classId]
             );
         }
     }

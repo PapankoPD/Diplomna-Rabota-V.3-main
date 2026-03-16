@@ -16,11 +16,11 @@ export const Sidebar = ({ isOpen, onToggle }) => {
     const menuItems = [
         { to: '/dashboard', icon: Home, label: 'Dashboard', show: true },
         { to: '/materials', icon: FileText, label: 'Materials', show: true },
-        { to: '/classes', icon: School, label: 'Classes', show: true },
         { to: '/profile', icon: User, label: 'Profile', show: true },
         { to: '/admin/users', icon: Users, label: 'Users', show: hasRole('admin') },
         { to: '/admin/roles', icon: Shield, label: 'Roles', show: hasRole('admin') },
         { to: '/admin/teacher-codes', icon: Key, label: 'Teacher Codes', show: hasRole('admin') },
+        { to: '/admin/classes', icon: School, label: 'Manage Classes', show: hasRole('admin') },
     ];
 
     const showUploadMenu = hasPermission('materials:create');

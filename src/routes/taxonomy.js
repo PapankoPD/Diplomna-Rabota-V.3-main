@@ -468,6 +468,34 @@ router.delete('/grades/:id', authenticate, requirePermission('materials:admin'),
     }
 });
 
+
+
+/**
+ * GET /api/taxonomy/classes
+ * Get all active classes grouped by grade or an array of { id, label, grade_name }
+ */
+router.get('/classes', authenticate, async (req, res) => {
+    try {
+        const queryText = `
+            SELECT gc.id, gc.name, g.name AS grade_name, g.id AS grade_id
+            FROM grade_classes gc
+            JOIN grades g ON gc.grade_id = g.id
+            WHERE gc.is_active = 1
+            ORDER BY g.level_order, gc.name
+        `;
+        const result = await query(queryText);
+        res.json({
+            success: true,
+            data: {
+                classes: result.rows
+            }
+        });
+    } catch (error) {
+        console.error('Get all classes error:', error);
+        res.status(500).json({ success: false, message: 'Failed to retrieve classes' });
+    }
+});
+
 /**
  * GET /api/taxonomy/grades/:id/classes
  * Get all classes (e.g. 9-a, 9-b) for a grade
@@ -535,6 +563,74 @@ router.delete('/grades/:gradeId/classes/:classId', authenticate, requirePermissi
     } catch (error) {
         console.error('Delete grade class error:', error);
         res.status(500).json({ success: false, message: 'Failed to delete grade class' });
+    }
+});
+
+/**
+ * GET /api/taxonomy/grades/:gradeId/classes/:classId/students
+ * Get all students enrolled in a class
+ */
+router.get('/grades/:gradeId/classes/:classId/students', authenticate, async (req, res) => {
+    try {
+        const { classId } = req.params;
+        const result = await query(`
+            SELECT u.id, u.username, u.email, sce.enrolled_at
+            FROM users u
+            JOIN student_class_enrollments sce ON u.id = sce.student_id
+            WHERE sce.class_id = $1
+            ORDER BY u.username ASC
+        `, [classId]);
+        res.json({ success: true, data: { students: result.rows } });
+    } catch (error) {
+        console.error('Get class students error:', error);
+        res.status(500).json({ success: false, message: 'Failed to retrieve class students' });
+    }
+});
+
+/**
+ * POST /api/taxonomy/grades/:gradeId/classes/:classId/students
+ * Enroll a student in a class (admin only)
+ */
+router.post('/grades/:gradeId/classes/:classId/students', authenticate, requirePermission('materials:admin'), async (req, res) => {
+    try {
+        const { classId } = req.params;
+        const { studentId } = req.body;
+        
+        if (!studentId) {
+            return res.status(400).json({ success: false, message: 'Student ID is required' });
+        }
+
+        // Add or move the student to this class
+        await query(`
+            INSERT INTO student_class_enrollments (student_id, class_id)
+            VALUES ($1, $2)
+            ON CONFLICT (student_id) DO UPDATE SET class_id = $2
+        `, [studentId, classId]);
+        
+        res.status(201).json({ success: true, message: 'Student enrolled successfully' });
+    } catch (error) {
+        console.error('Enroll student error:', error);
+        res.status(500).json({ success: false, message: 'Failed to enroll student' });
+    }
+});
+
+/**
+ * DELETE /api/taxonomy/grades/:gradeId/classes/:classId/students/:studentId
+ * Remove a student from a class (admin only)
+ */
+router.delete('/grades/:gradeId/classes/:classId/students/:studentId', authenticate, requirePermission('materials:admin'), async (req, res) => {
+    try {
+        const { classId, studentId } = req.params;
+        
+        await query(`
+            DELETE FROM student_class_enrollments
+            WHERE class_id = $1 AND student_id = $2
+        `, [classId, studentId]);
+        
+        res.json({ success: true, message: 'Student removed from class' });
+    } catch (error) {
+        console.error('Remove student error:', error);
+        res.status(500).json({ success: false, message: 'Failed to remove student from class' });
     }
 });
 

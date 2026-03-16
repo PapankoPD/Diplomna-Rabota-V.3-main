@@ -20,4 +20,9 @@ export const usersApi = {
         const response = await apiClient.delete(`/users/${id}`);
         return response.data;
     },
+
+    getUnassignedStudents: async (search = '') => {
+        const response = await apiClient.get('/users/students/unassigned', { params: { search } });
+        return response.data;
+    },
 };

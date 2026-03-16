@@ -53,7 +53,12 @@ export const MaterialsPage = () => {
                     taxonomyApi.getGrades()
                 ]);
                 if (subjectsData.data) setSubjects(subjectsData.data.subjects || subjectsData.data || []);
-                if (gradesData.data) setGrades(gradesData.data.grades || gradesData.data || []);
+                if (gradesData.data) {
+                    const allGrades = gradesData.data.grades || gradesData.data || [];
+                    const allowedCodes = ['8', '9', '10', '11', '12'];
+                    const filteredGrades = allGrades.filter(g => allowedCodes.includes(g.code));
+                    setGrades(filteredGrades);
+                }
             } catch (err) {
                 console.error('Failed to load filter options:', err);
             }
