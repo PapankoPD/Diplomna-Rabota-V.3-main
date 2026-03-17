@@ -111,7 +111,12 @@ export const DashboardPage = () => {
                 setIsLoading(false);
             }
         };
+        
         loadDashboardData();
+        
+        // Auto-refresh every 5 minutes
+        const intervalId = setInterval(loadDashboardData, 5 * 60 * 1000);
+        return () => clearInterval(intervalId);
     }, [location.key]);
 
     if (isLoading) return <LoadingSpinner fullScreen />;

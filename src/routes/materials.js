@@ -82,7 +82,7 @@ router.post('/', authenticate, requirePermission('materials:create'), uploadMidd
             // Create notification for each student
             if (studentsResult.rows.length > 0) {
                 const message = `New material uploaded to your class: ${material.title}`;
-                const link = `/materials`; // Link to the materials page
+                const link = `/materials/${material.id}`; // Link to the specific material page
                 const notificationType = 'material_upload';
 
                 for (const student of studentsResult.rows) {
@@ -341,7 +341,7 @@ router.get('/', authenticate, validatePagination, async (req, res) => {
             whereConditions.push(`m.file_type LIKE $${paramCount}`);
             params.push(`%${fileType}%`);
         }
-        
+
         // Filter by grade if provided
         if (gradeId) {
             paramCount++;
