@@ -27,7 +27,7 @@
     align-items: center;
     gap: 10px;
     background: linear-gradient(135deg, #ede9fe, #f5f3ff);
-    border: 2px solid #c4b5fd;
+    border: 2px solid #c7d2fe;
     border-radius: var(--radius-lg);
     padding: 12px 18px;
     margin-bottom: 20px;
@@ -54,8 +54,8 @@
 }
 
 .class-filter-clear:hover {
-    color: #dc2626;
-    background: #fef2f2;
+    color: var(--text-danger);
+    background: var(--bg-danger);
 }
 
 /* ── Controls bar ─────────────────────────────────────────────────────── */
@@ -73,8 +73,8 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    background: white;
-    border: 2.5px solid #c4b5fd;
+    background: var(--bg-card);
+    border: 2.5px solid #c7d2fe;
     border-radius: var(--radius-pill);
     padding: 11px 18px;
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -117,7 +117,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    background: white;
+    background: var(--bg-card);
     border: 2.5px solid var(--gray-200);
     border-radius: var(--radius-pill);
     padding: 11px 20px;
@@ -158,7 +158,7 @@
     font-size: 14px;
     font-weight: 700;
     font-family: inherit;
-    background: white;
+    background: var(--bg-card);
     cursor: pointer;
     transition: border-color 0.2s;
 }
@@ -181,8 +181,8 @@
     align-items: flex-end;
     gap: 16px;
     padding: 18px 22px;
-    background: white;
-    border: 2.5px solid #c4b5fd;
+    background: var(--bg-card);
+    border: 2.5px solid #c7d2fe;
     border-radius: var(--radius-lg);
     margin-bottom: 24px;
     flex-wrap: wrap;
@@ -226,10 +226,10 @@
     align-items: center;
     gap: 5px;
     padding: 9px 16px;
-    border: 2px solid #fecaca;
+    border: 2px solid var(--border-danger);
     border-radius: var(--radius-pill);
-    background: #fef2f2;
-    color: #dc2626;
+    background: var(--bg-danger);
+    color: var(--text-danger);
     font-size: 13px;
     font-weight: 800;
     cursor: pointer;
@@ -265,7 +265,7 @@
 
 /* ── Card ─────────────────────────────────────────────────────────────── */
 .material-card {
-    background: white;
+    background: var(--bg-card);
     border-radius: var(--radius-lg);
     padding: 22px;
     border: 2.5px solid var(--gray-100);
@@ -290,7 +290,7 @@
 .material-card:hover {
     transform: translateY(-6px) scale(1.01);
     box-shadow: var(--shadow-lg);
-    border-color: #c4b5fd;
+    border-color: #c7d2fe;
 }
 
 .material-card-header {
@@ -341,13 +341,13 @@
 }
 
 .material-type {
-    background: linear-gradient(135deg, #ede9fe, #c4b5fd);
+    background: linear-gradient(135deg, #ede9fe, #c7d2fe);
     color: #4338ca;
     padding: 4px 10px;
     border-radius: var(--radius-pill);
     font-weight: 800;
     font-size: 11px;
-    border: 1.5px solid #c4b5fd;
+    border: 1.5px solid #c7d2fe;
 }
 
 .material-size {
@@ -400,7 +400,7 @@
 }
 
 .pagination button {
-    background: white;
+    background: var(--bg-card);
     border: 2.5px solid var(--gray-200);
     border-radius: var(--radius-md);
     padding: 8px 16px;

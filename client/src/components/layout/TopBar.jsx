@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, User, LogOut, Search } from 'lucide-react';
+import { Menu, User, LogOut, Search, Sun, Moon } from 'lucide-react';
 import { NotificationsDropdown } from './NotificationsDropdown';
 import { useAuth } from '../../hooks/useAuth';
+import { useTheme } from '../../contexts/ThemeContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './TopBar.css';
 
 export const TopBar = () => {
     const { user, logout } = useAuth();
+    const { theme, toggleTheme } = useTheme();
     const [showUserMenu, setShowUserMenu] = useState(false);
     const menuRef = useRef(null);
     const navigate = useNavigate();
@@ -61,6 +63,13 @@ export const TopBar = () => {
                 )}
             </div>
             <div className="topbar-right">
+                <button
+                    className="icon-btn theme-toggle-btn"
+                    onClick={toggleTheme}
+                    title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+                >
+                    {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
+                </button>
                 <NotificationsDropdown />
 
                 <div className="user-menu" ref={menuRef}>

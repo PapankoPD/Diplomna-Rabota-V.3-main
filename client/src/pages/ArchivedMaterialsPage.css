@@ -105,7 +105,7 @@
 }
 
 .archived-card {
-    background: white;
+    background: var(--bg-card);
     border: 1px solid #e5e7eb;
     border-radius: 16px;
     padding: 18px 20px;
@@ -135,7 +135,7 @@
 }
 
 .archived-card-icon:hover {
-    background: linear-gradient(135deg, #ddd6fe, #c4b5fd);
+    background: linear-gradient(135deg, #ddd6fe, #c7d2fe);
 }
 
 .archived-card-info {

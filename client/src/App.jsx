@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/ProtectedRoute';
 import { DashboardLayout } from './components/layout/DashboardLayout';
+import { ThemeProvider } from './contexts/ThemeContext';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
@@ -20,44 +21,46 @@ import { AdminClassesPage } from './pages/admin/AdminClassesPage';
 
 function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Public routes */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
+    <ThemeProvider>
+      <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            {/* Public routes */}
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
 
-          {/* Protected routes */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <DashboardLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Navigate to="/dashboard" replace />} />
-            <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="materials" element={<MaterialsPage />} />
-            <Route path="materials/:id" element={<MaterialDetailPage />} />
-            <Route path="materials/:id/edit" element={<EditMaterialPage />} />
-            <Route path="upload" element={<UploadMaterialPage />} />
-            <Route path="archived" element={<ArchivedMaterialsPage />} />
+            {/* Protected routes */}
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate to="/dashboard" replace />} />
+              <Route path="dashboard" element={<DashboardPage />} />
+              <Route path="materials" element={<MaterialsPage />} />
+              <Route path="materials/:id" element={<MaterialDetailPage />} />
+              <Route path="materials/:id/edit" element={<EditMaterialPage />} />
+              <Route path="upload" element={<UploadMaterialPage />} />
+              <Route path="archived" element={<ArchivedMaterialsPage />} />
 
-            <Route path="profile" element={<ProfilePage />} />
+              <Route path="profile" element={<ProfilePage />} />
 
-            {/* Admin routes */}
-            <Route path="admin/users" element={<UsersPage />} />
-            <Route path="admin/roles" element={<RolesPage />} />
-            <Route path="admin/teacher-codes" element={<TeacherCodesPage />} />
-            <Route path="admin/classes" element={<AdminClassesPage />} />
-          </Route>
+              {/* Admin routes */}
+              <Route path="admin/users" element={<UsersPage />} />
+              <Route path="admin/roles" element={<RolesPage />} />
+              <Route path="admin/teacher-codes" element={<TeacherCodesPage />} />
+              <Route path="admin/classes" element={<AdminClassesPage />} />
+            </Route>
 
-          {/* Catch all */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
-        </Routes>
-      </BrowserRouter>
-    </AuthProvider>
+            {/* Catch all */}
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          </Routes>
+        </BrowserRouter>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

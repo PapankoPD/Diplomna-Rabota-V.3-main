@@ -31,7 +31,7 @@
 
 /* ── Card ────────────────────────────────────────────────────────────── */
 .profile-card {
-    background: white;
+    background: var(--bg-card);
     border-radius: var(--radius-lg);
     padding: 24px 28px;
     border: 2.5px solid var(--gray-100);
@@ -99,7 +99,7 @@
     font-weight: 600;
     font-family: inherit;
     transition: border-color 0.2s, box-shadow 0.2s;
-    background: white;
+    background: var(--bg-card);
     color: var(--gray-900);
 }
 
@@ -166,15 +166,15 @@
 }
 
 .message.error {
-    background: #fef2f2;
-    color: #dc2626;
-    border-color: #fecaca;
+    background: var(--bg-danger);
+    color: var(--text-danger);
+    border-color: var(--border-danger);
 }
 
 .message.info {
     background: var(--primary-light);
     color: var(--primary-dark);
-    border-color: #c4b5fd;
+    border-color: #c7d2fe;
 }
 
 @media (max-width: 640px) {

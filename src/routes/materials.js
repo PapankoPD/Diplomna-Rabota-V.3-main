@@ -248,16 +248,56 @@ router.get('/stats', authenticate, async (req, res) => {
     try {
         const userId = req.user.userId;
 
-        // Run all three queries in parallel
+        // Check user roles to determine if they are a student
+        const rolesCheck = await query(
+            `SELECT r.name FROM user_roles ur JOIN roles r ON ur.role_id = r.id WHERE ur.user_id = $1`,
+            [userId]
+        );
+        const roles = rolesCheck.rows.map(r => r.name);
+        const isStudent = roles.includes('student') || roles.includes('user');
+        const isAdminOrTeacher = roles.includes('admin') || roles.includes('teacher');
+        const isStrictStudent = isStudent && !isAdminOrTeacher;
+
+        let totalMaterialsQuery = 'SELECT COUNT(*) AS count FROM materials WHERE (is_archived = 0 OR is_archived IS NULL)';
+        let totalMaterialsParams = [];
+
+        if (isStrictStudent) {
+            const classCheck = await query(
+                `SELECT class_id FROM student_class_enrollments WHERE student_id = $1`,
+                [userId]
+            );
+            
+            if (classCheck.rows.length > 0) {
+                const studentClassId = classCheck.rows[0].class_id;
+                totalMaterialsQuery = `
+                    SELECT COUNT(DISTINCT m.id) AS count FROM materials m
+                    WHERE EXISTS (
+                        SELECT 1 FROM material_grade_classes mgc
+                        WHERE mgc.material_id = m.id AND mgc.class_id = $1
+                    ) AND (m.is_archived = 0 OR m.is_archived IS NULL)
+                `;
+                totalMaterialsParams = [studentClassId];
+            } else {
+                // If student has no class, they see public materials not assigned to any class
+                totalMaterialsQuery = `
+                    SELECT COUNT(DISTINCT m.id) AS count FROM materials m
+                    WHERE (m.is_public = 1 AND NOT EXISTS (
+                        SELECT 1 FROM material_grade_classes mgc WHERE mgc.material_id = m.id
+                    )) AND (m.is_archived = 0 OR m.is_archived IS NULL)
+                `;
+            }
+        }
+
+        // Run all queries in parallel
         const [uploadsResult, downloadsResult, ratingsResult, totalResult] = await Promise.all([
             // How many materials has this user uploaded?
             query(
                 'SELECT COUNT(*) AS count FROM materials WHERE uploaded_by = $1',
                 [userId]
             ),
-            // Total downloads across all materials uploaded by this user
+            // Total downloads BY this user
             query(
-                'SELECT COALESCE(SUM(download_count), 0) AS total FROM materials WHERE uploaded_by = $1',
+                "SELECT COUNT(*) AS total FROM user_activities WHERE user_id = $1 AND activity_type = 'download'",
                 [userId]
             ),
             // How many ratings has this user given?
@@ -265,8 +305,8 @@ router.get('/stats', authenticate, async (req, res) => {
                 'SELECT COUNT(*) AS count FROM material_ratings WHERE user_id = $1',
                 [userId]
             ),
-            // Total materials on the platform
-            query('SELECT COUNT(*) AS count FROM materials', [])
+            // Total materials on the platform or assigned to student's class
+            query(totalMaterialsQuery, totalMaterialsParams)
         ]);
 
         res.json({
