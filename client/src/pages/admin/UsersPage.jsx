@@ -2,13 +2,62 @@ import React, { useState, useEffect } from 'react';
 import { usersApi } from '../../api/usersApi';
 import { rolesApi } from '../../api/rolesApi';
 import { useAuth } from '../../hooks/useAuth';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { UserCog, Trash2, Check, X } from 'lucide-react';
 import './UsersPage.css';
 
+const translations = {
+    en: {
+        pageTitle: "User Management",
+        colUsername: "Username",
+        colEmail: "Email",
+        colRoles: "Roles",
+        colActions: "Actions",
+        editRolesTitle: "Edit Roles",
+        deleteAccountTitle: "Delete Account",
+        confirmDelete: (username) => `Are you sure you want to delete the account "${username}"? This action cannot be undone.`,
+        editRolesFor: (username) => `Edit Roles for ${username}`,
+        cancel: "Cancel",
+        saveChanges: "Save Changes",
+        errLoad: "Failed to load users and roles.",
+        errUpdate: "Failed to update user roles.",
+        errDelete: "Failed to delete user account.",
+        roleNames: {
+            admin: "admin",
+            teacher: "teacher",
+            student: "student"
+        }
+    },
+    bg: {
+        pageTitle: "Управление на потребители",
+        colUsername: "Потребителско име",
+        colEmail: "Имейл",
+        colRoles: "Роли",
+        colActions: "Действия",
+        editRolesTitle: "Редактиране на роли",
+        deleteAccountTitle: "Изтриване на акаунт",
+        confirmDelete: (username) => `Сигурни ли сте, че искате да изтриете акаунта "${username}"? Това действие не може да бъде отменено.`,
+        editRolesFor: (username) => `Редактиране на роли за ${username}`,
+        cancel: "Отказ",
+        saveChanges: "Запазване на промените",
+        errLoad: "Неуспешно зареждане на потребители и роли.",
+        errUpdate: "Неуспешно актуализиране на потребителски роли.",
+        errDelete: "Неуспешно изтриване на потребителски акаунт.",
+        roleNames: {
+            admin: "админ",
+            teacher: "учител",
+            student: "ученик"
+        }
+    }
+};
+
 export const UsersPage = () => {
     const { hasPermission } = useAuth();
     const canDeleteUsers = hasPermission('users:delete');
+    const { language } = useLanguage();
+    const t = translations[language];
+    const translateRole = (r) => t.roleNames?.[r] || r;
 
     const [users, setUsers] = useState([]);
     const [roles, setRoles] = useState([]);
@@ -33,7 +82,7 @@ export const UsersPage = () => {
             setRoles(rolesRes.data?.roles || []);
         } catch (err) {
             console.error('Failed to load data:', err);
-            setError('Failed to load users and roles.');
+            setError(t.errLoad);
         } finally {
             setIsLoading(false);
         }
@@ -69,12 +118,12 @@ export const UsersPage = () => {
             setEditingUser(null);
         } catch (err) {
             console.error('Failed to update roles:', err);
-            setError('Failed to update user roles.');
+            setError(t.errUpdate);
         }
     };
 
     const handleDeleteUser = async (user) => {
-        if (!window.confirm(`Are you sure you want to delete the account "${user.username}"? This action cannot be undone.`)) {
+        if (!window.confirm(t.confirmDelete(user.username))) {
             return;
         }
 
@@ -83,18 +132,16 @@ export const UsersPage = () => {
             setUsers(prev => prev.filter(u => u.id !== user.id));
         } catch (err) {
             console.error('Failed to delete user:', err);
-            setError('Failed to delete user account.');
+            setError(t.errDelete);
         }
     };
-
-
 
     if (isLoading) return <LoadingSpinner fullScreen />;
 
     return (
         <div className="admin-page">
             <div className="page-header">
-                <h1>User Management</h1>
+                <h1>{t.pageTitle}</h1>
             </div>
 
             {error && <div className="error-message">{error}</div>}
@@ -103,10 +150,10 @@ export const UsersPage = () => {
                 <table className="data-table">
                     <thead>
                         <tr>
-                            <th>Username</th>
-                            <th>Email</th>
-                            <th>Roles</th>
-                            <th>Actions</th>
+                            <th>{t.colUsername}</th>
+                            <th>{t.colEmail}</th>
+                            <th>{t.colRoles}</th>
+                            <th>{t.colActions}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -117,7 +164,7 @@ export const UsersPage = () => {
                                 <td>
                                     <div className="roles-tags">
                                         {user.roles.map(role => (
-                                            <span key={role.id} className="role-tag">{role.name}</span>
+                                            <span key={role.id} className={`role-tag role-${role.name.toLowerCase()}`}>{translateRole(role.name)}</span>
                                         ))}
                                     </div>
                                 </td>
@@ -126,7 +173,7 @@ export const UsersPage = () => {
                                         <button
                                             className="btn-icon"
                                             onClick={() => handleEditClick(user)}
-                                            title="Edit Roles"
+                                            title={t.editRolesTitle}
                                         >
                                             <UserCog size={18} />
                                         </button>
@@ -134,7 +181,7 @@ export const UsersPage = () => {
                                             <button
                                                 className="btn-icon btn-icon-danger"
                                                 onClick={() => handleDeleteUser(user)}
-                                                title="Delete Account"
+                                                title={t.deleteAccountTitle}
                                             >
                                                 <Trash2 size={18} />
                                             </button>
@@ -151,7 +198,7 @@ export const UsersPage = () => {
                 <div className="modal-overlay">
                     <div className="modal">
                         <div className="modal-header">
-                            <h3>Edit Roles for {editingUser.username}</h3>
+                            <h3>{t.editRolesFor(editingUser.username)}</h3>
                             <button className="btn-close" onClick={() => setEditingUser(null)}>
                                 <X size={20} />
                             </button>
@@ -165,15 +212,15 @@ export const UsersPage = () => {
                                             checked={selectedRoles.includes(role.id)}
                                             onChange={() => handleRoleToggle(role.id)}
                                         />
-                                        <span>{role.name}</span>
+                                        <span>{translateRole(role.name)}</span>
                                         <span className="role-desc">{role.description}</span>
                                     </label>
                                 ))}
                             </div>
                         </div>
                         <div className="modal-footer">
-                            <button className="btn-cancel" onClick={() => setEditingUser(null)}>Cancel</button>
-                            <button className="btn-primary" onClick={handleSaveRoles}>Save Changes</button>
+                            <button className="btn-cancel" onClick={() => setEditingUser(null)}>{t.cancel}</button>
+                            <button className="btn-primary" onClick={handleSaveRoles}>{t.saveChanges}</button>
                         </div>
                     </div>
                 </div>

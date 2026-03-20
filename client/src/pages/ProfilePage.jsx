@@ -1,11 +1,70 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { useLanguage } from '../contexts/LanguageContext';
 import { authApi } from '../api/authApi';
 import { User, Lock, Save, CheckCircle, AlertCircle } from 'lucide-react';
 import './ProfilePage.css';
 
+const translations = {
+    en: {
+        title: "My Profile",
+        subtitle: "Manage your account settings",
+        profileInfo: "Profile Information",
+        noChanges: "No changes to save.",
+        profileSuccess: "Profile updated successfully!",
+        username: "Username",
+        usernamePlaceholder: "Enter your username",
+        email: "Email",
+        emailPlaceholder: "Enter your email",
+        role: "Role",
+        saving: "Saving...",
+        saveChanges: "Save Changes",
+        changePassword: "Change Password",
+        pwdLengthErr: "New password must be at least 8 characters.",
+        pwdMatchErr: "New passwords do not match.",
+        pwdSuccess: "Password changed successfully!",
+        pwdFail: "Failed to change password.",
+        currentPwd: "Current Password",
+        currentPwdPlaceholder: "Enter current password",
+        newPwd: "New Password",
+        newPwdPlaceholder: "Enter new password",
+        confirmPwd: "Confirm New Password",
+        confirmPwdPlaceholder: "Confirm new password",
+        changing: "Changing..."
+    },
+    bg: {
+        title: "Моят профил",
+        subtitle: "Управление на настройките на профила",
+        profileInfo: "Информация за профила",
+        noChanges: "Няма промени за запазване.",
+        profileSuccess: "Профилът е обновен успешно!",
+        username: "Потребителско име",
+        usernamePlaceholder: "Въведете потребителско име",
+        email: "Имейл",
+        emailPlaceholder: "Въведете имейл",
+        role: "Роля",
+        saving: "Запазване...",
+        saveChanges: "Запази промените",
+        changePassword: "Промяна на паролата",
+        pwdLengthErr: "Новата парола трябва да е минимум 8 символа.",
+        pwdMatchErr: "Новите пароли не съвпадат.",
+        pwdSuccess: "Паролата е променена успешно!",
+        pwdFail: "Неуспешна промяна на паролата.",
+        currentPwd: "Текуща парола",
+        currentPwdPlaceholder: "Въведете текущата парола",
+        newPwd: "Нова парола",
+        newPwdPlaceholder: "Въведете новата парола",
+        confirmPwd: "Потвърдете новата парола",
+        confirmPwdPlaceholder: "Потвърдете новата парола",
+        changing: "Промяна..."
+    }
+};
+
 export const ProfilePage = () => {
     const { user, updateProfile } = useAuth();
+    const { language } = useLanguage();
+    const t = translations[language];
+
     const [username, setUsername] = useState(user?.username || '');
     const [email, setEmail] = useState(user?.email || '');
     const [currentPassword, setCurrentPassword] = useState('');
@@ -27,7 +86,7 @@ export const ProfilePage = () => {
         if (email !== user.email) data.email = email;
 
         if (Object.keys(data).length === 0) {
-            setProfileMsg({ type: 'info', text: 'No changes to save.' });
+            setProfileMsg({ type: 'info', text: t.noChanges });
             setIsProfileSaving(false);
             return;
         }
@@ -36,7 +95,7 @@ export const ProfilePage = () => {
         setIsProfileSaving(false);
 
         if (result.success) {
-            setProfileMsg({ type: 'success', text: 'Profile updated successfully!' });
+            setProfileMsg({ type: 'success', text: t.profileSuccess });
         } else {
             setProfileMsg({ type: 'error', text: result.message });
         }
@@ -47,12 +106,12 @@ export const ProfilePage = () => {
         setPasswordMsg(null);
 
         if (newPassword.length < 8) {
-            setPasswordMsg({ type: 'error', text: 'New password must be at least 8 characters.' });
+            setPasswordMsg({ type: 'error', text: t.pwdLengthErr });
             return;
         }
 
         if (newPassword !== confirmPassword) {
-            setPasswordMsg({ type: 'error', text: 'New passwords do not match.' });
+            setPasswordMsg({ type: 'error', text: t.pwdMatchErr });
             return;
         }
 
@@ -60,14 +119,14 @@ export const ProfilePage = () => {
 
         try {
             const response = await authApi.changePassword(currentPassword, newPassword);
-            setPasswordMsg({ type: 'success', text: response.message || 'Password changed successfully!' });
+            setPasswordMsg({ type: 'success', text: response.message || t.pwdSuccess });
             setCurrentPassword('');
             setNewPassword('');
             setConfirmPassword('');
         } catch (error) {
             setPasswordMsg({
                 type: 'error',
-                text: error.response?.data?.message || 'Failed to change password.'
+                text: error.response?.data?.message || t.pwdFail
             });
         } finally {
             setIsPasswordSaving(false);
@@ -77,15 +136,15 @@ export const ProfilePage = () => {
     return (
         <div className="profile-page">
             <div className="profile-header">
-                <h1>My Profile</h1>
-                <p>Manage your account settings</p>
+                <h1>{t.title}</h1>
+                <p>{t.subtitle}</p>
             </div>
 
             <div className="profile-sections">
                 <div className="profile-card">
                     <div className="card-header">
                         <User size={20} />
-                        <h2>Profile Information</h2>
+                        <h2>{t.profileInfo}</h2>
                     </div>
 
                     {profileMsg && (
@@ -97,29 +156,29 @@ export const ProfilePage = () => {
 
                     <form onSubmit={handleProfileSubmit} className="profile-form">
                         <div className="form-group">
-                            <label htmlFor="username">Username</label>
+                            <label htmlFor="username">{t.username}</label>
                             <input
                                 id="username"
                                 type="text"
                                 value={username}
                                 onChange={(e) => setUsername(e.target.value)}
-                                placeholder="Enter your username"
+                                placeholder={t.usernamePlaceholder}
                             />
                         </div>
 
                         <div className="form-group">
-                            <label htmlFor="email">Email</label>
+                            <label htmlFor="email">{t.email}</label>
                             <input
                                 id="email"
                                 type="email"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
-                                placeholder="Enter your email"
+                                placeholder={t.emailPlaceholder}
                             />
                         </div>
 
                         <div className="form-group">
-                            <label>Role</label>
+                            <label>{t.role}</label>
                             <input
                                 type="text"
                                 value={user?.roles?.map(r => r.name).join(', ') || 'user'}
@@ -130,7 +189,7 @@ export const ProfilePage = () => {
 
                         <button type="submit" className="save-btn" disabled={isProfileSaving}>
                             <Save size={16} />
-                            {isProfileSaving ? 'Saving...' : 'Save Changes'}
+                            {isProfileSaving ? t.saving : t.saveChanges}
                         </button>
                     </form>
                 </div>
@@ -138,7 +197,7 @@ export const ProfilePage = () => {
                 <div className="profile-card">
                     <div className="card-header">
                         <Lock size={20} />
-                        <h2>Change Password</h2>
+                        <h2>{t.changePassword}</h2>
                     </div>
 
                     {passwordMsg && (
@@ -150,44 +209,44 @@ export const ProfilePage = () => {
 
                     <form onSubmit={handlePasswordSubmit} className="profile-form">
                         <div className="form-group">
-                            <label htmlFor="currentPassword">Current Password</label>
+                            <label htmlFor="currentPassword">{t.currentPwd}</label>
                             <input
                                 id="currentPassword"
                                 type="password"
                                 value={currentPassword}
                                 onChange={(e) => setCurrentPassword(e.target.value)}
-                                placeholder="Enter current password"
+                                placeholder={t.currentPwdPlaceholder}
                                 required
                             />
                         </div>
 
                         <div className="form-group">
-                            <label htmlFor="newPassword">New Password</label>
+                            <label htmlFor="newPassword">{t.newPwd}</label>
                             <input
                                 id="newPassword"
                                 type="password"
                                 value={newPassword}
                                 onChange={(e) => setNewPassword(e.target.value)}
-                                placeholder="Enter new password"
+                                placeholder={t.newPwdPlaceholder}
                                 required
                             />
                         </div>
 
                         <div className="form-group">
-                            <label htmlFor="confirmPassword">Confirm New Password</label>
+                            <label htmlFor="confirmPassword">{t.confirmPwd}</label>
                             <input
                                 id="confirmPassword"
                                 type="password"
                                 value={confirmPassword}
                                 onChange={(e) => setConfirmPassword(e.target.value)}
-                                placeholder="Confirm new password"
+                                placeholder={t.confirmPwdPlaceholder}
                                 required
                             />
                         </div>
 
                         <button type="submit" className="save-btn" disabled={isPasswordSaving}>
                             <Lock size={16} />
-                            {isPasswordSaving ? 'Changing...' : 'Change Password'}
+                            {isPasswordSaving ? t.changing : t.changePassword}
                         </button>
                     </form>
                 </div>

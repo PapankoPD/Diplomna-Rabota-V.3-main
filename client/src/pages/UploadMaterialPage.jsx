@@ -5,15 +5,104 @@ import { taxonomyApi } from '../api/taxonomyApi';
 import { authApi } from '../api/authApi';
 import apiClient from '../api/apiClient';
 import { useAuth } from '../hooks/useAuth';
+import { useLanguage } from '../contexts/LanguageContext';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { Upload, X, FileText, AlertCircle, BookOpen } from 'lucide-react';
 import { validateFileSize, validateFileType, ACCEPTED_FILE_TYPES } from '../utils/validators';
 import { formatFileSize } from '../utils/formatters';
 import './UploadMaterialPage.css';
 
+const translations = {
+    en: {
+        pageTitle: "Upload Material",
+        subtitle: "Share learning resources with your students",
+        titleLabel: "Title",
+        titleOptional: "(optional for batch)",
+        titlePlaceholderBatch: "Leave blank to use file names as titles",
+        titlePlaceholderSingle: "e.g., Introduction to React",
+        descLabel: "Description",
+        descPlaceholder: "Brief description of the material content...",
+        subjectLabel: "Subject / Category",
+        loadingSubjects: "Loading subjects...",
+        noSubjects: "You have no subjects assigned. Please contact an administrator.",
+        selectSubject: "Select a subject...",
+        gradeLabel: "Grade",
+        loadingGrades: "Loading grades...",
+        noGrades: "No grades found.",
+        selectGrade: "Select a grade...",
+        classLabel: "Class",
+        loadingClasses: "Loading classes...",
+        noClassesForGrade: "No classes found for this grade.",
+        selectClass: "Select a class...",
+        filesLabel: "Files",
+        dragDrop: "Drag & drop your files here",
+        or: "or",
+        browseBtn: "Browse Files",
+        fileHint: "Max 10 files, 50MB each • PDF, Word, PowerPoint, images, videos, archives, APK",
+        fileSelected: "file selected",
+        filesSelected: "files selected",
+        clearAll: "Clear all",
+        uploading: "Uploading...",
+        makePublic: "Make Public",
+        publicDesc: "Allow all users to view and download this material",
+        cancel: "Cancel",
+        uploadBtn: "Upload",
+        material: "Material",
+        materials: "Materials",
+        errMaxFiles: "Maximum 10 files per upload. Extra files were ignored.",
+        errNoFiles: "Please select at least one file to upload.",
+        errNoTitle: "Please enter a title for the material.",
+        errUploadFail: "Failed to upload material. Please try again."
+    },
+    bg: {
+        pageTitle: "Качване на материал",
+        subtitle: "Споделете учебни ресурси с вашите ученици",
+        titleLabel: "Заглавие",
+        titleOptional: "(по избор за групово качване)",
+        titlePlaceholderBatch: "Оставете празно, за да използвате имената на файловете като заглавие",
+        titlePlaceholderSingle: "напр. Въведение в React",
+        descLabel: "Описание",
+        descPlaceholder: "Кратко описание на съдържанието на материала...",
+        subjectLabel: "Предмет",
+        loadingSubjects: "Зареждане на предмети...",
+        noSubjects: "Нямате разпределени предмети. Моля, свържете се с администратор.",
+        selectSubject: "Изберете предмет...",
+        gradeLabel: "Клас",
+        loadingGrades: "Зареждане на класове...",
+        noGrades: "Не са намерени класове.",
+        selectGrade: "Изберете клас...",
+        classLabel: "Паралелка",
+        loadingClasses: "Зареждане на паралелки...",
+        noClassesForGrade: "Не са намерени паралелки за този клас.",
+        selectClass: "Изберете паралелка...",
+        filesLabel: "Файлове",
+        dragDrop: "Влачете и пуснете файловете си тук",
+        or: "или",
+        browseBtn: "Избор на файлове",
+        fileHint: "Макс. 10 файла, 50MB всеки • PDF, Word, PowerPoint, изображения, видео, архиви, APK",
+        fileSelected: "избран файл",
+        filesSelected: "избрани файла",
+        clearAll: "Изчисти всички",
+        uploading: "Качване...",
+        makePublic: "Публичен",
+        publicDesc: "Позволете на всички потребители да преглеждат и изтеглят този материал",
+        cancel: "Отказ",
+        uploadBtn: "Качване",
+        material: "Материал",
+        materials: "Материала",
+        errMaxFiles: "Максимум 10 файла на качване. Допълнителните файлове бяха игнорирани.",
+        errNoFiles: "Моля, изберете поне един файл за качване.",
+        errNoTitle: "Моля, въведете заглавие на материала.",
+        errUploadFail: "Неуспешно качване на материала. Моля, опитайте отново."
+    }
+};
+
 export const UploadMaterialPage = () => {
     const navigate = useNavigate();
     const { user, hasRole } = useAuth();
+    const { language } = useLanguage();
+    const t = translations[language];
+
     const isTeacher = hasRole('teacher');
     const isAdmin = hasRole('admin');
     const fileInputRef = useRef(null);
@@ -156,7 +245,7 @@ export const UploadMaterialPage = () => {
                 const combined = [...prev, ...validFiles];
                 // Limit to 10 files max
                 if (combined.length > 10) {
-                    setError(prev => (prev ? prev + '\n' : '') + 'Maximum 10 files per upload. Extra files were ignored.');
+                    setError(prev => (prev ? prev + '\n' : '') + t.errMaxFiles);
                     return combined.slice(0, 10);
                 }
                 return combined;
@@ -189,12 +278,12 @@ export const UploadMaterialPage = () => {
         setError(null);
 
         if (files.length === 0) {
-            setError('Please select at least one file to upload.');
+            setError(t.errNoFiles);
             return;
         }
 
         if (!formData.title.trim() && files.length === 1) {
-            setError('Please enter a title for the material.');
+            setError(t.errNoTitle);
             return;
         }
 
@@ -250,7 +339,7 @@ export const UploadMaterialPage = () => {
 
         } catch (err) {
             console.error('Upload failed:', err);
-            setError(err.response?.data?.message || 'Failed to upload material. Please try again.');
+            setError(err.response?.data?.message || t.errUploadFail);
             setIsUploading(false);
             setUploadProgress(0);
         }
@@ -270,8 +359,8 @@ export const UploadMaterialPage = () => {
     return (
         <div className="upload-page">
             <div className="upload-container">
-                <h1>Upload Material</h1>
-                <p className="subtitle">Share learning resources with your students</p>
+                <h1>{t.pageTitle}</h1>
+                <p className="subtitle">{t.subtitle}</p>
 
                 {error && (
                     <div className="error-alert">
@@ -282,26 +371,26 @@ export const UploadMaterialPage = () => {
 
                 <form onSubmit={handleSubmit} className="upload-form">
                     <div className="form-group">
-                        <label htmlFor="title">Title {files.length <= 1 ? '*' : '(optional for batch)'}</label>
+                        <label htmlFor="title">{t.titleLabel} {files.length <= 1 ? '*' : t.titleOptional}</label>
                         <input
                             type="text"
                             id="title"
                             name="title"
                             value={formData.title}
                             onChange={handleInputChange}
-                            placeholder={files.length > 1 ? 'Leave blank to use file names as titles' : 'e.g., Introduction to React'}
+                            placeholder={files.length > 1 ? t.titlePlaceholderBatch : t.titlePlaceholderSingle}
                             disabled={isUploading}
                         />
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="description">Description</label>
+                        <label htmlFor="description">{t.descLabel}</label>
                         <textarea
                             id="description"
                             name="description"
                             value={formData.description}
                             onChange={handleInputChange}
-                            placeholder="Brief description of the material content..."
+                            placeholder={t.descPlaceholder}
                             rows={4}
                             disabled={isUploading}
                         />
@@ -309,14 +398,14 @@ export const UploadMaterialPage = () => {
 
                     {/* Subject / Category */}
                     <div className="form-group">
-                        <label htmlFor="category_id">Subject / Category</label>
+                        <label htmlFor="category_id">{t.subjectLabel}</label>
 
                         {(isTeacher || isAdmin) && teacherSubjects === null ? (
-                            <p style={{ color: 'var(--gray-400)', fontSize: 14 }}>Loading subjects...</p>
+                            <p style={{ color: 'var(--gray-400)', fontSize: 14 }}>{t.loadingSubjects}</p>
                         ) : (isTeacher || isAdmin) && teacherSubjects?.length === 0 ? (
                             <div className="error-alert" style={{ marginTop: 0 }}>
                                 <BookOpen size={18} />
-                                <span>You have no subjects assigned. Please contact an administrator.</span>
+                                <span>{t.noSubjects}</span>
                             </div>
                         ) : (
                             <select
@@ -327,7 +416,7 @@ export const UploadMaterialPage = () => {
                                 disabled={isUploading}
                                 className="form-select"
                             >
-                                <option value="">Select a subject...</option>
+                                <option value="">{t.selectSubject}</option>
                                 {((isTeacher || isAdmin) ? teacherSubjects : categories).map(cat => (
                                     <option key={cat.id} value={cat.id}>{cat.name}</option>
                                 ))}
@@ -338,12 +427,12 @@ export const UploadMaterialPage = () => {
                     {/* Grade dropdown — teachers and admins only */}
                     {(isTeacher || isAdmin) && (
                         <div className="form-group">
-                            <label htmlFor="grade_id">Grade</label>
+                            <label htmlFor="grade_id">{t.gradeLabel}</label>
                             {teacherGrades === null ? (
-                                <p style={{ color: 'var(--gray-400)', fontSize: 14 }}>Loading grades...</p>
+                                <p style={{ color: 'var(--gray-400)', fontSize: 14 }}>{t.loadingGrades}</p>
                             ) : teacherGrades.length === 0 ? (
                                 <p style={{ color: 'var(--gray-400)', fontSize: 14, fontWeight: 600 }}>
-                                    No grades found.
+                                    {t.noGrades}
                                 </p>
                             ) : (
                                 <select
@@ -354,7 +443,7 @@ export const UploadMaterialPage = () => {
                                     disabled={isUploading}
                                     className="form-select"
                                 >
-                                    <option value="">Select a grade...</option>
+                                    <option value="">{t.selectGrade}</option>
                                     {teacherGrades.map(grade => (
                                         <option key={grade.id} value={grade.id}>{grade.name}</option>
                                     ))}
@@ -366,12 +455,12 @@ export const UploadMaterialPage = () => {
                     {/* Class dropdown — teachers and admins only */}
                     {(isTeacher || isAdmin) && formData.grade_id && (
                         <div className="form-group">
-                            <label htmlFor="class_id">Class</label>
+                            <label htmlFor="class_id">{t.classLabel}</label>
                             {teacherClasses === null ? (
-                                <p style={{ color: 'var(--gray-400)', fontSize: 14 }}>Loading classes...</p>
+                                <p style={{ color: 'var(--gray-400)', fontSize: 14 }}>{t.loadingClasses}</p>
                             ) : teacherClasses.filter(c => c.grade_id === parseInt(formData.grade_id)).length === 0 ? (
                                 <p style={{ color: 'var(--gray-400)', fontSize: 14, fontWeight: 600 }}>
-                                    No classes found for this grade.
+                                    {t.noClassesForGrade}
                                 </p>
                             ) : (
                                 <select
@@ -382,7 +471,7 @@ export const UploadMaterialPage = () => {
                                     disabled={isUploading}
                                     className="form-select"
                                 >
-                                    <option value="">Select a class...</option>
+                                    <option value="">{t.selectClass}</option>
                                     {teacherClasses
                                         .filter(cls => cls.grade_id === parseInt(formData.grade_id))
                                         .map(cls => (
@@ -394,7 +483,7 @@ export const UploadMaterialPage = () => {
                     )}
 
                     <div className="form-group">
-                        <label>Files * <span className="file-count-badge">{files.length}/10</span></label>
+                        <label>{t.filesLabel} * <span className="file-count-badge">{files.length}/10</span></label>
                         <div
                             className={`drop-zone ${dragActive ? 'active' : ''}`}
                             onDragEnter={handleDragIn}
@@ -405,8 +494,8 @@ export const UploadMaterialPage = () => {
                             style={{ cursor: 'pointer' }}
                         >
                             <Upload size={48} className="upload-icon" />
-                            <p className="drop-text">Drag & drop your files here</p>
-                            <p className="drop-text-or">or</p>
+                            <p className="drop-text">{t.dragDrop}</p>
+                            <p className="drop-text-or">{t.or}</p>
                             <button 
                                 type="button" 
                                 className="btn-browse" 
@@ -415,9 +504,9 @@ export const UploadMaterialPage = () => {
                                     onButtonClick();
                                 }}
                             >
-                                Browse Files
+                                {t.browseBtn}
                             </button>
-                            <p className="file-hint">Max 10 files, 50MB each • PDF, Word, PowerPoint, images, videos, archives, APK</p>
+                            <p className="file-hint">{t.fileHint}</p>
                             <input
                                 ref={fileInputRef}
                                 type="file"
@@ -431,14 +520,14 @@ export const UploadMaterialPage = () => {
                         {files.length > 0 && (
                             <div className="file-list">
                                 <div className="file-list-header">
-                                    <span className="file-list-title">{files.length} file{files.length !== 1 ? 's' : ''} selected</span>
+                                    <span className="file-list-title">{files.length} {files.length === 1 ? t.fileSelected : t.filesSelected}</span>
                                     <button
                                         type="button"
                                         onClick={removeAllFiles}
                                         className="btn-clear-all"
                                         disabled={isUploading}
                                     >
-                                        Clear all
+                                        {t.clearAll}
                                     </button>
                                 </div>
                                 {files.map((file, index) => (
@@ -468,7 +557,7 @@ export const UploadMaterialPage = () => {
                     {isUploading && (
                         <div className="progress-bar-container">
                             <div className="progress-bar-header">
-                                <span>Uploading...</span>
+                                <span>{t.uploading}</span>
                                 <span>{uploadProgress}%</span>
                             </div>
                             <div className="progress-bar-track">
@@ -490,8 +579,8 @@ export const UploadMaterialPage = () => {
                                 disabled={isUploading}
                             />
                             <span className="checkbox-text">
-                                <span className="checkbox-title">Make Public</span>
-                                <span className="checkbox-desc">Allow all users to view and download this material</span>
+                                <span className="checkbox-title">{t.makePublic}</span>
+                                <span className="checkbox-desc">{t.publicDesc}</span>
                             </span>
                         </label>
                     </div>
@@ -503,7 +592,7 @@ export const UploadMaterialPage = () => {
                             onClick={() => navigate('/materials')}
                             disabled={isUploading}
                         >
-                            Cancel
+                            {t.cancel}
                         </button>
                         <button
                             type="submit"
@@ -513,12 +602,12 @@ export const UploadMaterialPage = () => {
                             {isUploading ? (
                                 <>
                                     <LoadingSpinner size="small" color="white" />
-                                    <span>Uploading... {uploadProgress}%</span>
+                                    <span>{t.uploading} {uploadProgress}%</span>
                                 </>
                             ) : (
                                 <>
                                     <Upload size={18} />
-                                    <span>Upload {files.length > 1 ? `${files.length} Materials` : 'Material'}</span>
+                                    <span>{t.uploadBtn} {files.length > 1 ? `${files.length} ${t.materials}` : t.material}</span>
                                 </>
                             )}
                         </button>

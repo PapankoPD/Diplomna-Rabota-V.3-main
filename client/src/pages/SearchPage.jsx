@@ -5,15 +5,89 @@ import { searchApi } from '../api/searchApi';
 import { taxonomyApi } from '../api/taxonomyApi';
 import { StarRating } from '../components/ratings/StarRating';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
+import { useLanguage } from '../contexts/LanguageContext';
 import { Search, FileText, Download, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { formatFileSize } from '../utils/formatters';
 import './SearchPage.css';
 
+const translations = {
+    en: {
+        pageTitle: "Search Materials",
+        searchPlaceholder: "Search by title, description...",
+        searchBtn: "Search",
+        filters: "Filters",
+        resultFound: "result found",
+        resultsFound: "results found",
+        sortBy: "Sort by:",
+        sortRelevance: "Relevance",
+        sortNewest: "Newest",
+        sortMostDownloaded: "Most Downloaded",
+        sortHighestRated: "Highest Rated",
+        fileType: "File Type",
+        allTypes: "All Types",
+        typePdf: "PDF",
+        typeDoc: "Documents",
+        typeImg: "Images",
+        typeVid: "Videos",
+        typeApp: "Applications",
+        subject: "Subject",
+        allSubjects: "All Subjects",
+        grade: "Grade",
+        allGrades: "All Grades",
+        applyBtn: "Apply",
+        clearBtn: "Clear",
+        noDesc: "No description",
+        prev: "Previous",
+        pageOf: (page, total) => `Page ${page} of ${total}`,
+        next: "Next",
+        noResultsTitle: "No results found",
+        noResultsDesc: "Try adjusting your search terms or filters.",
+        searchHeroTitle: "Search for materials",
+        searchHeroDesc: "Enter a search term to find learning materials."
+    },
+    bg: {
+        pageTitle: "Търсене на материали",
+        searchPlaceholder: "Търсене по заглавие, описание...",
+        searchBtn: "Търсене",
+        filters: "Филтри",
+        resultFound: "намерен резултат",
+        resultsFound: "намерени резултата",
+        sortBy: "Сортиране по:",
+        sortRelevance: "Уместност",
+        sortNewest: "Най-нови",
+        sortMostDownloaded: "Най-теглени",
+        sortHighestRated: "Най-високо оценени",
+        fileType: "Тип файл",
+        allTypes: "Всички типове",
+        typePdf: "PDF",
+        typeDoc: "Документи",
+        typeImg: "Изображения",
+        typeVid: "Видеоклипове",
+        typeApp: "Приложения",
+        subject: "Предмет",
+        allSubjects: "Всички предмети",
+        grade: "Клас",
+        allGrades: "Всички класове",
+        applyBtn: "Приложи",
+        clearBtn: "Изчисти",
+        noDesc: "Няма описание",
+        prev: "Предишна",
+        pageOf: (page, total) => `Страница ${page} от ${total}`,
+        next: "Следваща",
+        noResultsTitle: "Няма намерени резултати",
+        noResultsDesc: "Опитайте да коригирате думите за търсене или филтрите.",
+        searchHeroTitle: "Търсете материали",
+        searchHeroDesc: "Въведете дума за търсене, за да намерите учебни материали."
+    }
+};
+
 export const SearchPage = () => {
     const [searchParams, setSearchParams] = useSearchParams();
     const navigate = useNavigate();
-    const initialQuery = searchParams.get('q') || '';
+    const { language } = useLanguage();
+    const t = translations[language];
 
+    const initialQuery = searchParams.get('q') || '';
     const [query, setQuery] = useState(initialQuery);
     const debouncedQuery = useDebounce(query, 400);
 
@@ -126,28 +200,28 @@ export const SearchPage = () => {
     };
 
     const fileTypes = [
-        { value: '', label: 'All Types' },
-        { value: 'pdf', label: 'PDF' },
-        { value: 'document', label: 'Documents' },
-        { value: 'image', label: 'Images' },
-        { value: 'video', label: 'Videos' },
-        { value: 'application', label: 'Applications' }
+        { value: '', label: t.allTypes },
+        { value: 'pdf', label: t.typePdf },
+        { value: 'document', label: t.typeDoc },
+        { value: 'image', label: t.typeImg },
+        { value: 'video', label: t.typeVid },
+        { value: 'application', label: t.typeApp }
     ];
 
     return (
         <div className="search-page">
             <div className="search-page-header">
-                <h1>Search Materials</h1>
+                <h1>{t.pageTitle}</h1>
                 <form onSubmit={handleSearch} className="search-page-form">
                     <Search size={20} className="search-form-icon" />
                     <input
                         type="text"
-                        placeholder="Search by title, description..."
+                        placeholder={t.searchPlaceholder}
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
                         autoFocus
                     />
-                    <button type="submit" className="btn-search">Search</button>
+                    <button type="submit" className="btn-search">{t.searchBtn}</button>
                 </form>
             </div>
 
@@ -157,20 +231,20 @@ export const SearchPage = () => {
                     onClick={() => setShowFilters(!showFilters)}
                 >
                     <Filter size={16} />
-                    Filters
+                    {t.filters}
                 </button>
                 {pagination.total > 0 && (
                     <span className="results-count">
-                        {pagination.total} result{pagination.total !== 1 ? 's' : ''} found
+                        {pagination.total} {pagination.total !== 1 ? t.resultsFound : t.resultFound}
                     </span>
                 )}
                 <div className="sort-control">
-                    <label>Sort by:</label>
+                    <label>{t.sortBy}</label>
                     <select value={sortBy} onChange={(e) => { setSortBy(e.target.value); }}>
-                        <option value="relevance">Relevance</option>
-                        <option value="created_at">Newest</option>
-                        <option value="download_count">Most Downloaded</option>
-                        <option value="average_rating">Highest Rated</option>
+                        <option value="relevance">{t.sortRelevance}</option>
+                        <option value="created_at">{t.sortNewest}</option>
+                        <option value="download_count">{t.sortMostDownloaded}</option>
+                        <option value="average_rating">{t.sortHighestRated}</option>
                     </select>
                 </div>
             </div>
@@ -178,7 +252,7 @@ export const SearchPage = () => {
             {showFilters && (
                 <div className="filters-panel">
                     <div className="filter-group">
-                        <label>File Type</label>
+                        <label>{t.fileType}</label>
                         <select value={fileType} onChange={(e) => setFileType(e.target.value)}>
                             {fileTypes.map(ft => (
                                 <option key={ft.value} value={ft.value}>{ft.label}</option>
@@ -186,26 +260,26 @@ export const SearchPage = () => {
                         </select>
                     </div>
                     <div className="filter-group">
-                        <label>Subject</label>
+                        <label>{t.subject}</label>
                         <select value={subjectId} onChange={(e) => setSubjectId(e.target.value)}>
-                            <option value="">All Subjects</option>
+                            <option value="">{t.allSubjects}</option>
                             {subjects.map(s => (
                                 <option key={s.id} value={s.id}>{s.name}</option>
                             ))}
                         </select>
                     </div>
                     <div className="filter-group">
-                        <label>Grade</label>
+                        <label>{t.grade}</label>
                         <select value={gradeId} onChange={(e) => setGradeId(e.target.value)}>
-                            <option value="">All Grades</option>
+                            <option value="">{t.allGrades}</option>
                             {grades.map(g => (
                                 <option key={g.id} value={g.id}>{g.name}</option>
                             ))}
                         </select>
                     </div>
                     <div className="filter-actions">
-                        <button className="btn-apply" onClick={handleFilterApply}>Apply</button>
-                        <button className="btn-clear" onClick={handleClearFilters}>Clear</button>
+                        <button className="btn-apply" onClick={handleFilterApply}>{t.applyBtn}</button>
+                        <button className="btn-clear" onClick={handleClearFilters}>{t.clearBtn}</button>
                     </div>
                 </div>
             )}
@@ -229,7 +303,7 @@ export const SearchPage = () => {
                                     <p className="result-description">
                                         {material.description
                                             ? material.description.substring(0, 120) + (material.description.length > 120 ? '...' : '')
-                                            : 'No description'}
+                                            : t.noDesc}
                                     </p>
                                     <div className="result-meta">
                                         <span className="result-type">{material.file_type?.split('/').pop()}</span>
@@ -254,16 +328,16 @@ export const SearchPage = () => {
                                 disabled={pagination.page <= 1}
                                 onClick={() => handlePageChange(pagination.page - 1)}
                             >
-                                <ChevronLeft size={16} /> Previous
+                                <ChevronLeft size={16} /> {t.prev}
                             </button>
                             <span className="page-info">
-                                Page {pagination.page} of {pagination.totalPages}
+                                {t.pageOf(pagination.page, pagination.totalPages)}
                             </span>
                             <button
                                 disabled={pagination.page >= pagination.totalPages}
                                 onClick={() => handlePageChange(pagination.page + 1)}
                             >
-                                Next <ChevronRight size={16} />
+                                {t.next} <ChevronRight size={16} />
                             </button>
                         </div>
                     )}
@@ -271,14 +345,14 @@ export const SearchPage = () => {
             ) : initialQuery ? (
                 <div className="no-results">
                     <Search size={48} />
-                    <h3>No results found</h3>
-                    <p>Try adjusting your search terms or filters.</p>
+                    <h3>{t.noResultsTitle}</h3>
+                    <p>{t.noResultsDesc}</p>
                 </div>
             ) : (
                 <div className="no-results">
                     <Search size={48} />
-                    <h3>Search for materials</h3>
-                    <p>Enter a search term to find learning materials.</p>
+                    <h3>{t.searchHeroTitle}</h3>
+                    <p>{t.searchHeroDesc}</p>
                 </div>
             )}
         </div>

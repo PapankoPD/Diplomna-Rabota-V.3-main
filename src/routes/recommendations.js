@@ -102,6 +102,104 @@ router.get('/trending', validatePagination, async (req, res) => {
 });
 
 /**
+ * GET /api/recommendations/trending-for-me
+ * Role-aware trending:
+ *  - student → most downloaded materials from their assigned class
+ *  - teacher → most downloaded materials they uploaded
+ *  - admin/other → global trending
+ */
+router.get('/trending-for-me', authenticate, async (req, res) => {
+    try {
+        const { query } = require('../config/database');
+        const userId = req.user.userId;
+        const limit = parseInt(req.query.limit || '5');
+
+        // Determine the user's primary role
+        const rolesResult = await query(
+            `SELECT r.name FROM roles r
+             JOIN user_roles ur ON r.id = ur.role_id
+             WHERE ur.user_id = $1`,
+            [userId]
+        );
+        const roleNames = rolesResult.rows.map(r => r.name);
+
+        let rows = [];
+
+        if (roleNames.includes('student')) {
+            // Find the student's class enrollment(s)
+            const classResult = await query(
+                `SELECT class_id FROM student_enrollments WHERE student_id = $1 LIMIT 1`,
+                [userId]
+            );
+
+            if (classResult.rows.length > 0) {
+                const classId = classResult.rows[0].class_id;
+                // Most downloaded materials in that class
+                const result = await query(
+                    `SELECT m.id, m.title, m.description, m.file_type, m.download_count
+                     FROM materials m
+                     JOIN class_materials cm ON cm.material_id = m.id
+                     WHERE cm.class_id = $1
+                     AND m.is_archived = 0
+                     ORDER BY m.download_count DESC
+                     LIMIT $2`,
+                    [classId, limit]
+                );
+                rows = result.rows;
+            }
+
+            // Fallback to global if no class or no materials
+            if (rows.length === 0) {
+                const fallback = await query(
+                    `SELECT id, title, description, file_type, download_count
+                     FROM materials WHERE is_archived = 0
+                     ORDER BY download_count DESC LIMIT $1`,
+                    [limit]
+                );
+                rows = fallback.rows;
+            }
+
+        } else if (roleNames.includes('teacher')) {
+            // Most downloaded materials uploaded by this teacher
+            const result = await query(
+                `SELECT m.id, m.title, m.description, m.file_type, m.download_count
+                 FROM materials m
+                 WHERE m.uploaded_by = $1
+                 AND m.is_archived = 0
+                 ORDER BY m.download_count DESC
+                 LIMIT $2`,
+                [userId, limit]
+            );
+            rows = result.rows;
+
+        } else {
+            // Admin or other: global trending
+            const result = await query(
+                `SELECT id, title, description, file_type, download_count
+                 FROM materials WHERE is_archived = 0
+                 ORDER BY download_count DESC LIMIT $1`,
+                [limit]
+            );
+            rows = result.rows;
+        }
+
+        const trending = rows.map(row => ({
+            materialId: row.id,
+            title: row.title,
+            description: row.description,
+            fileType: row.file_type,
+            downloadCount: row.download_count,
+            download_count: row.download_count
+        }));
+
+        res.json({ success: true, data: { trending, count: trending.length } });
+    } catch (error) {
+        console.error('Get trending-for-me error:', error);
+        res.status(500).json({ success: false, message: 'Failed to get trending materials' });
+    }
+});
+
+/**
  * GET /api/recommendations/popular
  * Get all-time popular materials
  */

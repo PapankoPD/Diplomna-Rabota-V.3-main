@@ -221,6 +221,27 @@
     border-color: var(--primary);
 }
 
+/* Admin "+" button next to subject dropdown */
+.add-subject-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    background: var(--primary-light);
+    border: 2px solid var(--primary);
+    border-radius: 10px;
+    color: var(--primary);
+    cursor: pointer;
+    transition: all 0.18s;
+}
+.add-subject-btn:hover {
+    background: var(--primary);
+    color: white;
+    transform: scale(1.08);
+}
+
 .clear-filters-btn {
     display: flex;
     align-items: center;

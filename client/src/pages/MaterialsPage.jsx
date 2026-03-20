@@ -6,20 +6,91 @@ import { taxonomyApi } from '../api/taxonomyApi';
 import { searchApi } from '../api/searchApi';
 import { StarRating } from '../components/ratings/StarRating';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { Search, Filter, Download, X, ChevronDown, GraduationCap, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useLanguage } from '../contexts/LanguageContext';
+import { Search, Filter, Download, X, ChevronDown, GraduationCap, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 import { formatFileSize, formatRelativeTime } from '../utils/formatters';
 import './MaterialsPage.css';
 
-const FILE_TYPES = [
-    { value: '', label: 'All Types' },
-    { value: 'pdf', label: 'PDF' },
-    { value: 'document', label: 'Documents' },
-    { value: 'image', label: 'Images' },
-    { value: 'video', label: 'Videos' },
-    { value: 'application', label: 'Applications' },
-];
+const FILE_TYPES = {
+    en: [
+        { value: '', label: 'All Types' },
+        { value: 'pdf', label: 'PDF' },
+        { value: 'document', label: 'Documents' },
+        { value: 'image', label: 'Images' },
+        { value: 'video', label: 'Videos' },
+        { value: 'application', label: 'Applications' },
+    ],
+    bg: [
+        { value: '', label: 'Всички типове' },
+        { value: 'pdf', label: 'PDF' },
+        { value: 'document', label: 'Документи' },
+        { value: 'image', label: 'Изображения' },
+        { value: 'video', label: 'Видео' },
+        { value: 'application', label: 'Приложения' },
+    ]
+};
+
+const translations = {
+    en: {
+        title: "Learning Materials",
+        subtitle: "Browse and download educational resources",
+        filteredByClass: "Filtered by class:",
+        clearClassFilter: "Clear class filter",
+        searchPlaceholder: "Search materials...",
+        filtersBtn: "Filters",
+        sortNewest: "Newest First",
+        sortOldest: "Oldest First",
+        sortPopular: "Most Popular",
+        sortHighest: "Highest Rated",
+        sortAZ: "Title A–Z",
+        lblFileType: "File Type",
+        lblSubject: "Subject",
+        allSubjects: "All Subjects",
+        lblGrade: "Grade",
+        allGrades: "All Grades",
+        clearAll: "Clear All",
+        noMaterials: "No materials found",
+        clearAndTryAgain: "Clear filters and try again",
+        by: "By",
+        addSubject: "Add subject",
+        previous: "Previous",
+        next: "Next"
+    },
+    bg: {
+        title: "Учебни материали",
+        subtitle: "Разглеждайте и изтегляйте образователни ресурси",
+        filteredByClass: "Филтрирано по клас:",
+        clearClassFilter: "Изчисти филтъра за клас",
+        searchPlaceholder: "Търсене на материали...",
+        filtersBtn: "Филтри",
+        sortNewest: "Най-новите първо",
+        sortOldest: "Най-старите първо",
+        sortPopular: "Най-популярните",
+        sortHighest: "С най-висока оценка",
+        sortAZ: "Заглавие А-Я",
+        lblFileType: "Тип файл",
+        lblSubject: "Предмет",
+        allSubjects: "Всички предмети",
+        lblGrade: "Клас",
+        allGrades: "Всички класове",
+        clearAll: "Изчисти всички",
+        noMaterials: "Не са намерени материали",
+        clearAndTryAgain: "Изчистете филтрите и опитайте отново",
+        by: "От",
+        addSubject: "Добави предмет",
+        previous: "Предишна",
+        next: "Следваща"
+    }
+};
 
 export const MaterialsPage = () => {
+    const { language } = useLanguage();
+    const t = translations[language];
+    const fileTypes = FILE_TYPES[language];
+    const { hasRole } = useAuth();
+    const isAdmin = hasRole('admin');
+
     const [searchParams] = useSearchParams();
     const [materials, setMaterials] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -92,9 +163,6 @@ export const MaterialsPage = () => {
             } else {
                 response = await materialsApi.getMaterials(params);
             }
-
-            // searchApi returns { success, data: { materials: [], pagination: {} } }
-            // materialsApi returns { success, data: [], pagination: {} }
             
             const materialsArray = response.data?.materials || response.data || [];
             const paginationData = response.data?.pagination || response.pagination || {};
@@ -179,15 +247,15 @@ export const MaterialsPage = () => {
     return (
         <div className="materials-page">
             <div className="materials-header">
-                <h1>Learning Materials</h1>
-                <p>Browse and download educational resources</p>
+                <h1>{t.title}</h1>
+                <p>{t.subtitle}</p>
             </div>
 
             {activeClassName && (
                 <div className="class-filter-banner">
                     <GraduationCap size={16} />
-                    <span>Filtered by class: <strong>{activeClassName}</strong></span>
-                    <button className="class-filter-clear" onClick={clearFilters} title="Clear class filter">
+                    <span>{t.filteredByClass} <strong>{activeClassName}</strong></span>
+                    <button className="class-filter-clear" onClick={clearFilters} title={t.clearClassFilter}>
                         <X size={14} />
                     </button>
                 </div>
@@ -198,7 +266,7 @@ export const MaterialsPage = () => {
                     <Search size={20} />
                     <input
                         type="text"
-                        placeholder="Search materials..."
+                        placeholder={t.searchPlaceholder}
                         value={search}
                         onChange={handleSearch}
                     />
@@ -213,7 +281,7 @@ export const MaterialsPage = () => {
                     onClick={() => setShowFilters(!showFilters)}
                 >
                     <Filter size={20} />
-                    Filters
+                    {t.filtersBtn}
                     {hasActiveFilters && <span className="filter-badge" />}
                 </button>
                 <div className="sort-control">
@@ -226,11 +294,11 @@ export const MaterialsPage = () => {
                             setPage(1);
                         }}
                     >
-                        <option value="created_at-desc">Newest First</option>
-                        <option value="created_at-asc">Oldest First</option>
-                        <option value="download_count-desc">Most Popular</option>
-                        <option value="average_rating-desc">Highest Rated</option>
-                        <option value="title-asc">Title A–Z</option>
+                        <option value="created_at-desc">{t.sortNewest}</option>
+                        <option value="created_at-asc">{t.sortOldest}</option>
+                        <option value="download_count-desc">{t.sortPopular}</option>
+                        <option value="average_rating-desc">{t.sortHighest}</option>
+                        <option value="title-asc">{t.sortAZ}</option>
                     </select>
                     <ChevronDown size={16} className="select-icon" />
                 </div>
@@ -239,35 +307,48 @@ export const MaterialsPage = () => {
             {showFilters && (
                 <div className="filter-panel">
                     <div className="filter-group">
-                        <label>File Type</label>
+                        <label>{t.lblFileType}</label>
                         <select
                             value={fileType}
                             onChange={(e) => { setFileType(e.target.value); setPage(1); }}
                         >
-                            {FILE_TYPES.map(ft => (
+                            {fileTypes.map(ft => (
                                 <option key={ft.value} value={ft.value}>{ft.label}</option>
                             ))}
                         </select>
                     </div>
                     <div className="filter-group">
-                        <label>Subject</label>
-                        <select
-                            value={subjectId}
-                            onChange={(e) => { setSubjectId(e.target.value); setPage(1); }}
-                        >
-                            <option value="">All Subjects</option>
-                            {subjects.map(s => (
-                                <option key={s.id} value={s.id}>{s.name}</option>
-                            ))}
-                        </select>
+                        <label>{t.lblSubject}</label>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <select
+                                value={subjectId}
+                                onChange={(e) => { setSubjectId(e.target.value); setPage(1); }}
+                                style={{ flex: 1 }}
+                            >
+                                <option value="">{t.allSubjects}</option>
+                                {subjects.map(s => (
+                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                ))}
+                            </select>
+                            {isAdmin && (
+                                <button
+                                    type="button"
+                                    className="add-subject-btn"
+                                    title={t.addSubject}
+                                    onClick={() => navigate('/admin/subjects')}
+                                >
+                                    <Plus size={15} />
+                                </button>
+                            )}
+                        </div>
                     </div>
                     <div className="filter-group">
-                        <label>Grade</label>
+                        <label>{t.lblGrade}</label>
                         <select
                             value={gradeId}
                             onChange={(e) => { setGradeId(e.target.value); setPage(1); }}
                         >
-                            <option value="">All Grades</option>
+                            <option value="">{t.allGrades}</option>
                             {grades.map(g => (
                                 <option key={g.id} value={g.id}>{g.name}</option>
                             ))}
@@ -276,7 +357,7 @@ export const MaterialsPage = () => {
                     {hasActiveFilters && (
                         <button className="clear-filters-btn" onClick={clearFilters}>
                             <X size={14} />
-                            Clear All
+                            {t.clearAll}
                         </button>
                     )}
                 </div>
@@ -286,10 +367,10 @@ export const MaterialsPage = () => {
                 <LoadingSpinner />
             ) : materials.length === 0 ? (
                 <div className="empty-state">
-                    <p>No materials found</p>
+                    <p>{t.noMaterials}</p>
                     {hasActiveFilters && (
                         <button className="clear-filters-link" onClick={clearFilters}>
-                            Clear filters and try again
+                            {t.clearAndTryAgain}
                         </button>
                     )}
                 </div>
@@ -319,7 +400,7 @@ export const MaterialsPage = () => {
                                     </span>
                                 </div>
                                 <div className="material-meta">
-                                    <span>By {material.uploader_username}</span>
+                                    <span>{t.by} {material.uploader_username}</span>
                                     <span>{formatRelativeTime(material.created_at)}</span>
                                 </div>
                             </div>
@@ -334,7 +415,7 @@ export const MaterialsPage = () => {
                                 className="pagination-nav-btn"
                             >
                                 <ChevronLeft size={16} />
-                                Previous
+                                {t.previous}
                             </button>
 
                             <div className="pagination-numbers">
@@ -346,7 +427,7 @@ export const MaterialsPage = () => {
                                 disabled={page === totalPages}
                                 className="pagination-nav-btn"
                             >
-                                Next
+                                {t.next}
                                 <ChevronRight size={16} />
                             </button>
                         </div>

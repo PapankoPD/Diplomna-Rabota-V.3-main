@@ -23,8 +23,9 @@
 .users-table-container,
 .table-container {
     background: var(--bg-card);
-    border-radius: var(--radius-lg);
-    border: 2.5px solid var(--gray-100);
+    border-radius: 28px;
+    border: 1px solid var(--border-default);
+    border-top: 4px solid var(--primary);
     box-shadow: var(--shadow-sm);
     overflow: hidden;
 }
@@ -38,16 +39,17 @@
 .data-table td {
     padding: 14px 20px;
     text-align: left;
-    border-bottom: 1px solid var(--gray-100);
+    border-bottom: 1px solid var(--border-default);
 }
 
 .data-table th {
-    background: linear-gradient(135deg, var(--bg-surface), #ede9fe);
-    font-weight: 900;
-    color: var(--primary-dark);
-    font-size: 11px;
+    background: var(--primary-light);
+    font-weight: 800;
+    color: var(--text-muted);
+    font-size: 12px;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
+    letter-spacing: 0.8px;
+    border-bottom: 1px solid var(--border-default);
 }
 
 .data-table tr:last-child td {
@@ -55,7 +57,7 @@
 }
 
 .data-table tr:hover td {
-    background: #fafaff;
+    background: var(--bg-hover);
 }
 
 .data-table td {
@@ -72,13 +74,49 @@
 }
 
 .role-tag {
-    background: linear-gradient(135deg, #ede9fe, #c7d2fe);
-    color: var(--primary-dark);
+    background: var(--bg-surface);
+    color: var(--gray-700);
     padding: 4px 12px;
     border-radius: var(--radius-pill);
     font-size: 11px;
     font-weight: 800;
-    border: 1.5px solid #c7d2fe;
+    border: 1.5px solid var(--gray-200);
+}
+
+.role-tag.role-admin, .role-tag.role-superadmin {
+    background: #fee2e2;
+    color: #b91c1c;
+    border-color: #fca5a5;
+}
+
+.role-tag.role-teacher {
+    background: #e0e7ff;
+    color: #4f46e5;
+    border-color: #a5b4fc;
+}
+
+.role-tag.role-student {
+    background: #dcfce7;
+    color: #15803d;
+    border-color: #86efac;
+}
+
+.dark .role-tag.role-admin, .dark .role-tag.role-superadmin {
+    background: rgba(185, 28, 28, 0.2);
+    color: #fca5a5;
+    border-color: rgba(185, 28, 28, 0.5);
+}
+
+.dark .role-tag.role-teacher {
+    background: rgba(79, 70, 229, 0.2);
+    color: #a5b4fc;
+    border-color: rgba(79, 70, 229, 0.5);
+}
+
+.dark .role-tag.role-student {
+    background: rgba(21, 128, 61, 0.2);
+    color: #86efac;
+    border-color: rgba(21, 128, 61, 0.5);
 }
 
 /* ── Action buttons ──────────────────────────────────────────────────── */
@@ -93,7 +131,7 @@
     border: none;
     cursor: pointer;
     padding: 8px;
-    border-radius: 10px;
+    border-radius: 14px;
     color: var(--gray-400);
     transition: all 0.2s;
 }
@@ -125,7 +163,7 @@
 
 .modal {
     background: var(--bg-card);
-    border-radius: var(--radius-xl);
+    border-radius: 28px;
     width: 100%;
     max-width: 500px;
     box-shadow: 0 24px 48px rgba(99, 102, 241, 0.25), 0 0 0 3px #ede9fe;
@@ -137,8 +175,9 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(135deg, var(--bg-surface), white);
-    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    background: var(--primary-light);
+    border-bottom: 2px dashed var(--border-default);
+    border-radius: 28px 28px 0 0;
 }
 
 .modal-header h3 {
@@ -152,7 +191,7 @@
     border: none;
     cursor: pointer;
     color: var(--gray-400);
-    border-radius: 10px;
+    border-radius: 14px;
     padding: 4px;
     transition: color 0.2s, background 0.2s;
 }
@@ -178,7 +217,7 @@
     gap: 12px;
     padding: 14px 16px;
     border: 2px solid var(--gray-100);
-    border-radius: var(--radius-md);
+    border-radius: 16px;
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -249,7 +288,7 @@
     background: var(--bg-danger);
     color: var(--text-danger);
     padding: 12px 16px;
-    border-radius: var(--radius-md);
+    border-radius: 16px;
     margin-bottom: 1.5rem;
     font-weight: 700;
     border: 2px solid var(--border-danger);

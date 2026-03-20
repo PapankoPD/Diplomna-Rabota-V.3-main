@@ -35,38 +35,7 @@ router.post('/register', authLimiter, validateRegistration, async (req, res) => 
             return res.status(409).json({ success: false, message: 'Username already taken' });
         }
 
-        // Validate teacher code if registering as teacher
-        let validCode = null;
-        if (role === 'teacher') {
-            if (!teacherCode) {
-                await client.query('ROLLBACK');
-                return res.status(400).json({ success: false, message: 'A teacher registration code is required' });
-            }
-
-            const codeRes = await client.query(
-                `SELECT id, is_used, expires_at FROM teacher_registration_codes WHERE code = $1`,
-                [teacherCode.trim().toUpperCase()]
-            );
-
-            if (codeRes.rows.length === 0) {
-                await client.query('ROLLBACK');
-                return res.status(400).json({ success: false, message: 'Invalid teacher registration code' });
-            }
-
-            const codeRow = codeRes.rows[0];
-
-            if (codeRow.is_used) {
-                await client.query('ROLLBACK');
-                return res.status(400).json({ success: false, message: 'This code has already been used' });
-            }
-
-            if (codeRow.expires_at && new Date(codeRow.expires_at) < new Date()) {
-                await client.query('ROLLBACK');
-                return res.status(400).json({ success: false, message: 'This code has expired' });
-            }
-
-            validCode = codeRow.id;
-        }
+        // No teacher-code validation — role requests handle elevation now
 
         const passwordHash = await hashPassword(password);
 
@@ -78,14 +47,12 @@ router.post('/register', authLimiter, validateRegistration, async (req, res) => 
 
         const user = userResult.rows[0];
 
-        // Determine role: 'teacher' or default 'student'
-        const roleName = role === 'teacher' ? 'teacher' : 'student';
-        const roleResult = await client.query('SELECT id FROM roles WHERE name = $1', [roleName]);
+        // Always register as student; role elevation handled via role_requests
+        const roleResult = await client.query('SELECT id FROM roles WHERE name = $1', ['student']);
 
-        // Fallback to student role if not found
         const finalRoleRes = roleResult.rows.length > 0
             ? roleResult
-            : await client.query('SELECT id FROM roles WHERE name = $1', ['student']);
+            : { rows: [] };
 
         if (finalRoleRes.rows.length > 0) {
             await client.query(
@@ -94,21 +61,16 @@ router.post('/register', authLimiter, validateRegistration, async (req, res) => 
             );
         }
 
-        // Save teacher subjects
-        if (roleName === 'teacher' && Array.isArray(subjectIds) && subjectIds.length > 0) {
-            for (const subjectId of subjectIds) {
-                await client.query(
-                    'INSERT OR IGNORE INTO teacher_subjects (teacher_id, subject_id) VALUES ($1, $2)',
-                    [user.id, subjectId]
-                );
-            }
-        }
-
-        // Mark code as used
-        if (validCode) {
+        // Create role request if teacher or admin was requested
+        if (role === 'teacher' || role === 'admin') {
+            const requestMessage = req.body.message || null;
+            // For teacher: store subject IDs in message field as JSON
+            const msgToStore = role === 'teacher' && Array.isArray(subjectIds) && subjectIds.length > 0
+                ? JSON.stringify({ subjects: subjectIds, note: requestMessage })
+                : requestMessage;
             await client.query(
-                `UPDATE teacher_registration_codes SET is_used = 1, used_by = $1 WHERE id = $2`,
-                [user.id, validCode]
+                `INSERT INTO role_requests (user_id, requested_role, message) VALUES ($1, $2, $3)`,
+                [user.id, role, msgToStore]
             );
         }
 

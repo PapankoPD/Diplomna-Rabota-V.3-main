@@ -1,10 +1,58 @@
 import React, { useState, useEffect } from 'react';
 import { rolesApi } from '../../api/rolesApi';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Shield, Lock, Save, ArrowLeft, Plus, Trash2 } from 'lucide-react';
 import './RolesPage.css';
 
+const translations = {
+    en: {
+        roles: "Roles",
+        createNewRole: "Create New Role",
+        roleName: "Role Name",
+        description: "Description",
+        cancel: "Cancel",
+        createRole: "Create Role",
+        saving: "Saving...",
+        savePermissions: "Save Permissions",
+        selectRole: "Select a role to manage permissions",
+        successUpdate: "Permissions updated successfully",
+        errLoad: "Failed to load roles and permissions.",
+        errUpdate: "Failed to update permissions.",
+        errCreate: "Failed to create role.",
+        roleNames: {
+            admin: "admin",
+            teacher: "teacher",
+            student: "student"
+        }
+    },
+    bg: {
+        roles: "Роли",
+        createNewRole: "Създаване на нова роля",
+        roleName: "Име на ролята",
+        description: "Описание",
+        cancel: "Отказ",
+        createRole: "Създаване на роля",
+        saving: "Запазване...",
+        savePermissions: "Запазване на правата",
+        selectRole: "Изберете роля за управление на правата",
+        successUpdate: "Правата са актуализирани успешно",
+        errLoad: "Неуспешно зареждане на роли и права.",
+        errUpdate: "Неуспешно актуализиране на права.",
+        errCreate: "Неуспешно създаване на роля.",
+        roleNames: {
+            admin: "админ",
+            teacher: "учител",
+            student: "ученик"
+        }
+    }
+};
+
 export const RolesPage = () => {
+    const { language } = useLanguage();
+    const t = translations[language];
+    const translateRole = (r) => t.roleNames?.[r] || r;
+
     const [roles, setRoles] = useState([]);
     const [permissions, setPermissions] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -30,7 +78,7 @@ export const RolesPage = () => {
             setPermissions(permissionsRes.data?.permissions || []);
         } catch (err) {
             console.error('Failed to load data:', err);
-            setError('Failed to load roles and permissions.');
+            setError(t.errLoad);
         } finally {
             setIsLoading(false);
         }
@@ -67,10 +115,10 @@ export const RolesPage = () => {
             const updatedRole = rolesData.find(r => r.id === selectedRole.id);
             setSelectedRole(updatedRole);
 
-            alert('Permissions updated successfully');
+            alert(t.successUpdate);
         } catch (err) {
             console.error('Failed to update permissions:', err);
-            setError('Failed to update permissions.');
+            setError(t.errUpdate);
         } finally {
             setIsSaving(false);
         }
@@ -87,7 +135,7 @@ export const RolesPage = () => {
             setNewRoleData({ name: '', description: '' });
         } catch (err) {
             console.error('Failed to create role:', err);
-            setError('Failed to create role.');
+            setError(t.errCreate);
         } finally {
             setIsSaving(false);
         }
@@ -99,7 +147,7 @@ export const RolesPage = () => {
         <div className="admin-page-split">
             <div className="roles-sidebar">
                 <div className="sidebar-header">
-                    <h2>Roles</h2>
+                    <h2>{t.roles}</h2>
                     <button className="btn-icon" onClick={() => setNewRoleMode(true)}>
                         <Plus size={20} />
                     </button>
@@ -112,7 +160,7 @@ export const RolesPage = () => {
                             onClick={() => handleRoleSelect(role)}
                         >
                             <Shield size={18} />
-                            <span>{role.name}</span>
+                            <span>{translateRole(role.name)}</span>
                         </div>
                     ))}
                 </div>
@@ -123,10 +171,10 @@ export const RolesPage = () => {
 
                 {newRoleMode ? (
                     <div className="new-role-form">
-                        <h2>Create New Role</h2>
+                        <h2>{t.createNewRole}</h2>
                         <form onSubmit={handleCreateRole}>
                             <div className="form-group">
-                                <label>Role Name</label>
+                                <label>{t.roleName}</label>
                                 <input
                                     type="text"
                                     value={newRoleData.name}
@@ -135,15 +183,15 @@ export const RolesPage = () => {
                                 />
                             </div>
                             <div className="form-group">
-                                <label>Description</label>
+                                <label>{t.description}</label>
                                 <textarea
                                     value={newRoleData.description}
                                     onChange={e => setNewRoleData({ ...newRoleData, description: e.target.value })}
                                 />
                             </div>
                             <div className="form-actions">
-                                <button type="button" onClick={() => setNewRoleMode(false)}>Cancel</button>
-                                <button type="submit" disabled={isSaving}>Create Role</button>
+                                <button type="button" onClick={() => setNewRoleMode(false)}>{t.cancel}</button>
+                                <button type="submit" disabled={isSaving}>{t.createRole}</button>
                             </div>
                         </form>
                     </div>
@@ -151,7 +199,7 @@ export const RolesPage = () => {
                     <div className="permissions-editor">
                         <div className="editor-header">
                             <div>
-                                <h2>{selectedRole.name}</h2>
+                                <h2>{translateRole(selectedRole.name)}</h2>
                                 <p>{selectedRole.description}</p>
                             </div>
                             <button
@@ -160,7 +208,7 @@ export const RolesPage = () => {
                                 disabled={isSaving}
                             >
                                 <Save size={18} />
-                                <span>{isSaving ? 'Saving...' : 'Save Permissions'}</span>
+                                <span>{isSaving ? t.saving : t.savePermissions}</span>
                             </button>
                         </div>
 
@@ -183,7 +231,7 @@ export const RolesPage = () => {
                 ) : (
                     <div className="empty-state">
                         <Shield size={48} color="#cbd5e1" />
-                        <p>Select a role to manage permissions</p>
+                        <p>{t.selectRole}</p>
                     </div>
                 )}
             </div>

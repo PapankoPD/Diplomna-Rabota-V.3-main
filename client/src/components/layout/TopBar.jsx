@@ -3,12 +3,14 @@ import { Menu, User, LogOut, Search, Sun, Moon } from 'lucide-react';
 import { NotificationsDropdown } from './NotificationsDropdown';
 import { useAuth } from '../../hooks/useAuth';
 import { useTheme } from '../../contexts/ThemeContext';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './TopBar.css';
 
 export const TopBar = () => {
     const { user, logout } = useAuth();
     const { theme, toggleTheme } = useTheme();
+    const { language, toggleLanguage } = useLanguage();
     const [showUserMenu, setShowUserMenu] = useState(false);
     const menuRef = useRef(null);
     const navigate = useNavigate();
@@ -45,7 +47,10 @@ export const TopBar = () => {
         || location.pathname.startsWith('/classes/')
         || location.pathname.startsWith('/materials/');
 
-
+    const t = {
+        en: { searchMaterials: "Search materials..." },
+        bg: { searchMaterials: "Търсене на материали..." }
+    }[language];
 
     return (
         <div className={`topbar ${isTransparentPage ? 'topbar-transparent' : ''}`}>
@@ -55,7 +60,7 @@ export const TopBar = () => {
                         <Search size={20} className="search-icon" />
                         <input
                             type="text"
-                            placeholder="Search materials..."
+                            placeholder={t.searchMaterials}
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                         />
@@ -63,6 +68,14 @@ export const TopBar = () => {
                 )}
             </div>
             <div className="topbar-right">
+                <button
+                    className="icon-btn lang-toggle-btn"
+                    onClick={toggleLanguage}
+                    title={language === 'en' ? 'Превключи на Български' : 'Switch to English'}
+                    style={{ fontSize: '14px', fontWeight: 'bold', fontFamily: 'inherit' }}
+                >
+                    {language === 'en' ? 'BG' : 'EN'}
+                </button>
                 <button
                     className="icon-btn theme-toggle-btn"
                     onClick={toggleTheme}

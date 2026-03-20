@@ -2,15 +2,55 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { materialsApi } from '../api/materialsApi';
 import { useAuth } from '../hooks/useAuth';
+import { useLanguage } from '../contexts/LanguageContext';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { Save, X, AlertCircle, FileText, ArrowLeft } from 'lucide-react';
 import { formatFileSize } from '../utils/formatters';
 import './UploadMaterialPage.css'; // Reuse upload styles
 
+const translations = {
+    en: {
+        pageTitle: "Edit Material",
+        subtitle: "Update material details and visibility",
+        backToDetails: "Back to Details",
+        titleLabel: "Title *",
+        descLabel: "Description",
+        currentFile: "Current File",
+        fileHint: "File cannot be changed in edit mode",
+        makePublic: "Make Public",
+        publicDesc: "Allow all users to view and download this material",
+        cancel: "Cancel",
+        saving: "Saving...",
+        saveChanges: "Save Changes",
+        errNoTitle: "Please enter a title for the material.",
+        errLoadDetails: "Failed to load material details.",
+        errUpdateFail: "Failed to update material. Please try again."
+    },
+    bg: {
+        pageTitle: "Редактиране на материал",
+        subtitle: "Обновете детайлите и видимостта на материала",
+        backToDetails: "Назад към детайлите",
+        titleLabel: "Заглавие *",
+        descLabel: "Описание",
+        currentFile: "Текущ файл",
+        fileHint: "Файлът не може да бъде променян в режим на редакция",
+        makePublic: "Публичен",
+        publicDesc: "Позволете на всички потребители да преглеждат и изтеглят този материал",
+        cancel: "Отказ",
+        saving: "Запазване...",
+        saveChanges: "Запазване на промените",
+        errNoTitle: "Моля, въведете заглавие на материала.",
+        errLoadDetails: "Неуспешно зареждане на детайлите за материала.",
+        errUpdateFail: "Неуспешно обновяване на материала. Моля, опитайте отново."
+    }
+};
+
 export const EditMaterialPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const { user } = useAuth();
+    const { language } = useLanguage();
+    const t = translations[language];
 
     const [formData, setFormData] = useState({
         title: '',
@@ -52,7 +92,7 @@ export const EditMaterialPage = () => {
             });
         } catch (err) {
             console.error('Failed to load material:', err);
-            setError('Failed to load material details.');
+            setError(t.errLoadDetails);
         } finally {
             setIsLoading(false);
         }
@@ -71,7 +111,7 @@ export const EditMaterialPage = () => {
         setError(null);
 
         if (!formData.title.trim()) {
-            setError('Please enter a title for the material.');
+            setError(t.errNoTitle);
             return;
         }
 
@@ -82,7 +122,7 @@ export const EditMaterialPage = () => {
             navigate(`/materials/${id}`);
         } catch (err) {
             console.error('Update failed:', err);
-            setError(err.response?.data?.message || 'Failed to update material. Please try again.');
+            setError(err.response?.data?.message || t.errUpdateFail);
             setIsSaving(false);
         }
     };
@@ -93,11 +133,11 @@ export const EditMaterialPage = () => {
         <div className="upload-page">
             <div className="upload-container">
                 <button onClick={() => navigate(`/materials/${id}`)} className="back-link">
-                    <ArrowLeft size={16} /> Back to Details
+                    <ArrowLeft size={16} /> {t.backToDetails}
                 </button>
 
-                <h1>Edit Material</h1>
-                <p className="subtitle">Update material details and visibility</p>
+                <h1>{t.pageTitle}</h1>
+                <p className="subtitle">{t.subtitle}</p>
 
                 {error && (
                     <div className="error-alert">
@@ -108,7 +148,7 @@ export const EditMaterialPage = () => {
 
                 <form onSubmit={handleSubmit} className="upload-form">
                     <div className="form-group">
-                        <label htmlFor="title">Title *</label>
+                        <label htmlFor="title">{t.titleLabel}</label>
                         <input
                             type="text"
                             id="title"
@@ -120,7 +160,7 @@ export const EditMaterialPage = () => {
                     </div>
 
                     <div className="form-group">
-                        <label htmlFor="description">Description</label>
+                        <label htmlFor="description">{t.descLabel}</label>
                         <textarea
                             id="description"
                             name="description"
@@ -132,7 +172,7 @@ export const EditMaterialPage = () => {
                     </div>
 
                     <div className="form-group">
-                        <label>Current File</label>
+                        <label>{t.currentFile}</label>
                         <div className="selected-file">
                             <div className="file-info">
                                 <FileText size={24} className="file-icon" />
@@ -141,7 +181,7 @@ export const EditMaterialPage = () => {
                                     <p className="file-size">{formatFileSize(fileInfo?.size)}</p>
                                 </div>
                             </div>
-                            <span className="file-hint">File cannot be changed in edit mode</span>
+                            <span className="file-hint">{t.fileHint}</span>
                         </div>
                     </div>
 
@@ -155,8 +195,8 @@ export const EditMaterialPage = () => {
                                 disabled={isSaving}
                             />
                             <span className="checkbox-text">
-                                <span className="checkbox-title">Make Public</span>
-                                <span className="checkbox-desc">Allow all users to view and download this material</span>
+                                <span className="checkbox-title">{t.makePublic}</span>
+                                <span className="checkbox-desc">{t.publicDesc}</span>
                             </span>
                         </label>
                     </div>
@@ -168,7 +208,7 @@ export const EditMaterialPage = () => {
                             onClick={() => navigate(`/materials/${id}`)}
                             disabled={isSaving}
                         >
-                            Cancel
+                            {t.cancel}
                         </button>
                         <button
                             type="submit"
@@ -178,12 +218,12 @@ export const EditMaterialPage = () => {
                             {isSaving ? (
                                 <>
                                     <LoadingSpinner size="small" color="white" />
-                                    <span>Saving...</span>
+                                    <span>{t.saving}</span>
                                 </>
                             ) : (
                                 <>
                                     <Save size={18} />
-                                    <span>Save Changes</span>
+                                    <span>{t.saveChanges}</span>
                                 </>
                             )}
                         </button>

@@ -4,9 +4,34 @@ import { getSocket } from '../../api/socketClient';
 import { Bell, Check, Trash2, CheckCircle2, Circle } from 'lucide-react';
 import { formatDateTime } from '../../utils/formatters';
 import { useNavigate } from 'react-router-dom';
+import { useLanguage } from '../../contexts/LanguageContext';
 import './NotificationsDropdown.css';
 
+const translations = {
+    en: {
+        title: "Notifications",
+        markAllRead: "Mark all read",
+        noNotifs: "You have no notifications yet",
+        markAsRead: "Mark as read",
+        delete: "Delete",
+        loading: "Loading...",
+        loadMore: "Load more"
+    },
+    bg: {
+        title: "Известия",
+        markAllRead: "Отбележи всички като прочетени",
+        noNotifs: "Все още нямате известия",
+        markAsRead: "Отбележи като прочетено",
+        delete: "Изтрий",
+        loading: "Зареждане...",
+        loadMore: "Зареди още"
+    }
+};
+
 export const NotificationsDropdown = () => {
+    const { language } = useLanguage();
+    const t = translations[language];
+
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
     const [isOpen, setIsOpen] = useState(false);
@@ -163,7 +188,7 @@ export const NotificationsDropdown = () => {
             <button
                 className="icon-btn bell-btn"
                 onClick={() => setIsOpen(!isOpen)}
-                aria-label="Notifications"
+                aria-label={t.title}
             >
                 <Bell size={20} />
                 {unreadCount > 0 && (
@@ -176,10 +201,10 @@ export const NotificationsDropdown = () => {
             {isOpen && (
                 <div className="notifications-dropdown">
                     <div className="notifications-header">
-                        <h3>Notifications</h3>
+                        <h3>{t.title}</h3>
                         {unreadCount > 0 && (
                             <button className="mark-all-btn" onClick={handleMarkAllAsRead}>
-                                <Check size={14} /> Mark all read
+                                <Check size={14} /> {t.markAllRead}
                             </button>
                         )}
                     </div>
@@ -188,7 +213,7 @@ export const NotificationsDropdown = () => {
                         {notifications.length === 0 && !isLoading ? (
                             <div className="empty-notifications">
                                 <Bell size={32} className="empty-icon" />
-                                <p>You have no notifications yet</p>
+                                <p>{t.noNotifs}</p>
                             </div>
                         ) : (
                             notifications.map(notif => (
@@ -213,7 +238,7 @@ export const NotificationsDropdown = () => {
                                             <button
                                                 className="action-btn read-btn"
                                                 onClick={(e) => handleMarkAsRead(notif.id, e)}
-                                                title="Mark as read"
+                                                title={t.markAsRead}
                                             >
                                                 <CheckCircle2 size={16} />
                                             </button>
@@ -221,7 +246,7 @@ export const NotificationsDropdown = () => {
                                         <button
                                             className="action-btn delete-btn"
                                             onClick={(e) => handleDelete(notif.id, e)}
-                                            title="Delete"
+                                            title={t.delete}
                                         >
                                             <Trash2 size={16} />
                                         </button>
@@ -231,7 +256,7 @@ export const NotificationsDropdown = () => {
                         )}
 
                         {isLoading && (
-                            <div className="loading-notifications">Loading...</div>
+                            <div className="loading-notifications">{t.loading}</div>
                         )}
 
                         {hasMore && !isLoading && notifications.length > 0 && (
@@ -239,7 +264,7 @@ export const NotificationsDropdown = () => {
                                 className="load-more-btn"
                                 onClick={() => loadNotifications(page + 1)}
                             >
-                                Load more
+                                {t.loadMore}
                             </button>
                         )}
                     </div>

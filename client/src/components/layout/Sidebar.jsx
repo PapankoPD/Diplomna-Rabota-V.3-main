@@ -1,12 +1,47 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, FileText, Upload, Users, Shield, User, ChevronLeft, ChevronRight, School, Key, Archive, ChevronDown } from 'lucide-react';
+import { Home, FileText, Upload, Users, Shield, User, ChevronLeft, ChevronRight, School, Inbox, Archive, ChevronDown, BookOpen } from 'lucide-react';
 
 import { useAuth } from '../../hooks/useAuth';
+import { useLanguage } from '../../contexts/LanguageContext';
 import './Sidebar.css';
+
+const translations = {
+    en: {
+        dashboard: "Dashboard",
+        materials: "Materials",
+        profile: "Profile",
+        users: "Users",
+        roles: "Roles",
+        subjects: "Subjects",
+        teacherCodes: "Role Requests",
+        manageClasses: "Manage Classes",
+        platformName: "Learning Platform",
+        upload: "Upload",
+        uploadMaterial: "Upload Material",
+        archivedMaterials: "Archived Materials"
+    },
+    bg: {
+        dashboard: "Табло",
+        materials: "Материали",
+        profile: "Профил",
+        users: "Потребители",
+        roles: "Роли",
+        subjects: "Предмети",
+        teacherCodes: "Заявки за роли",
+        manageClasses: "Управление на класове",
+        platformName: "Учебна платформа",
+        upload: "Качване",
+        uploadMaterial: "Качване на материал",
+        archivedMaterials: "Архивирани материали"
+    }
+};
 
 export const Sidebar = ({ isOpen, onToggle }) => {
     const { hasPermission, hasRole } = useAuth();
+    const { language } = useLanguage();
+    const t = translations[language];
+    
     const [uploadOpen, setUploadOpen] = useState(false);
     const location = useLocation();
 
@@ -14,13 +49,14 @@ export const Sidebar = ({ isOpen, onToggle }) => {
     const isUploadActive = location.pathname === '/upload' || location.pathname === '/archived';
 
     const menuItems = [
-        { to: '/dashboard', icon: Home, label: 'Dashboard', show: true },
-        { to: '/materials', icon: FileText, label: 'Materials', show: true },
-        { to: '/profile', icon: User, label: 'Profile', show: true },
-        { to: '/admin/users', icon: Users, label: 'Users', show: hasRole('admin') },
-        { to: '/admin/roles', icon: Shield, label: 'Roles', show: hasRole('admin') },
-        { to: '/admin/teacher-codes', icon: Key, label: 'Teacher Codes', show: hasRole('admin') },
-        { to: '/admin/classes', icon: School, label: 'Manage Classes', show: hasRole('admin') },
+        { to: '/dashboard', icon: Home, label: t.dashboard, show: true },
+        { to: '/materials', icon: FileText, label: t.materials, show: true },
+        { to: '/profile', icon: User, label: t.profile, show: true },
+        { to: '/admin/users', icon: Users, label: t.users, show: hasRole('admin') },
+        { to: '/admin/roles', icon: Shield, label: t.roles, show: hasRole('admin') },
+        { to: '/admin/subjects', icon: BookOpen, label: t.subjects, show: hasRole('admin') },
+        { to: '/admin/role-requests', icon: Inbox, label: t.teacherCodes, show: hasRole('admin') },
+        { to: '/admin/classes', icon: School, label: t.manageClasses, show: hasRole('admin') },
     ];
 
     const showUploadMenu = hasPermission('materials:create');
@@ -28,7 +64,7 @@ export const Sidebar = ({ isOpen, onToggle }) => {
     return (
         <div className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
             <div className="sidebar-header">
-                <h2 className="sidebar-title">{isOpen && 'Learning Platform'}</h2>
+                <h2 className="sidebar-title">{isOpen && t.platformName}</h2>
                 <button className="sidebar-toggle" onClick={onToggle}>
                     {isOpen ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
                 </button>
@@ -52,12 +88,12 @@ export const Sidebar = ({ isOpen, onToggle }) => {
                         <button
                             className={`nav-item nav-dropdown-toggle ${isUploadActive ? 'active' : ''}`}
                             onClick={() => setUploadOpen(prev => !prev)}
-                            title={!isOpen ? 'Upload' : undefined}
+                            title={!isOpen ? t.upload : undefined}
                         >
                             <Upload size={20} />
                             {isOpen && (
                                 <>
-                                    <span>Upload</span>
+                                    <span>{t.upload}</span>
                                     <ChevronDown
                                         size={15}
                                         className={`dropdown-chevron ${uploadOpen || isUploadActive ? 'rotated' : ''}`}
@@ -73,14 +109,14 @@ export const Sidebar = ({ isOpen, onToggle }) => {
                                     className={({ isActive }) => `nav-subitem ${isActive ? 'active' : ''}`}
                                 >
                                     <Upload size={15} />
-                                    <span>Upload Material</span>
+                                    <span>{t.uploadMaterial}</span>
                                 </NavLink>
                                 <NavLink
                                     to="/archived"
                                     className={({ isActive }) => `nav-subitem ${isActive ? 'active' : ''}`}
                                 >
                                     <Archive size={15} />
-                                    <span>Archived Materials</span>
+                                    <span>{t.archivedMaterials}</span>
                                 </NavLink>
                             </div>
                         )}
@@ -88,10 +124,10 @@ export const Sidebar = ({ isOpen, onToggle }) => {
                         {/* Collapsed state: show icons for sub-items */}
                         {!isOpen && (
                             <div className="nav-subitems-collapsed">
-                                <NavLink to="/upload" className={({ isActive }) => `nav-subitem-icon ${isActive ? 'active' : ''}`} title="Upload Material">
+                                <NavLink to="/upload" className={({ isActive }) => `nav-subitem-icon ${isActive ? 'active' : ''}`} title={t.uploadMaterial}>
                                     <Upload size={16} />
                                 </NavLink>
-                                <NavLink to="/archived" className={({ isActive }) => `nav-subitem-icon ${isActive ? 'active' : ''}`} title="Archived Materials">
+                                <NavLink to="/archived" className={({ isActive }) => `nav-subitem-icon ${isActive ? 'active' : ''}`} title={t.archivedMaterials}>
                                     <Archive size={16} />
                                 </NavLink>
                             </div>

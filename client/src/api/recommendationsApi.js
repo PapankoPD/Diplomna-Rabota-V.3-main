@@ -31,5 +31,10 @@ export const recommendationsApi = {
             params: { contextType, contextId, limit }
         });
         return response.data;
+    },
+
+    getTrendingForMe: async (limit = 5) => {
+        const response = await apiClient.get('/recommendations/trending-for-me', { params: { limit } });
+        return response.data;
     }
 };

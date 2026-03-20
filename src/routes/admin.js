@@ -3,69 +3,102 @@ const router = express.Router();
 const { query } = require('../config/database');
 const { authenticate } = require('../middleware/auth');
 const { requirePermission } = require('../middleware/rbac');
-const crypto = require('crypto');
 
 const adminOnly = [authenticate, requirePermission('users:read')];
 
 /**
- * GET /api/admin/teacher-codes
- * List all teacher registration codes
+ * GET /api/admin/role-requests
+ * List all role requests (pending first, then reviewed)
  */
-router.get('/teacher-codes', adminOnly, async (req, res) => {
+router.get('/role-requests', adminOnly, async (req, res) => {
     try {
         const result = await query(`
-            SELECT trc.id, trc.code, trc.is_used, trc.created_at, trc.expires_at,
-                creator.username AS created_by_username,
-                used_user.username AS used_by_username
-            FROM teacher_registration_codes trc
-            LEFT JOIN users creator ON trc.created_by = creator.id
-            LEFT JOIN users used_user ON trc.used_by = used_user.id
-            ORDER BY trc.created_at DESC
+            SELECT rr.id, rr.requested_role, rr.status, rr.message, rr.created_at, rr.updated_at,
+                u.id AS user_id, u.username, u.email,
+                reviewer.username AS reviewed_by_username
+            FROM role_requests rr
+            JOIN users u ON rr.user_id = u.id
+            LEFT JOIN users reviewer ON rr.reviewed_by = reviewer.id
+            ORDER BY
+                CASE rr.status WHEN 'pending' THEN 0 ELSE 1 END,
+                rr.created_at DESC
         `);
-        res.json({ success: true, data: { codes: result.rows } });
+        res.json({ success: true, data: { requests: result.rows } });
     } catch (error) {
-        console.error('List teacher codes error:', error);
-        res.status(500).json({ success: false, message: 'Failed to retrieve codes' });
+        console.error('List role requests error:', error);
+        res.status(500).json({ success: false, message: 'Failed to retrieve requests' });
     }
 });
 
 /**
- * POST /api/admin/teacher-codes
- * Generate a new teacher registration code
+ * POST /api/admin/role-requests/:id/approve
+ * Approve a role request – grants the role to the user
  */
-router.post('/teacher-codes', adminOnly, async (req, res) => {
+router.post('/role-requests/:id/approve', adminOnly, async (req, res) => {
     try {
-        const { expiresInDays } = req.body;
-        const code = crypto.randomBytes(4).toString('hex').toUpperCase();
-        const expiresAt = expiresInDays
-            ? new Date(Date.now() + parseInt(expiresInDays) * 86400000).toISOString()
-            : null;
+        const reqRow = await query(
+            `SELECT rr.*, u.id AS uid FROM role_requests rr JOIN users u ON rr.user_id = u.id WHERE rr.id = $1`,
+            [req.params.id]
+        );
+        if (reqRow.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Request not found' });
+        }
+        const roleReq = reqRow.rows[0];
+        if (roleReq.status !== 'pending') {
+            return res.status(400).json({ success: false, message: 'Request already reviewed' });
+        }
 
-        const result = await query(
-            `INSERT INTO teacher_registration_codes (code, created_by, expires_at) VALUES ($1, $2, $3)
-             RETURNING id, code, created_at, expires_at`,
-            [code, req.user.userId, expiresAt]
+        // Find the role
+        const roleResult = await query(`SELECT id FROM roles WHERE name = $1`, [roleReq.requested_role]);
+        if (roleResult.rows.length === 0) {
+            return res.status(400).json({ success: false, message: `Role '${roleReq.requested_role}' not found in database` });
+        }
+        const roleId = roleResult.rows[0].id;
+
+        // Grant role (ignore if already has it)
+        await query(
+            `INSERT OR IGNORE INTO user_roles (user_id, role_id) VALUES ($1, $2)`,
+            [roleReq.user_id, roleId]
         );
 
-        res.status(201).json({ success: true, data: { code: result.rows[0] } });
+        // Mark as approved
+        await query(
+            `UPDATE role_requests SET status = 'approved', reviewed_by = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
+            [req.user.userId, req.params.id]
+        );
+
+        res.json({ success: true, message: 'Request approved' });
     } catch (error) {
-        console.error('Generate teacher code error:', error);
-        res.status(500).json({ success: false, message: 'Failed to generate code' });
+        console.error('Approve role request error:', error);
+        res.status(500).json({ success: false, message: 'Failed to approve request' });
     }
 });
 
 /**
- * DELETE /api/admin/teacher-codes/:id
- * Delete (revoke) a teacher registration code
+ * POST /api/admin/role-requests/:id/reject
+ * Reject a role request
  */
-router.delete('/teacher-codes/:id', adminOnly, async (req, res) => {
+router.post('/role-requests/:id/reject', adminOnly, async (req, res) => {
     try {
-        await query('DELETE FROM teacher_registration_codes WHERE id = $1', [req.params.id]);
-        res.json({ success: true, message: 'Code deleted' });
+        const reqRow = await query(`SELECT id, status FROM role_requests WHERE id = $1`, [req.params.id]);
+        if (reqRow.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'Request not found' });
+        }
+        if (reqRow.rows[0].status !== 'pending') {
+            return res.status(400).json({ success: false, message: 'Request already reviewed' });
+        }
+
+        await query(
+            `UPDATE role_requests SET status = 'rejected', reviewed_by = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
+            [req.user.userId, req.params.id]
+        );
+
+        res.json({ success: true, message: 'Request rejected' });
     } catch (error) {
-        console.error('Delete teacher code error:', error);
-        res.status(500).json({ success: false, message: 'Failed to delete code' });
+        console.error('Reject role request error:', error);
+        res.status(500).json({ success: false, message: 'Failed to reject request' });
     }
 });
 
 module.exports = router;
+

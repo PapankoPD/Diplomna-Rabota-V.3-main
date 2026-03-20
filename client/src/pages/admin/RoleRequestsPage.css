@@ -1,0 +1,211 @@
+/* ── Role Requests Page ──────────────────────────────────────────────── */
+.rr-page {
+    padding: 28px;
+    max-width: 1100px;
+}
+
+.rr-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.rr-header h1 {
+    margin: 0 0 4px 0;
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--text-primary);
+}
+
+.rr-refresh-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: 16px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+.rr-refresh-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-light);
+}
+
+/* ── Tabs ─────────────────────────────────────────────────────────────── */
+.rr-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid var(--border-default);
+    padding-bottom: 0;
+}
+
+.rr-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 20px;
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: inherit;
+    color: var(--text-muted);
+    border-bottom: 3px solid transparent;
+    margin-bottom: -2px;
+    border-radius: 12px 12px 0 0;
+    transition: all 0.2s;
+}
+.rr-tab:hover {
+    color: var(--primary);
+    background: var(--primary-light);
+}
+.rr-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+    background: var(--primary-light);
+}
+
+.rr-badge {
+    background: var(--primary);
+    color: white;
+    border-radius: 999px;
+    padding: 1px 8px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+/* ── Table ────────────────────────────────────────────────────────────── */
+.rr-table-container {
+    background: var(--bg-card);
+    border-radius: 28px;
+    border: 1px solid var(--border-default);
+    border-top: 4px solid var(--primary);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.rr-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.rr-table th {
+    background: var(--primary-light);
+    font-weight: 800;
+    color: var(--text-muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-default);
+}
+
+.rr-table td {
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-default);
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.rr-table tbody tr:last-child td { border-bottom: none; }
+.rr-table tbody tr:hover { background: var(--bg-hover); }
+
+.rr-muted { color: var(--text-muted); font-size: 13px; }
+
+/* ── Badges ───────────────────────────────────────────────────────────── */
+.rr-role-badge {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+}
+.rr-role-teacher { background: #dbeafe; color: #1d4ed8; }
+.rr-role-admin   { background: #fee2e2; color: #b91c1c; }
+
+.rr-status {
+    display: inline-block;
+    padding: 3px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+}
+.rr-status-approved { background: #dcfce7; color: #15803d; }
+.rr-status-rejected { background: #fee2e2; color: #b91c1c; }
+.rr-status-pending  { background: #fef9c3; color: #92400e; }
+
+/* ── Action buttons ───────────────────────────────────────────────────── */
+.rr-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.rr-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 14px;
+    border-radius: 12px;
+    border: none;
+    font-size: 12px;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.rr-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.rr-approve { background: #dcfce7; color: #15803d; }
+.rr-approve:hover:not(:disabled) { background: #16a34a; color: white; }
+
+.rr-reject { background: #fee2e2; color: #b91c1c; }
+.rr-reject:hover:not(:disabled) { background: #dc2626; color: white; }
+
+/* ── States ───────────────────────────────────────────────────────────── */
+.rr-loading {
+    display: flex;
+    justify-content: center;
+    padding: 60px;
+}
+
+.rr-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    padding: 60px;
+    color: var(--text-muted);
+    background: var(--bg-card);
+    border-radius: 28px;
+    border: 1px solid var(--border-default);
+}
+
+.rr-error {
+    background: var(--bg-danger);
+    color: var(--text-danger);
+    padding: 12px 16px;
+    border-radius: 16px;
+    margin-bottom: 16px;
+    font-weight: 700;
+    border: 2px solid var(--border-danger);
+}
+
+/* ── Dark mode overrides ─────────────────────────────────────────────── */
+.dark .rr-role-teacher { background: rgba(29, 78, 216, 0.2); color: #93c5fd; }
+.dark .rr-role-admin   { background: rgba(185, 28, 28, 0.2); color: #fca5a5; }
+.dark .rr-status-approved { background: rgba(21, 128, 61, 0.2); color: #86efac; }
+.dark .rr-status-rejected { background: rgba(185, 28, 28, 0.2); color: #fca5a5; }
+.dark .rr-status-pending  { background: rgba(146, 64, 14, 0.2); color: #fde68a; }
+.dark .rr-approve { background: rgba(21, 128, 61, 0.2); color: #86efac; }
+.dark .rr-reject  { background: rgba(185, 28, 28, 0.2); color: #fca5a5; }

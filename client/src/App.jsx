@@ -16,13 +16,17 @@ import { ArchivedMaterialsPage } from './pages/ArchivedMaterialsPage';
 
 import { UsersPage } from './pages/admin/UsersPage';
 import { RolesPage } from './pages/admin/RolesPage';
-import { TeacherCodesPage } from './pages/admin/TeacherCodesPage';
+import { RoleRequestsPage } from './pages/admin/RoleRequestsPage';
+import { SubjectsPage } from './pages/admin/SubjectsPage';
 import { AdminClassesPage } from './pages/admin/AdminClassesPage';
+
+import { LanguageProvider } from './contexts/LanguageContext';
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
+    <LanguageProvider>
+      <ThemeProvider>
+        <AuthProvider>
         <BrowserRouter>
           <Routes>
             {/* Public routes */}
@@ -51,7 +55,8 @@ function App() {
               {/* Admin routes */}
               <Route path="admin/users" element={<UsersPage />} />
               <Route path="admin/roles" element={<RolesPage />} />
-              <Route path="admin/teacher-codes" element={<TeacherCodesPage />} />
+              <Route path="admin/role-requests" element={<RoleRequestsPage />} />
+              <Route path="admin/subjects" element={<SubjectsPage />} />
               <Route path="admin/classes" element={<AdminClassesPage />} />
             </Route>
 
@@ -61,6 +66,7 @@ function App() {
         </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>
+    </LanguageProvider>
   );
 }
 

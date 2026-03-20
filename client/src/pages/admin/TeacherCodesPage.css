@@ -44,7 +44,7 @@
 .btn-refresh {
     background: var(--bg-card);
     border: 2px solid var(--gray-200);
-    border-radius: var(--radius-md);
+    border-radius: 16px;
     padding: 8px;
     cursor: pointer;
     color: var(--gray-500);
@@ -93,7 +93,7 @@
     border: 2px solid var(--border-danger);
     color: var(--text-danger);
     padding: 12px 16px;
-    border-radius: var(--radius-md);
+    border-radius: 16px;
     margin-bottom: 20px;
     font-weight: 700;
     font-size: 14px;
@@ -139,8 +139,8 @@
 
 .tcp-code-card {
     background: var(--bg-card);
-    border-radius: var(--radius-lg);
-    border: 2.5px solid var(--gray-100);
+    border-radius: 28px;
+    border: 1px solid var(--border-default);
     padding: 16px 18px;
     display: flex;
     flex-direction: column;
@@ -150,7 +150,7 @@
 }
 
 .tcp-code-card.available {
-    border-color: #c7d2fe;
+    border-color: var(--primary);
 }
 
 .tcp-code-card.available:hover {

@@ -1,12 +1,105 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { taxonomyApi } from '../../api/taxonomyApi';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Plus, X, GraduationCap, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
 import './TaxonomyPage.css';
 
+const translations = {
+    en: {
+        pageTitle: "Grades",
+        addGrade: "Add Grade",
+        colName: "Name",
+        colCode: "Code",
+        colCategory: "Category",
+        colOrder: "Order",
+        colAgeRange: "Age Range",
+        colDesc: "Description",
+        colActions: "Actions",
+        noGrades: "No grades yet",
+        deleteGradeConfirm: (name) => `Delete grade "${name}"? This action cannot be undone.`,
+        classesIn: (name) => `Classes in ${name}`,
+        noClassesYet: "No classes yet — add one below",
+        viewMaterials: (name) => `View materials for ${name}`,
+        removeClass: "Remove class",
+        placeholderClass: (code) => `e.g. ${code}-A or ${code}-B`,
+        adding: "Adding...",
+        addClass: "Add Class",
+        createGradeTitle: "Create Grade",
+        nameLabel: "Name *",
+        namePlaceholder: "e.g. 9th Grade",
+        codeLabel: "Code *",
+        codePlaceholder: "e.g. G9",
+        categoryLabel: "Category *",
+        catK12: "K-12",
+        catUndergrad: "Undergraduate",
+        catGrad: "Graduate",
+        orderLabel: "Level Order *",
+        ageRangeLabel: "Age Range",
+        ageRangePlaceholder: "e.g. 14-15",
+        descLabel: "Description",
+        cancel: "Cancel",
+        creating: "Creating...",
+        createGradeBtn: "Create Grade",
+        deleteGradeBtn: "Delete grade",
+        deleteClassConfirm: (name) => `Delete class "${name}"?`,
+        errLoadGrades: "Failed to load grades.",
+        errCreateClass: "Failed to create class.",
+        errDeleteClass: "Failed to delete class.",
+        errCreateGrade: "Failed to create grade.",
+        errDeleteGrade: "Failed to delete grade."
+    },
+    bg: {
+        pageTitle: "Класове",
+        addGrade: "Добавяне на клас",
+        colName: "Име",
+        colCode: "Код",
+        colCategory: "Категория",
+        colOrder: "Подредба",
+        colAgeRange: "Възрастова група",
+        colDesc: "Описание",
+        colActions: "Действия",
+        noGrades: "Все още няма класове",
+        deleteGradeConfirm: (name) => `Изтриване на клас "${name}"? Това действие не може да бъде отменено.`,
+        classesIn: (name) => `Паралелки в ${name}`,
+        noClassesYet: "Все още няма паралелки — добавете по-долу",
+        viewMaterials: (name) => `Преглед на материали за ${name}`,
+        removeClass: "Премахване на паралелка",
+        placeholderClass: (code) => `напр. ${code}-А или ${code}-Б`,
+        adding: "Добавяне...",
+        addClass: "Добавяне на паралелка",
+        createGradeTitle: "Създаване на клас",
+        nameLabel: "Име *",
+        namePlaceholder: "напр. 9-ти клас",
+        codeLabel: "Код *",
+        codePlaceholder: "напр. 9",
+        categoryLabel: "Категория *",
+        catK12: "К-12",
+        catUndergrad: "Бакалавър",
+        catGrad: "Магистър",
+        orderLabel: "Поредност *",
+        ageRangeLabel: "Възрастова група",
+        ageRangePlaceholder: "напр. 15-16",
+        descLabel: "Описание",
+        cancel: "Отказ",
+        creating: "Създаване...",
+        createGradeBtn: "Създаване на клас",
+        deleteGradeBtn: "Изтриване на клас",
+        deleteClassConfirm: (name) => `Изтриване на паралелка "${name}"?`,
+        errLoadGrades: "Неуспешно зареждане на класове.",
+        errCreateClass: "Неуспешно създаване на паралелка.",
+        errDeleteClass: "Неуспешно изтриване на паралелка.",
+        errCreateGrade: "Неуспешно създаване на клас.",
+        errDeleteGrade: "Неуспешно изтриване на клас."
+    }
+};
+
 export const TaxonomyPage = () => {
     const navigate = useNavigate();
+    const { language } = useLanguage();
+    const t = translations[language];
+
     const [grades, setGrades] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -31,7 +124,7 @@ export const TaxonomyPage = () => {
             const gradesRes = await taxonomyApi.getGrades();
             setGrades(gradesRes.data?.grades || []);
         } catch (err) {
-            setError('Failed to load grades.');
+            setError(t.errLoadGrades);
         } finally {
             setIsLoading(false);
         }
@@ -77,7 +170,7 @@ export const TaxonomyPage = () => {
             setNewClassName(prev => ({ ...prev, [gradeId]: '' }));
             await refreshClasses(gradeId);
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to create class.');
+            setError(err.response?.data?.message || t.errCreateClass);
         } finally {
             setClassSubmitting(prev => ({ ...prev, [gradeId]: false }));
         }
@@ -85,12 +178,12 @@ export const TaxonomyPage = () => {
 
     /* ── Class delete ── */
     const handleDeleteClass = async (gradeId, cls) => {
-        if (!window.confirm(`Delete class "${cls.name}"?`)) return;
+        if (!window.confirm(t.deleteClassConfirm(cls.name))) return;
         try {
             await taxonomyApi.deleteGradeClass(gradeId, cls.id);
             await refreshClasses(gradeId);
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to delete class.');
+            setError(err.response?.data?.message || t.errDeleteClass);
         }
     };
 
@@ -105,7 +198,7 @@ export const TaxonomyPage = () => {
             setGradeForm({ name: '', code: '', levelOrder: 0, category: 'K12', description: '', ageRange: '' });
             loadData();
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to create grade.');
+            setError(err.response?.data?.message || t.errCreateGrade);
         } finally {
             setIsSubmitting(false);
         }
@@ -113,13 +206,13 @@ export const TaxonomyPage = () => {
 
     /* ── Grade delete ── */
     const handleDeleteGrade = async (grade) => {
-        if (!window.confirm(`Delete grade "${grade.name}"? This action cannot be undone.`)) return;
+        if (!window.confirm(t.deleteGradeConfirm(grade.name))) return;
         try {
             await taxonomyApi.deleteGrade(grade.id);
             setError(null);
             loadData();
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to delete grade.');
+            setError(err.response?.data?.message || t.errDeleteGrade);
         }
     };
 
@@ -130,11 +223,11 @@ export const TaxonomyPage = () => {
             <div className="page-header">
                 <div className="page-header-title">
                     <GraduationCap size={24} />
-                    <h1>Grades</h1>
+                    <h1>{t.pageTitle}</h1>
                     <span className="tab-count">{grades.length}</span>
                 </div>
                 <button className="btn-primary" onClick={() => setShowGradeModal(true)}>
-                    <Plus size={16} /> Add Grade
+                    <Plus size={16} /> {t.addGrade}
                 </button>
             </div>
 
@@ -145,18 +238,18 @@ export const TaxonomyPage = () => {
                     <thead>
                         <tr>
                             <th style={{ width: 32 }}></th>
-                            <th>Name</th>
-                            <th>Code</th>
-                            <th>Category</th>
-                            <th>Order</th>
-                            <th>Age Range</th>
-                            <th>Description</th>
-                            <th>Actions</th>
+                            <th>{t.colName}</th>
+                            <th>{t.colCode}</th>
+                            <th>{t.colCategory}</th>
+                            <th>{t.colOrder}</th>
+                            <th>{t.colAgeRange}</th>
+                            <th>{t.colDesc}</th>
+                            <th>{t.colActions}</th>
                         </tr>
                     </thead>
                     <tbody>
                         {grades.length === 0 ? (
-                            <tr><td colSpan={8} className="empty-cell">No grades yet</td></tr>
+                            <tr><td colSpan={8} className="empty-cell">{t.noGrades}</td></tr>
                         ) : grades.map(g => (
                             <React.Fragment key={g.id}>
                                 {/* Grade row */}
@@ -176,7 +269,7 @@ export const TaxonomyPage = () => {
                                     <td><span className="code-badge">{g.code}</span></td>
                                     <td>
                                         <span className={`category-badge cat-${g.category?.toLowerCase()}`}>
-                                            {g.category}
+                                            {g.category === 'K12' ? t.catK12 : g.category === 'UNDERGRADUATE' ? t.catUndergrad : g.category === 'GRADUATE' ? t.catGrad : g.category}
                                         </span>
                                     </td>
                                     <td>{g.level_order}</td>
@@ -186,7 +279,7 @@ export const TaxonomyPage = () => {
                                         <button
                                             className="btn-icon btn-icon-danger"
                                             onClick={() => handleDeleteGrade(g)}
-                                            title="Delete grade"
+                                            title={t.deleteGradeBtn}
                                         >
                                             <Trash2 size={16} />
                                         </button>
@@ -199,7 +292,7 @@ export const TaxonomyPage = () => {
                                         <td colSpan={8}>
                                             <div className="classes-panel">
                                                 <div className="classes-header">
-                                                    <span className="classes-title">Classes in {g.name}</span>
+                                                    <span className="classes-title">{t.classesIn(g.name)}</span>
                                                 </div>
 
                                                 {expanded[g.id]?.loading ? (
@@ -208,20 +301,20 @@ export const TaxonomyPage = () => {
                                                     <>
                                                         <div className="classes-list">
                                                             {(expanded[g.id]?.classes || []).length === 0 ? (
-                                                                <span className="classes-empty">No classes yet — add one below</span>
+                                                                <span className="classes-empty">{t.noClassesYet}</span>
                                                             ) : (expanded[g.id]?.classes || []).map(cls => (
                                                                 <div
                                                                     key={cls.id}
                                                                     className="class-chip"
                                                                     onClick={() => navigate(`/materials?gradeId=${g.id}&class=${encodeURIComponent(cls.name)}`)}
-                                                                    title={`View materials for ${cls.name}`}
+                                                                    title={t.viewMaterials(cls.name)}
                                                                     style={{ cursor: 'pointer' }}
                                                                 >
                                                                     <span>{cls.name}</span>
                                                                     <button
                                                                         className="class-chip-del"
                                                                         onClick={(e) => { e.stopPropagation(); handleDeleteClass(g.id, cls); }}
-                                                                        title="Remove class"
+                                                                        title={t.removeClass}
                                                                     >
                                                                         <X size={12} />
                                                                     </button>
@@ -233,7 +326,7 @@ export const TaxonomyPage = () => {
                                                             <input
                                                                 type="text"
                                                                 className="add-class-input"
-                                                                placeholder={`e.g. ${g.code}-А or ${g.code}-В`}
+                                                                placeholder={t.placeholderClass(g.code)}
                                                                 value={newClassName[g.id] || ''}
                                                                 onChange={e => setNewClassName(prev => ({ ...prev, [g.id]: e.target.value }))}
                                                                 onKeyDown={e => { if (e.key === 'Enter') handleAddClass(g.id); }}
@@ -244,7 +337,7 @@ export const TaxonomyPage = () => {
                                                                 disabled={classSubmitting[g.id]}
                                                             >
                                                                 <Plus size={14} />
-                                                                {classSubmitting[g.id] ? 'Adding...' : 'Add Class'}
+                                                                {classSubmitting[g.id] ? t.adding : t.addClass}
                                                             </button>
                                                         </div>
                                                     </>
@@ -264,7 +357,7 @@ export const TaxonomyPage = () => {
                 <div className="modal-overlay">
                     <div className="modal">
                         <div className="modal-header">
-                            <h3>Create Grade</h3>
+                            <h3>{t.createGradeTitle}</h3>
                             <button className="btn-close" onClick={() => setShowGradeModal(false)}>
                                 <X size={20} />
                             </button>
@@ -272,51 +365,51 @@ export const TaxonomyPage = () => {
                         <form onSubmit={handleCreateGrade}>
                             <div className="modal-content">
                                 <div className="form-group">
-                                    <label>Name *</label>
+                                    <label>{t.nameLabel}</label>
                                     <input type="text" required value={gradeForm.name}
                                         onChange={(e) => setGradeForm({ ...gradeForm, name: e.target.value })}
-                                        placeholder="e.g. 9th Grade" />
+                                        placeholder={t.namePlaceholder} />
                                 </div>
                                 <div className="form-row">
                                     <div className="form-group">
-                                        <label>Code *</label>
+                                        <label>{t.codeLabel}</label>
                                         <input type="text" required value={gradeForm.code}
                                             onChange={(e) => setGradeForm({ ...gradeForm, code: e.target.value.toUpperCase() })}
-                                            placeholder="e.g. G9" />
+                                            placeholder={t.codePlaceholder} />
                                     </div>
                                     <div className="form-group">
-                                        <label>Category *</label>
+                                        <label>{t.categoryLabel}</label>
                                         <select required value={gradeForm.category}
                                             onChange={(e) => setGradeForm({ ...gradeForm, category: e.target.value })}>
-                                            <option value="K12">K-12</option>
-                                            <option value="UNDERGRADUATE">Undergraduate</option>
-                                            <option value="GRADUATE">Graduate</option>
+                                            <option value="K12">{t.catK12}</option>
+                                            <option value="UNDERGRADUATE">{t.catUndergrad}</option>
+                                            <option value="GRADUATE">{t.catGrad}</option>
                                         </select>
                                     </div>
                                 </div>
                                 <div className="form-row">
                                     <div className="form-group">
-                                        <label>Level Order *</label>
+                                        <label>{t.orderLabel}</label>
                                         <input type="number" required value={gradeForm.levelOrder}
                                             onChange={(e) => setGradeForm({ ...gradeForm, levelOrder: parseInt(e.target.value) || 0 })} />
                                     </div>
                                     <div className="form-group">
-                                        <label>Age Range</label>
+                                        <label>{t.ageRangeLabel}</label>
                                         <input type="text" value={gradeForm.ageRange}
                                             onChange={(e) => setGradeForm({ ...gradeForm, ageRange: e.target.value })}
-                                            placeholder="e.g. 14-15" />
+                                            placeholder={t.ageRangePlaceholder} />
                                     </div>
                                 </div>
                                 <div className="form-group">
-                                    <label>Description</label>
+                                    <label>{t.descLabel}</label>
                                     <textarea rows={2} value={gradeForm.description}
                                         onChange={(e) => setGradeForm({ ...gradeForm, description: e.target.value })} />
                                 </div>
                             </div>
                             <div className="modal-footer">
-                                <button type="button" className="btn-cancel" onClick={() => setShowGradeModal(false)}>Cancel</button>
+                                <button type="button" className="btn-cancel" onClick={() => setShowGradeModal(false)}>{t.cancel}</button>
                                 <button type="submit" className="btn-primary" disabled={isSubmitting}>
-                                    {isSubmitting ? 'Creating...' : 'Create Grade'}
+                                    {isSubmitting ? t.creating : t.createGradeBtn}
                                 </button>
                             </div>
                         </form>

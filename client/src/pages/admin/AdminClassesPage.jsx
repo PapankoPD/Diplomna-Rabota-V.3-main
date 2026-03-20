@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { taxonomyApi } from '../../api/taxonomyApi';
 import { usersApi } from '../../api/usersApi';
+import { useLanguage } from '../../contexts/LanguageContext';
 import { School, Plus, Trash2, AlertCircle, Users, X, UserMinus } from 'lucide-react';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import './AdminClassesPage.css';
@@ -8,7 +9,69 @@ import './AdminClassesPage.css';
 // Letters available for classes
 const CLASS_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
 
+const translations = {
+    en: {
+        pageTitle: "Manage Classes (Grades 8-12)",
+        selectGrade: "Select Grade",
+        classesForGrade: "Classes for Selected Grade",
+        classLetter: "Class Letter",
+        addClass: "Add Class",
+        noClasses: "No classes found for this grade. Add one above.",
+        manageStudents: "Manage Students",
+        deleteClassTitle: "Delete class",
+        managingStudents: (name) => `Managing Students: ${name}`,
+        managingStudentsDesc: "Add or remove students from this class.",
+        enrolled: (count) => `Enrolled (${count})`,
+        noStudentsEnrolled: "No students enrolled in this class.",
+        removeStudentTitle: "Remove student",
+        addStudents: "Add Students",
+        searchPlaceholder: "Search by username or email...",
+        noUnassigned: "No unassigned students found.",
+        enrollStudentTitle: "Enroll student",
+        addBtn: "Add",
+        confirmDeleteClass: "Are you sure you want to delete this class? This action cannot be undone.",
+        errLoadGrades: "Failed to load grades.",
+        errLoadClasses: "Failed to load classes for this grade.",
+        errCreateClass: "Failed to create class.",
+        errDeleteClass: "Failed to delete class.",
+        errLoadStudents: "Failed to load class students.",
+        errEnroll: "Failed to enroll student.",
+        errUnenroll: "Failed to unenroll student."
+    },
+    bg: {
+        pageTitle: "Управление на класовете (8-12 клас)",
+        selectGrade: "Избор на клас",
+        classesForGrade: "Паралелки за избрания клас",
+        classLetter: "Буква на паралелката",
+        addClass: "Добавяне на паралелка",
+        noClasses: "Няма намерени паралелки за този клас. Добавете една по-горе.",
+        manageStudents: "Управление на ученици",
+        deleteClassTitle: "Изтриване на паралелка",
+        managingStudents: (name) => `Управление на ученици: ${name}`,
+        managingStudentsDesc: "Добавяне или премахване на ученици от тази паралелка.",
+        enrolled: (count) => `Записани (${count})`,
+        noStudentsEnrolled: "Няма записани ученици в тази паралелка.",
+        removeStudentTitle: "Премахване на ученик",
+        addStudents: "Добавяне на ученици",
+        searchPlaceholder: "Търсене по потребителско име или имейл...",
+        noUnassigned: "Няма намерени незаписани ученици.",
+        enrollStudentTitle: "Записване на ученик",
+        addBtn: "Добави",
+        confirmDeleteClass: "Сигурни ли сте, че искате да изтриете тази паралелка? Това действие не може да бъде отменено.",
+        errLoadGrades: "Неуспешно зареждане на класове.",
+        errLoadClasses: "Неуспешно зареждане на паралелки за този клас.",
+        errCreateClass: "Неуспешно създаване на паралелка.",
+        errDeleteClass: "Неуспешно изтриване на паралелка.",
+        errLoadStudents: "Неуспешно зареждане на учениците от паралелката.",
+        errEnroll: "Неуспешно записване на ученик.",
+        errUnenroll: "Неуспешно отписване на ученик."
+    }
+};
+
 export const AdminClassesPage = () => {
+    const { language } = useLanguage();
+    const t = translations[language];
+
     const [grades, setGrades] = useState([]);
     const [selectedGradeId, setSelectedGradeId] = useState('');
     const [selectedGradeCode, setSelectedGradeCode] = useState('');
@@ -48,7 +111,7 @@ export const AdminClassesPage = () => {
                 }
             } catch (err) {
                 console.error('Failed to load grades:', err);
-                setError('Failed to load grades.');
+                setError(t.errLoadGrades);
             } finally {
                 setIsLoadingGrades(false);
             }
@@ -73,7 +136,7 @@ export const AdminClassesPage = () => {
                 }
             } catch (err) {
                 console.error('Failed to fetch classes:', err);
-                setError('Failed to load classes for this grade.');
+                setError(t.errLoadClasses);
             } finally {
                 setIsLoadingClasses(false);
             }
@@ -108,14 +171,14 @@ export const AdminClassesPage = () => {
                 setSelectedLetter('A');
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to create class.');
+            setError(err.response?.data?.message || t.errCreateClass);
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleDeleteClass = async (classId) => {
-        if (!window.confirm('Are you sure you want to delete this class? This action cannot be undone.')) {
+        if (!window.confirm(t.confirmDeleteClass)) {
             return;
         }
 
@@ -127,7 +190,7 @@ export const AdminClassesPage = () => {
                 setManagingClass(null);
             }
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to delete class.');
+            setError(err.response?.data?.message || t.errDeleteClass);
         }
     };
 
@@ -152,7 +215,7 @@ export const AdminClassesPage = () => {
             const res = await taxonomyApi.getClassStudents(selectedGradeId, classId);
             setClassStudents(res.data?.students || []);
         } catch (err) {
-            setError('Failed to load class students.');
+            setError(t.errLoadStudents);
         } finally {
             setIsLoadingStudents(false);
         }
@@ -187,7 +250,7 @@ export const AdminClassesPage = () => {
             loadStudents(managingClass.id);
             loadUnassignedStudents(studentSearch);
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to enroll student.');
+            setError(err.response?.data?.message || t.errEnroll);
         } finally {
             setIsActionLoading(false);
         }
@@ -202,7 +265,7 @@ export const AdminClassesPage = () => {
             loadStudents(managingClass.id);
             loadUnassignedStudents(studentSearch);
         } catch (err) {
-            setError(err.response?.data?.message || 'Failed to unenroll student.');
+            setError(err.response?.data?.message || t.errUnenroll);
         } finally {
             setIsActionLoading(false);
         }
@@ -215,7 +278,7 @@ export const AdminClassesPage = () => {
     return (
         <div className="admin-classes-page">
             <div className="admin-header">
-                <h1>Manage Classes (Grades 8-12)</h1>
+                <h1>{t.pageTitle}</h1>
             </div>
 
             {error && (
@@ -227,7 +290,7 @@ export const AdminClassesPage = () => {
 
             <div className="content-card">
                 <div className="grade-selector">
-                    <label htmlFor="gradeSelect">Select Grade</label>
+                    <label htmlFor="gradeSelect">{t.selectGrade}</label>
                     <select
                         id="gradeSelect"
                         className="form-select"
@@ -244,11 +307,11 @@ export const AdminClassesPage = () => {
 
                 {selectedGradeId && !managingClass && (
                     <div className="classes-manager">
-                        <h3>Classes for Selected Grade</h3>
+                        <h3>{t.classesForGrade}</h3>
 
                         <form onSubmit={handleAddClass} className="add-class-form">
                             <div className="form-group">
-                                <label htmlFor="classLetter">Class Letter</label>
+                                <label htmlFor="classLetter">{t.classLetter}</label>
                                 <select
                                     id="classLetter"
                                     value={selectedLetter}
@@ -269,7 +332,7 @@ export const AdminClassesPage = () => {
                                 disabled={isSubmitting}
                             >
                                 {isSubmitting ? <LoadingSpinner size="small" color="white" /> : <Plus size={18} />}
-                                Add Class
+                                {t.addClass}
                             </button>
                         </form>
 
@@ -277,7 +340,7 @@ export const AdminClassesPage = () => {
                             <LoadingSpinner />
                         ) : classes.length === 0 ? (
                             <div className="no-data">
-                                <p>No classes found for this grade. Add one above.</p>
+                                <p>{t.noClasses}</p>
                             </div>
                         ) : (
                             <div className="classes-list">
@@ -295,12 +358,12 @@ export const AdminClassesPage = () => {
                                                 onClick={() => openManageStudents(cls)}
                                                 style={{ padding: '8px 12px', background: 'var(--gray-100)', borderRadius: '6px', border: '1px solid var(--gray-300)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                                             >
-                                                <Users size={16} /> Manage Students
+                                                <Users size={16} /> {t.manageStudents}
                                             </button>
                                             <button
                                                 className="btn-delete"
                                                 onClick={() => handleDeleteClass(cls.id)}
-                                                title="Delete class"
+                                                title={t.deleteClassTitle}
                                             >
                                                 <Trash2 size={18} />
                                             </button>
@@ -317,8 +380,8 @@ export const AdminClassesPage = () => {
                     <div className="students-manager">
                         <div className="manager-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                             <div>
-                                <h3 style={{ margin: 0 }}>Managing Students: {managingClass.name}</h3>
-                                <p style={{ margin: '4px 0 0', color: 'var(--gray-500)', fontSize: '14px' }}>Add or remove students from this class.</p>
+                                <h3 style={{ margin: 0 }}>{t.managingStudents(managingClass.name)}</h3>
+                                <p style={{ margin: '4px 0 0', color: 'var(--gray-500)', fontSize: '14px' }}>{t.managingStudentsDesc}</p>
                             </div>
                             <button onClick={closeManageStudents} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--gray-500)' }}>
                                 <X size={24} />
@@ -328,11 +391,11 @@ export const AdminClassesPage = () => {
                         <div className="manager-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                             {/* Current Students List */}
                             <div className="current-students" style={{ background: 'var(--gray-50)', padding: '16px', borderRadius: '8px', border: '1px solid var(--gray-200)' }}>
-                                <h4 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>Enrolled ({classStudents.length})</h4>
+                                <h4 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>{t.enrolled(classStudents.length)}</h4>
                                 {isLoadingStudents ? (
                                     <LoadingSpinner size="small" />
                                 ) : classStudents.length === 0 ? (
-                                    <p style={{ color: 'var(--gray-500)', fontSize: '14px' }}>No students enrolled in this class.</p>
+                                    <p style={{ color: 'var(--gray-500)', fontSize: '14px' }}>{t.noStudentsEnrolled}</p>
                                 ) : (
                                     <div className="student-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '400px', overflowY: 'auto' }}>
                                         {classStudents.map(student => (
@@ -344,7 +407,7 @@ export const AdminClassesPage = () => {
                                                 <button
                                                     onClick={() => handleUnenrollStudent(student.id)}
                                                     disabled={isActionLoading}
-                                                    title="Remove student"
+                                                    title={t.removeStudentTitle}
                                                     style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: '#dc2626', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}
                                                 >
                                                     <UserMinus size={16} />
@@ -357,10 +420,10 @@ export const AdminClassesPage = () => {
 
                             {/* Add Students Section */}
                             <div className="add-students" style={{ background: 'var(--gray-50)', padding: '16px', borderRadius: '8px', border: '1px solid var(--gray-200)' }}>
-                                <h4 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>Add Students</h4>
+                                <h4 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>{t.addStudents}</h4>
                                 <input
                                     type="text"
-                                    placeholder="Search by username or email..."
+                                    placeholder={t.searchPlaceholder}
                                     value={studentSearch}
                                     onChange={handleSearchChange}
                                     style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--gray-300)', marginBottom: '16px' }}
@@ -368,7 +431,7 @@ export const AdminClassesPage = () => {
                                 
                                 <div className="student-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '344px', overflowY: 'auto' }}>
                                     {unassignedStudents.length === 0 ? (
-                                        <p style={{ color: 'var(--gray-500)', fontSize: '14px' }}>No unassigned students found.</p>
+                                        <p style={{ color: 'var(--gray-500)', fontSize: '14px' }}>{t.noUnassigned}</p>
                                     ) : (
                                         unassignedStudents.map(student => (
                                             <div key={student.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'white', border: '1px solid var(--gray-200)', borderRadius: '6px' }}>
@@ -379,10 +442,10 @@ export const AdminClassesPage = () => {
                                                 <button
                                                     onClick={() => handleEnrollStudent(student.id)}
                                                     disabled={isActionLoading}
-                                                    title="Enroll student"
+                                                    title={t.enrollStudentTitle}
                                                     style={{ background: 'var(--primary-color)', border: 'none', color: 'white', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}
                                                 >
-                                                    Add
+                                                    {t.addBtn}
                                                 </button>
                                             </div>
                                         ))

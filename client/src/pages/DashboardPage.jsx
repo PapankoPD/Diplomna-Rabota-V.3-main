@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { useTheme } from '../contexts/ThemeContext';
+import { useLanguage } from '../contexts/LanguageContext';
 import { materialsApi } from '../api/materialsApi';
 import { recommendationsApi } from '../api/recommendationsApi';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
@@ -20,8 +22,45 @@ const FileIcon = ({ type }) => {
     return <FileText size={22} />;
 };
 
+const translations = {
+    en: {
+        greeting: "Hey",
+        subGreeting: "Here's what's happening with your learning materials 🚀",
+        uploaded: "Materials Uploaded",
+        downloads: "Downloads",
+        ratings: "Ratings Given",
+        total: "Total Materials",
+        trending: "Trending in your class",
+        trendingTeacher: "Most downloaded of your uploads",
+        trendingAdmin: "Trending Now",
+        noTrending: "No trending materials yet",
+        checkSoon: "Check back soon!",
+        recent: "Recent Materials",
+        noMaterials: "No materials yet",
+        uploadFirst: "Upload your first one!"
+    },
+    bg: {
+        greeting: "Здравей",
+        subGreeting: "Ето какво се случва с твоите учебни материали 🚀",
+        uploaded: "Качени материали",
+        downloads: "Изтегляния",
+        ratings: "Дадени оценки",
+        total: "Общо материали",
+        trending: "Популярни в твоя клас",
+        trendingTeacher: "Най-изтегляни от твоите файлове",
+        trendingAdmin: "Популярни сега",
+        noTrending: "Все още няма популярни материали",
+        checkSoon: "Проверете отново скоро!",
+        recent: "Последни материали",
+        noMaterials: "Няма материали",
+        uploadFirst: "Качете първия си материал!"
+    }
+};
+
 export const DashboardPage = () => {
     const { user } = useAuth();
+    const { language } = useLanguage();
+    const t = translations[language];
     const navigate = useNavigate();
     const location = useLocation();
     const [stats, setStats] = useState(null);
@@ -34,7 +73,7 @@ export const DashboardPage = () => {
             try {
                 const [recentResponse, trendingResponse, statsResponse] = await Promise.all([
                     materialsApi.getMaterials({ page: 1, limit: 5, sortBy: 'created_at', sortOrder: 'desc' }),
-                    recommendationsApi.getTrending(5),
+                    recommendationsApi.getTrendingForMe(3),
                     materialsApi.getStats()
                 ]);
                 setRecentMaterials(recentResponse.data || []);
@@ -70,8 +109,8 @@ export const DashboardPage = () => {
             <div className="dashboard-header">
                 <div className="header-wave">👋</div>
                 <div className="header-text">
-                    <h1>Hey, <span className="username-highlight">{user?.username}</span>!</h1>
-                    <p>Here's what's happening with your learning materials 🚀</p>
+                    <h1>{t.greeting}, <span className="username-highlight">{user?.username}</span>!</h1>
+                    <p>{t.subGreeting}</p>
                 </div>
             </div>
 
@@ -80,7 +119,7 @@ export const DashboardPage = () => {
                 <div className="stat-card stat-card-blue">
                     <div className="stat-icon stat-icon-blue"><Upload size={24} /></div>
                     <div className="stat-content">
-                        <p className="stat-label">Materials Uploaded</p>
+                        <p className="stat-label">{t.uploaded}</p>
                         <p className="stat-value">{stats?.uploadsCount ?? 0}</p>
                     </div>
                     <div className="card-blob blob-blue" />
@@ -89,7 +128,7 @@ export const DashboardPage = () => {
                 <div className="stat-card stat-card-green">
                     <div className="stat-icon stat-icon-green"><Download size={24} /></div>
                     <div className="stat-content">
-                        <p className="stat-label">Downloads</p>
+                        <p className="stat-label">{t.downloads}</p>
                         <p className="stat-value">{stats?.downloadsCount ?? 0}</p>
                     </div>
                     <div className="card-blob blob-green" />
@@ -98,7 +137,7 @@ export const DashboardPage = () => {
                 <div className="stat-card stat-card-yellow">
                     <div className="stat-icon stat-icon-yellow"><Star size={24} /></div>
                     <div className="stat-content">
-                        <p className="stat-label">Ratings Given</p>
+                        <p className="stat-label">{t.ratings}</p>
                         <p className="stat-value">{stats?.ratingsGiven ?? 0}</p>
                     </div>
                     <div className="card-blob blob-yellow" />
@@ -107,7 +146,7 @@ export const DashboardPage = () => {
                 <div className="stat-card stat-card-purple">
                     <div className="stat-icon stat-icon-purple"><FileText size={24} /></div>
                     <div className="stat-content">
-                        <p className="stat-label">Total Materials</p>
+                        <p className="stat-label">{t.total}</p>
                         <p className="stat-value">{stats?.totalMaterials ?? 0}</p>
                     </div>
                     <div className="card-blob blob-purple" />
@@ -118,15 +157,19 @@ export const DashboardPage = () => {
             <div className="section-card">
                 <div className="section-header">
                     <span className="section-emoji">🔥</span>
-                    <h2>Trending Now</h2>
+                    <h2>
+                        {user?.roles?.some(r => r.name === 'teacher') ? t.trendingTeacher
+                         : user?.roles?.some(r => r.name === 'admin') ? t.trendingAdmin
+                         : t.trending}
+                    </h2>
                     <span className="section-badge">{trendingMaterials.length}</span>
                 </div>
 
                 {trendingMaterials.length === 0 ? (
                     <div className="empty-state">
                         <div className="empty-icon-wrapper"><TrendingUp size={32} /></div>
-                        <p>No trending materials yet</p>
-                        <span className="empty-sub">Check back soon!</span>
+                        <p>{t.noTrending}</p>
+                        <span className="empty-sub">{t.checkSoon}</span>
                     </div>
                 ) : (
                     <div className="materials-list">
@@ -158,15 +201,15 @@ export const DashboardPage = () => {
             <div className="section-card">
                 <div className="section-header">
                     <span className="section-emoji">🕐</span>
-                    <h2>Recent Materials</h2>
+                    <h2>{t.recent}</h2>
                     <span className="section-badge">{recentMaterials.length}</span>
                 </div>
 
                 {recentMaterials.length === 0 ? (
                     <div className="empty-state">
                         <div className="empty-icon-wrapper"><FolderOpen size={32} /></div>
-                        <p>No materials yet</p>
-                        <span className="empty-sub">Upload your first one!</span>
+                        <p>{t.noMaterials}</p>
+                        <span className="empty-sub">{t.uploadFirst}</span>
                     </div>
                 ) : (
                     <div className="materials-list">

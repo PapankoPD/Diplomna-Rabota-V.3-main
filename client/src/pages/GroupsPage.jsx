@@ -1,12 +1,89 @@
 import React, { useState, useEffect } from 'react';
 import { groupsApi } from '../api/groupsApi';
 import { useAuth } from '../hooks/useAuth';
+import { useLanguage } from '../contexts/LanguageContext';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { Users, Plus, Globe, Lock, UserPlus, LogOut, X, ChevronRight, ArrowLeft, Trash2 } from 'lucide-react';
 import './GroupsPage.css';
 
+const translations = {
+    en: {
+        pageTitle: "Groups",
+        newGroupBtn: "New Group",
+        myGroupsTab: "My Groups",
+        publicGroupsTab: "Public Groups",
+        noDesc: "No description",
+        membersCount: "members",
+        joinBtn: "Join",
+        viewBtn: "View",
+        noMyGroups: "No groups yet",
+        noPublicGroups: "No public groups available",
+        createDesc: "Create a group to start collaborating.",
+        checkLaterDesc: "Check back later for public groups.",
+        createBtn: "Create Group",
+        modalTitle: "Create New Group",
+        groupNameLabel: "Group Name *",
+        groupNamePlaceholder: "Enter group name",
+        descLabel: "Description",
+        descPlaceholder: "What is this group about?",
+        makePublicCheck: "Make this group public",
+        makePublicHint: "Public groups can be found and joined by anyone.",
+        cancel: "Cancel",
+        creating: "Creating...",
+        backToGroups: "Back to Groups",
+        badgePublic: "Public",
+        badgePrivate: "Private",
+        membersSection: (count) => `Members (${count})`,
+        confirmRemove: "Remove this member from the group?",
+        titleRemove: "Remove member",
+        errLoadGroups: "Failed to load groups.",
+        errCreate: "Failed to create group.",
+        errJoin: "Failed to join group.",
+        errLoadDetail: "Failed to load group details.",
+        errRemove: "Failed to remove member."
+    },
+    bg: {
+        pageTitle: "Групи",
+        newGroupBtn: "Нова група",
+        myGroupsTab: "Моите групи",
+        publicGroupsTab: "Публични групи",
+        noDesc: "Няма описание",
+        membersCount: "членове",
+        joinBtn: "Присъедини се",
+        viewBtn: "Преглед",
+        noMyGroups: "Все още няма групи",
+        noPublicGroups: "Няма налични публични групи",
+        createDesc: "Създайте група, за да започнете да си сътрудничите.",
+        checkLaterDesc: "Проверете отново по-късно за публични групи.",
+        createBtn: "Създаване на група",
+        modalTitle: "Създаване на нова група",
+        groupNameLabel: "Име на групата *",
+        groupNamePlaceholder: "Въведете име на групата",
+        descLabel: "Описание",
+        descPlaceholder: "За какво е тази група?",
+        makePublicCheck: "Направете тази група публична",
+        makePublicHint: "Публичните групи могат да бъдат намерени и към тях може да се присъедини всеки.",
+        cancel: "Отказ",
+        creating: "Създаване...",
+        backToGroups: "Назад към групите",
+        badgePublic: "Публична",
+        badgePrivate: "Частна",
+        membersSection: (count) => `Членове (${count})`,
+        confirmRemove: "Да премахна ли този член от групата?",
+        titleRemove: "Премахни член",
+        errLoadGroups: "Неуспешно зареждане на групи.",
+        errCreate: "Неуспешно създаване на група.",
+        errJoin: "Неуспешно присъединяване към група.",
+        errLoadDetail: "Неуспешно зареждане на детайлите на групата.",
+        errRemove: "Неуспешно премахване на член."
+    }
+};
+
 export const GroupsPage = () => {
     const { user } = useAuth();
+    const { language } = useLanguage();
+    const t = translations[language];
+
     const [activeTab, setActiveTab] = useState('my');
     const [groups, setGroups] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -30,7 +107,7 @@ export const GroupsPage = () => {
             setGroups(response.data || []);
         } catch (err) {
             console.error('Failed to load groups:', err);
-            setError('Failed to load groups.');
+            setError(t.errLoadGroups);
         } finally {
             setIsLoading(false);
         }
@@ -47,7 +124,7 @@ export const GroupsPage = () => {
             loadGroups();
         } catch (err) {
             console.error('Failed to create group:', err);
-            setError(err.response?.data?.message || 'Failed to create group.');
+            setError(err.response?.data?.message || t.errCreate);
         } finally {
             setIsCreating(false);
         }
@@ -59,7 +136,7 @@ export const GroupsPage = () => {
             loadGroups();
         } catch (err) {
             console.error('Failed to join group:', err);
-            setError(err.response?.data?.message || 'Failed to join group.');
+            setError(err.response?.data?.message || t.errJoin);
         }
     };
 
@@ -69,18 +146,18 @@ export const GroupsPage = () => {
             setSelectedGroup(response.data || response);
         } catch (err) {
             console.error('Failed to load group:', err);
-            setError('Failed to load group details.');
+            setError(t.errLoadDetail);
         }
     };
 
     const handleRemoveMember = async (userId) => {
-        if (!window.confirm('Remove this member from the group?')) return;
+        if (!window.confirm(t.confirmRemove)) return;
         try {
             await groupsApi.removeMember(selectedGroup.id, userId);
             handleViewGroup(selectedGroup.id);
         } catch (err) {
             console.error('Failed to remove member:', err);
-            setError('Failed to remove member.');
+            setError(t.errRemove);
         }
     };
 
@@ -90,21 +167,21 @@ export const GroupsPage = () => {
         return (
             <div className="groups-page">
                 <button className="back-link" onClick={() => setSelectedGroup(null)}>
-                    <ArrowLeft size={16} /> Back to Groups
+                    <ArrowLeft size={16} /> {t.backToGroups}
                 </button>
 
                 <div className="group-detail-header">
                     <div>
                         <h1>{selectedGroup.name}</h1>
-                        <p className="group-detail-desc">{selectedGroup.description || 'No description'}</p>
+                        <p className="group-detail-desc">{selectedGroup.description || t.noDesc}</p>
                         <span className={`visibility-badge ${selectedGroup.is_public ? 'public' : 'private'}`}>
-                            {selectedGroup.is_public ? <><Globe size={14} /> Public</> : <><Lock size={14} /> Private</>}
+                            {selectedGroup.is_public ? <><Globe size={14} /> {t.badgePublic}</> : <><Lock size={14} /> {t.badgePrivate}</>}
                         </span>
                     </div>
                 </div>
 
                 <div className="members-section">
-                    <h2>Members ({selectedGroup.members?.length || 0})</h2>
+                    <h2>{t.membersSection(selectedGroup.members?.length || 0)}</h2>
                     <div className="members-list">
                         {(selectedGroup.members || []).map(member => (
                             <div key={member.id} className="member-card">
@@ -117,7 +194,7 @@ export const GroupsPage = () => {
                                     <button
                                         className="btn-icon btn-icon-danger"
                                         onClick={() => handleRemoveMember(member.id)}
-                                        title="Remove member"
+                                        title={t.titleRemove}
                                     >
                                         <Trash2 size={16} />
                                     </button>
@@ -133,9 +210,9 @@ export const GroupsPage = () => {
     return (
         <div className="groups-page">
             <div className="page-header">
-                <h1>Groups</h1>
+                <h1>{t.pageTitle}</h1>
                 <button className="btn-primary" onClick={() => setShowCreateModal(true)}>
-                    <Plus size={16} /> New Group
+                    <Plus size={16} /> {t.newGroupBtn}
                 </button>
             </div>
 
@@ -146,13 +223,13 @@ export const GroupsPage = () => {
                     className={`tab ${activeTab === 'my' ? 'active' : ''}`}
                     onClick={() => setActiveTab('my')}
                 >
-                    My Groups
+                    {t.myGroupsTab}
                 </button>
                 <button
                     className={`tab ${activeTab === 'public' ? 'active' : ''}`}
                     onClick={() => setActiveTab('public')}
                 >
-                    Public Groups
+                    {t.publicGroupsTab}
                 </button>
             </div>
 
@@ -169,11 +246,11 @@ export const GroupsPage = () => {
                                 </span>
                             </div>
                             <p className="group-description">
-                                {group.description || 'No description'}
+                                {group.description || t.noDesc}
                             </p>
                             <div className="group-card-footer">
                                 <span className="member-count">
-                                    <Users size={14} /> {group.member_count || 0} members
+                                    <Users size={14} /> {group.member_count || 0} {t.membersCount}
                                 </span>
                                 <div className="group-actions">
                                     {activeTab === 'public' && !group.is_member && (
@@ -181,14 +258,14 @@ export const GroupsPage = () => {
                                             className="btn-join"
                                             onClick={() => handleJoinGroup(group.id)}
                                         >
-                                            <UserPlus size={14} /> Join
+                                            <UserPlus size={14} /> {t.joinBtn}
                                         </button>
                                     )}
                                     <button
                                         className="btn-view"
                                         onClick={() => handleViewGroup(group.id)}
                                     >
-                                        View <ChevronRight size={14} />
+                                        {t.viewBtn} <ChevronRight size={14} />
                                     </button>
                                 </div>
                             </div>
@@ -198,11 +275,11 @@ export const GroupsPage = () => {
             ) : (
                 <div className="empty-state">
                     <Users size={48} />
-                    <h3>{activeTab === 'my' ? 'No groups yet' : 'No public groups available'}</h3>
-                    <p>{activeTab === 'my' ? 'Create a group to start collaborating.' : 'Check back later for public groups.'}</p>
+                    <h3>{activeTab === 'my' ? t.noMyGroups : t.noPublicGroups}</h3>
+                    <p>{activeTab === 'my' ? t.createDesc : t.checkLaterDesc}</p>
                     {activeTab === 'my' && (
                         <button className="btn-primary" onClick={() => setShowCreateModal(true)}>
-                            <Plus size={16} /> Create Group
+                            <Plus size={16} /> {t.createBtn}
                         </button>
                     )}
                 </div>
@@ -213,7 +290,7 @@ export const GroupsPage = () => {
                 <div className="modal-overlay">
                     <div className="modal">
                         <div className="modal-header">
-                            <h3>Create New Group</h3>
+                            <h3>{t.modalTitle}</h3>
                             <button className="btn-close" onClick={() => setShowCreateModal(false)}>
                                 <X size={20} />
                             </button>
@@ -221,21 +298,21 @@ export const GroupsPage = () => {
                         <form onSubmit={handleCreateGroup}>
                             <div className="modal-content">
                                 <div className="form-group">
-                                    <label>Group Name *</label>
+                                    <label>{t.groupNameLabel}</label>
                                     <input
                                         type="text"
                                         value={newGroup.name}
                                         onChange={(e) => setNewGroup({ ...newGroup, name: e.target.value })}
-                                        placeholder="Enter group name"
+                                        placeholder={t.groupNamePlaceholder}
                                         required
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label>Description</label>
+                                    <label>{t.descLabel}</label>
                                     <textarea
                                         value={newGroup.description}
                                         onChange={(e) => setNewGroup({ ...newGroup, description: e.target.value })}
-                                        placeholder="What is this group about?"
+                                        placeholder={t.descPlaceholder}
                                         rows={3}
                                     />
                                 </div>
@@ -246,17 +323,17 @@ export const GroupsPage = () => {
                                             checked={newGroup.isPublic}
                                             onChange={(e) => setNewGroup({ ...newGroup, isPublic: e.target.checked })}
                                         />
-                                        <span>Make this group public</span>
+                                        <span>{t.makePublicCheck}</span>
                                     </label>
-                                    <p className="form-help">Public groups can be found and joined by anyone.</p>
+                                    <p className="form-help">{t.makePublicHint}</p>
                                 </div>
                             </div>
                             <div className="modal-footer">
                                 <button type="button" className="btn-cancel" onClick={() => setShowCreateModal(false)}>
-                                    Cancel
+                                    {t.cancel}
                                 </button>
                                 <button type="submit" className="btn-primary" disabled={isCreating}>
-                                    {isCreating ? 'Creating...' : 'Create Group'}
+                                    {isCreating ? t.creating : t.createBtn}
                                 </button>
                             </div>
                         </form>

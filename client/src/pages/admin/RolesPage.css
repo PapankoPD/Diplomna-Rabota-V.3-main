@@ -1,31 +1,35 @@
 /* ── Split layout ─────────────────────────────────────────────────────── */
 .admin-page-split {
     display: flex;
-    height: calc(100vh - 68px);
-    background: var(--bg-surface);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    border: 2.5px solid #c7d2fe;
+    height: calc(100vh - 100px);
+    margin-top: 10px;
+    background: var(--bg-card);
+    border-radius: 28px;
+    border: 1px solid var(--border-default);
+    border-top: 4px solid var(--primary);
     box-shadow: var(--shadow-md);
 }
 
 /* ── Roles sidebar ────────────────────────────────────────────────────── */
 .roles-sidebar {
     width: 280px;
-    background: var(--bg-card);
-    border-right: 2.5px solid #ede9fe;
+    background: var(--bg-surface);
+    border-right: 1px solid var(--border-default);
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
+    border-radius: 24px 0 0 24px;
+    overflow: hidden;
 }
 
 .roles-sidebar .sidebar-header {
     padding: 20px;
-    border-bottom: 2px dashed #ede9fe;
+    border-bottom: 1px solid var(--border-default);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    background: linear-gradient(135deg, var(--bg-surface), #ede9fe);
+    background: var(--primary-light);
+    border-radius: 24px 0 0 0;
 }
 
 .roles-sidebar .sidebar-header h2 {
@@ -38,18 +42,36 @@
 .roles-list {
     flex: 1;
     overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    padding: 6px;
+    gap: 2px;
 }
 
 .role-item {
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 14px 20px;
+    padding: 11px 16px;
+    margin: 0;
     cursor: pointer;
     transition: all 0.2s var(--spring);
-    border-bottom: 1px solid #f3f4f6;
+    border-radius: 12px;
     font-weight: 700;
     color: var(--gray-600);
+    position: relative;
+}
+
+.role-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 14px;
+    right: 14px;
+    height: 1px;
+    background: var(--border-default);
+    border-radius: 999px;
+    opacity: 0.7;
 }
 
 .role-item:hover {
@@ -61,7 +83,8 @@
 .role-item.active {
     background: var(--primary-light);
     color: var(--primary);
-    border-left: 4px solid var(--primary);
+    border-left: none;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.18);
 }
 
 /* ── Details area ─────────────────────────────────────────────────────── */
@@ -85,19 +108,20 @@
 /* ── Permissions editor ───────────────────────────────────────────────── */
 .permissions-editor {
     background: var(--bg-card);
-    border-radius: var(--radius-lg);
-    border: 2.5px solid var(--gray-100);
+    border-radius: 28px;
+    border: 1px solid var(--border-default);
     overflow: hidden;
     box-shadow: var(--shadow-sm);
+    border-top: 3px solid var(--primary);
 }
 
 .editor-header {
     padding: 20px 24px;
-    border-bottom: 2px dashed var(--gray-100);
+    border-bottom: 1px solid var(--border-default);
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    background: linear-gradient(135deg, var(--bg-surface), white);
+    background: var(--primary-light);
 }
 
 .editor-header h2 {
@@ -152,7 +176,7 @@
     gap: 10px;
     padding: 14px;
     border: 2px solid var(--gray-100);
-    border-radius: var(--radius-md);
+    border-radius: 16px;
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -185,8 +209,8 @@
 .new-role-form {
     background: var(--bg-card);
     padding: 28px;
-    border-radius: var(--radius-lg);
-    border: 2.5px solid var(--gray-100);
+    border-radius: 28px;
+    border: 1px solid var(--border-default);
     box-shadow: var(--shadow-sm);
     max-width: 600px;
     margin: 0 auto;
@@ -217,8 +241,8 @@
 .form-group textarea {
     width: 100%;
     padding: 11px 14px;
-    border: 2.5px solid var(--gray-200);
-    border-radius: var(--radius-md);
+    border: 1.5px solid var(--border-default);
+    border-radius: 16px;
     font-size: 14px;
     font-weight: 600;
     font-family: inherit;
@@ -270,7 +294,7 @@
     background: var(--bg-danger);
     color: var(--text-danger);
     padding: 12px 16px;
-    border-radius: var(--radius-md);
+    border-radius: 16px;
     margin-bottom: 20px;
     font-weight: 700;
     border: 2px solid var(--border-danger);
@@ -282,7 +306,7 @@
     border: none;
     cursor: pointer;
     padding: 8px;
-    border-radius: 10px;
+    border-radius: 14px;
     color: var(--gray-400);
     transition: all 0.2s;
 }

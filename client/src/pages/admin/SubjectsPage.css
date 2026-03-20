@@ -1,0 +1,239 @@
+/* ── Subjects Page ─────────────────────────────────────────────────── */
+.sp-page {
+    padding: 28px;
+    max-width: 900px;
+}
+
+.sp-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    gap: 16px;
+}
+
+.sp-header h1 {
+    margin: 0 0 4px 0;
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--text-primary);
+}
+
+.sp-note {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-muted);
+}
+
+.sp-header-actions {
+    display: flex;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.sp-refresh-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: 14px;
+    padding: 8px 14px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    color: var(--text-secondary);
+    transition: all 0.2s;
+}
+.sp-refresh-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-light);
+}
+
+.sp-add-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--primary);
+    border: none;
+    border-radius: 14px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    color: white;
+    transition: all 0.2s;
+}
+.sp-add-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+
+/* ── Create form ──────────────────────────────────────────────────── */
+.sp-form-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-left: 4px solid var(--primary);
+    border-radius: 20px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.sp-form-error {
+    background: var(--bg-danger, #fee2e2);
+    color: var(--text-danger, #b91c1c);
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 13px;
+    margin-bottom: 14px;
+}
+
+.sp-form-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.sp-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+.sp-field--sm { flex: 0 0 120px; }
+.sp-field--xs { flex: 0 0 90px; }
+
+.sp-field label {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sp-field input {
+    padding: 9px 12px;
+    border: 1.5px solid var(--border-default);
+    border-radius: 12px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: inherit;
+    transition: border-color 0.2s;
+    outline: none;
+}
+.sp-field input:focus { border-color: var(--primary); }
+
+.sp-form-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 14px;
+}
+
+.sp-cancel-btn {
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-default);
+    border-radius: 12px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    color: var(--text-muted);
+    transition: all 0.2s;
+}
+.sp-cancel-btn:hover { border-color: var(--text-muted); color: var(--text-primary); }
+
+.sp-create-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--primary);
+    border: none;
+    border-radius: 12px;
+    padding: 8px 18px;
+    font-size: 13px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    color: white;
+    transition: all 0.2s;
+}
+.sp-create-btn:hover:not(:disabled) { opacity: 0.88; }
+.sp-create-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ── Table ────────────────────────────────────────────────────────── */
+.sp-table-container {
+    background: var(--bg-card);
+    border-radius: 28px;
+    border: 1px solid var(--border-default);
+    border-top: 4px solid var(--primary);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+
+.sp-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.sp-table th {
+    background: var(--primary-light);
+    font-weight: 800;
+    color: var(--text-muted);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 14px 20px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-default);
+}
+
+.sp-table td {
+    padding: 13px 20px;
+    border-bottom: 1px solid var(--border-default);
+    font-size: 14px;
+    color: var(--text-primary);
+}
+.sp-table tbody tr:last-child td { border-bottom: none; }
+.sp-table tbody tr:hover { background: var(--bg-hover); }
+
+.sp-muted { color: var(--text-muted); font-size: 13px; }
+
+.sp-code-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    background: var(--primary-light);
+    color: var(--primary);
+}
+
+.sp-delete-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    padding: 6px;
+    border-radius: 8px;
+    transition: all 0.15s;
+}
+.sp-delete-btn:hover { background: #fee2e2; color: #b91c1c; }
+
+/* ── States ────────────────────────────────────────────────────────── */
+.sp-loading { display: flex; justify-content: center; padding: 60px; }
+.sp-empty {
+    display: flex; flex-direction: column; align-items: center; gap: 12px;
+    padding: 60px; color: var(--text-muted);
+    background: var(--bg-card); border-radius: 28px; border: 1px solid var(--border-default);
+}
+
+.sp-error {
+    background: #fee2e2; color: #b91c1c;
+    padding: 12px 16px; border-radius: 14px; margin-bottom: 16px; font-weight: 700;
+    border: 2px solid #fca5a5;
+}
+.dark .sp-error { background: rgba(185,28,28,0.15); color: #fca5a5; border-color: rgba(185,28,28,0.3); }

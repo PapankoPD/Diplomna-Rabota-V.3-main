@@ -60,9 +60,9 @@ export const AuthProvider = ({ children }) => {
         }
     }, []);
 
-    const register = useCallback(async (email, username, password, role, subjectIds, teacherCode) => {
+    const register = useCallback(async (email, username, password, role, subjectIds, teacherCode, message) => {
         try {
-            const response = await authApi.register(email, username, password, role, subjectIds, teacherCode);
+            const response = await authApi.register(email, username, password, role, subjectIds, teacherCode, message);
             const { user, accessToken, refreshToken } = response.data;
 
             localStorage.setItem('accessToken', accessToken);
