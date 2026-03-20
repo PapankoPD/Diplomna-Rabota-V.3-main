@@ -34,7 +34,7 @@
     background: var(--bg-card);
     border-radius: var(--radius-lg);
     padding: 24px 28px;
-    border: 2.5px solid var(--gray-100);
+    border: 1px solid var(--border-default);
     box-shadow: var(--shadow-sm);
     position: relative;
     overflow: hidden;
@@ -93,7 +93,7 @@
 
 .profile-form input {
     padding: 11px 14px;
-    border: 2.5px solid var(--gray-200);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     font-size: 14px;
     font-weight: 600;
@@ -185,4 +185,39 @@
     .profile-card {
         padding: 18px;
     }
+}
+
+/* ── Dark Theme Overrides ─────────────────────────────────────────── */
+.dark .profile-card {
+    border-color: var(--gray-200);
+}
+
+.dark .card-header {
+    border-bottom-color: var(--gray-100);
+}
+
+.dark .profile-form input {
+    border-color: var(--gray-200);
+}
+
+.dark .profile-form input:focus {
+    border-color: var(--primary);
+}
+
+.dark .message.success {
+    background: rgba(22, 163, 74, 0.1);
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.15);
+}
+
+.dark .message.error {
+    background: var(--bg-danger);
+    color: var(--text-danger);
+    border-color: var(--border-danger);
+}
+
+.dark .message.info {
+    background: var(--bg-surface);
+    color: var(--primary);
+    border-color: var(--gray-200);
 }

@@ -3,6 +3,7 @@ const router = express.Router();
 const { query } = require('../config/database');
 const { authenticate } = require('../middleware/auth');
 const { requirePermission } = require('../middleware/rbac');
+const { emitNotificationToUser } = require('../config/socketManager');
 
 const adminOnly = [authenticate, requirePermission('users:read')];
 
@@ -67,6 +68,23 @@ router.post('/role-requests/:id/approve', adminOnly, async (req, res) => {
             [req.user.userId, req.params.id]
         );
 
+        // Ensure user is not suspended if they were suspended during request phase
+        await query(
+            'UPDATE users SET is_suspended = 0 WHERE id = $1',
+            [roleReq.user_id]
+        );
+
+        // Notify user about approval
+        const message = `Your request for the ${roleReq.requested_role} role was approved!`;
+        const link = '/profile';
+        const notificationType = 'role_request_approved';
+
+        const notifResult = await query(
+            `INSERT INTO notifications (user_id, type, message, link) VALUES ($1, $2, $3, $4) RETURNING *`,
+            [roleReq.user_id, notificationType, message, link]
+        );
+        emitNotificationToUser(roleReq.user_id, notifResult.rows[0]);
+
         res.json({ success: true, message: 'Request approved' });
     } catch (error) {
         console.error('Approve role request error:', error);
@@ -80,7 +98,7 @@ router.post('/role-requests/:id/approve', adminOnly, async (req, res) => {
  */
 router.post('/role-requests/:id/reject', adminOnly, async (req, res) => {
     try {
-        const reqRow = await query(`SELECT id, status FROM role_requests WHERE id = $1`, [req.params.id]);
+        const reqRow = await query(`SELECT id, status, user_id, requested_role FROM role_requests WHERE id = $1`, [req.params.id]);
         if (reqRow.rows.length === 0) {
             return res.status(404).json({ success: false, message: 'Request not found' });
         }
@@ -92,6 +110,23 @@ router.post('/role-requests/:id/reject', adminOnly, async (req, res) => {
             `UPDATE role_requests SET status = 'rejected', reviewed_by = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2`,
             [req.user.userId, req.params.id]
         );
+
+        // Suspend the user account as per request policy
+        await query(
+            'UPDATE users SET is_suspended = 1 WHERE id = $1',
+            [reqRow.rows[0].user_id]
+        );
+
+        // Notify user about rejection (though they won't see it until reactivated)
+        const message = `Your request for the ${reqRow.rows[0].requested_role} role was declined and your account has been suspended.`;
+        const link = '/profile';
+        const notificationType = 'role_request_rejected';
+
+        const notifResult = await query(
+            `INSERT INTO notifications (user_id, type, message, link) VALUES ($1, $2, $3, $4) RETURNING *`,
+            [reqRow.rows[0].user_id, notificationType, message, link]
+        );
+        emitNotificationToUser(reqRow.rows[0].user_id, notifResult.rows[0]);
 
         res.json({ success: true, message: 'Request rejected' });
     } catch (error) {

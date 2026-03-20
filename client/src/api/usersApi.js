@@ -25,4 +25,9 @@ export const usersApi = {
         const response = await apiClient.get('/users/students/unassigned', { params: { search } });
         return response.data;
     },
+
+    suspendUser: async (id) => {
+        const response = await apiClient.put(`/users/${id}/suspend`);
+        return response.data;
+    },
 };

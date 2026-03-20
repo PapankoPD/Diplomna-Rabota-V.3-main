@@ -10,6 +10,7 @@ const {
     validateLogin,
     validateRefreshToken
 } = require('../middleware/validation');
+const { emitNotificationToUser } = require('../config/socketManager');
 
 /**
  * POST /api/auth/register
@@ -39,10 +40,11 @@ router.post('/register', authLimiter, validateRegistration, async (req, res) => 
 
         const passwordHash = await hashPassword(password);
 
+        const isRoleRequest = role === 'teacher' || role === 'admin';
         const userResult = await client.query(
-            `INSERT INTO users (email, username, password_hash) VALUES ($1, $2, $3)
+            `INSERT INTO users (email, username, password_hash, is_suspended) VALUES ($1, $2, $3, $4)
              RETURNING id, email, username, created_at`,
-            [email, username, passwordHash]
+            [email, username, passwordHash, isRoleRequest ? 1 : 0]
         );
 
         const user = userResult.rows[0];
@@ -72,6 +74,28 @@ router.post('/register', authLimiter, validateRegistration, async (req, res) => 
                 `INSERT INTO role_requests (user_id, requested_role, message) VALUES ($1, $2, $3)`,
                 [user.id, role, msgToStore]
             );
+
+            // Notify all admins about the new role request
+            const adminsResult = await client.query(`
+                SELECT u.id FROM users u
+                JOIN user_roles ur ON u.id = ur.user_id
+                JOIN roles r ON ur.role_id = r.id
+                WHERE r.name = 'admin'
+            `);
+
+            if (adminsResult.rows.length > 0) {
+                const message = `New ${role} role request from ${user.username}`;
+                const link = '/admin/role-requests';
+                const notificationType = 'role_request';
+
+                for (const admin of adminsResult.rows) {
+                    const notifResult = await client.query(
+                        `INSERT INTO notifications (user_id, type, message, link) VALUES ($1, $2, $3, $4) RETURNING *`,
+                        [admin.id, notificationType, message, link]
+                    );
+                    emitNotificationToUser(admin.id, notifResult.rows[0]);
+                }
+            }
         }
 
         await client.query('COMMIT');
@@ -163,7 +187,7 @@ router.post('/login', authLimiter, validateLogin, async (req, res) => {
 
         // Get user from database
         const userResult = await query(
-            `SELECT id, email, username, password_hash, failed_login_attempts, locked_until
+            `SELECT id, email, username, password_hash, failed_login_attempts, locked_until, is_suspended
              FROM users WHERE email = $1`,
             [email]
         );
@@ -176,6 +200,14 @@ router.post('/login', authLimiter, validateLogin, async (req, res) => {
         }
 
         const user = userResult.rows[0];
+
+        // Check if account is suspended
+        if (user.is_suspended === 1 || user.is_suspended === true) {
+            return res.status(403).json({
+                success: false,
+                message: 'Your account has been suspended by an admin.'
+            });
+        }
 
         // Check if account is locked
         if (user.locked_until && new Date(user.locked_until) > new Date()) {

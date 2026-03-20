@@ -99,9 +99,9 @@ code {
   --text-heading: #f8fafc;
   --text-body: #e2e8f0;
   --text-muted: #94a3b8;
-  --border-default: #293548;
+  --border-default: #1e293b;
   --border-accent: #293548;
-  --shadow-color: rgba(0, 0, 0, 0.40);
+  --shadow-color: rgba(0, 0, 0, 0.35);
 
   --bg-danger: rgba(239, 68, 68, 0.15);
   --border-danger: rgba(239, 68, 68, 0.30);
@@ -113,8 +113,8 @@ code {
   --bg-secondary: var(--gray-100);
 
   --shadow-sm: 0 1px 3px var(--shadow-color);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.30);
-  --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.40);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 10px 24px rgba(0, 0, 0, 0.35);
 
   color-scheme: dark;
 }

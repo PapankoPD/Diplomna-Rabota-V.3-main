@@ -2,7 +2,7 @@
 .topbar {
     height: 68px;
     background: var(--bg-card);
-    border-bottom: 2.5px solid var(--border-accent);
+    border-bottom: 1px solid var(--border-default);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -20,7 +20,7 @@
     background: color-mix(in srgb, var(--bg-primary) 85%, transparent);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    border-bottom: 2.5px solid var(--border-accent);
+    border-bottom: 1px solid var(--border-default);
     box-shadow: none;
 }
 
@@ -108,6 +108,11 @@
     transition: background 0.2s, color 0.2s, transform 0.2s ease;
 }
 
+.btn-icon-danger:hover {
+    background: var(--bg-danger);
+    color: var(--text-danger);
+}
+
 .icon-btn:hover {
     background: var(--bg-hover);
     color: var(--primary);
@@ -153,10 +158,10 @@
     right: 0;
     background: var(--bg-card);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg), 0 0 0 2px var(--border-accent);
+    box-shadow: var(--shadow-lg), 0 0 0 1px var(--border-default);
     width: 250px;
     padding: 10px;
-    border: 2px solid var(--border-accent);
+    border: 1px solid var(--border-default);
 }
 
 .user-info {
@@ -229,4 +234,78 @@
 
 .theme-toggle-btn:hover svg {
     transform: rotate(30deg);
+}
+
+/* ── Dark Theme Overrides ─────────────────────────────────────────── */
+.dark .topbar {
+    background: var(--bg-card);
+    border-bottom-color: var(--gray-200);
+}
+
+.dark .topbar-transparent {
+    background: color-mix(in srgb, var(--bg-primary) 85%, transparent);
+}
+
+.dark .menu-btn {
+    color: var(--gray-900);
+}
+
+.dark .menu-btn:hover {
+    background: var(--bg-hover);
+    color: var(--primary);
+}
+
+.dark .search-bar {
+    background: var(--bg-surface);
+    border-color: var(--gray-200);
+}
+
+.dark .search-bar:focus-within {
+    border-color: var(--primary);
+}
+
+.dark .search-bar input {
+    color: var(--gray-900);
+}
+
+.dark .icon-btn {
+    background: var(--bg-surface);
+    border-color: var(--gray-200);
+    color: var(--gray-900);
+}
+
+.dark .icon-btn:hover {
+    background: var(--bg-hover);
+}
+
+.dark .user-btn {
+    background: var(--gray-100);
+}
+
+.dark .user-btn span, 
+.dark .user-btn svg {
+    color: var(--gray-900);
+}
+
+.dark .user-dropdown {
+    background: var(--bg-card);
+    border-color: var(--gray-200);
+}
+
+.dark .user-info {
+    border-bottom-color: var(--gray-200);
+}
+
+.dark .user-name {
+    color: var(--gray-900);
+}
+
+.dark .role-badge {
+    background: var(--bg-surface);
+    border-color: var(--gray-200);
+    color: var(--gray-800);
+}
+
+.dark .logout-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
 }

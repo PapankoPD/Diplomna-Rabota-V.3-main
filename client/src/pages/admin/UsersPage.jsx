@@ -5,7 +5,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useConfirm } from '../../contexts/ConfirmContext';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
-import { UserCog, Trash2, Check } from 'lucide-react';
+import { UserCog, Trash2, Check, ShieldOff, ShieldCheck } from 'lucide-react';
 import './UsersPage.css';
 
 const translations = {
@@ -24,6 +24,14 @@ const translations = {
         errLoad: "Failed to load users and roles.",
         errUpdate: "Failed to update user roles.",
         errDelete: "Failed to delete user account.",
+        errSuspend: "Failed to toggle suspension status.",
+        colStatus: "Status",
+        statusActive: "Active",
+        statusSuspended: "Suspended",
+        suspendUser: "Suspend User",
+        activateUser: "Activate User",
+        confirmSuspend: (username) => `Are you sure you want to suspend "${username}"? They will not be able to log in.`,
+        confirmActivate: (username) => `Are you sure you want to reactivate "${username}"?`,
         roleNames: {
             admin: "admin",
             teacher: "teacher",
@@ -45,6 +53,14 @@ const translations = {
         errLoad: "Неуспешно зареждане на потребители и роли.",
         errUpdate: "Неуспешно актуализиране на потребителски роли.",
         errDelete: "Неуспешно изтриване на потребителски акаунт.",
+        errSuspend: "Неуспешно превключване на статуса на блокиране.",
+        colStatus: "Статус",
+        statusActive: "Активен",
+        statusSuspended: "Махни блокирането",
+        suspendUser: "Блокирай потребител",
+        activateUser: "Активирай потребител",
+        confirmSuspend: (username) => `Сигурни ли сте, че искате да блокирате "${username}"? Те няма да могат да влизат в системата.`,
+        confirmActivate: (username) => `Сигурни ли сте, че искате да активирате "${username}"?`,
         roleNames: {
             admin: "админ",
             teacher: "учител",
@@ -142,6 +158,23 @@ export const UsersPage = () => {
         }
     };
 
+    const handleToggleSuspend = async (user) => {
+        const isConfirmingSuspension = !user.is_suspended;
+        const confirmed = await confirm({
+            message: isConfirmingSuspension ? t.confirmSuspend(user.username) : t.confirmActivate(user.username),
+            isDanger: isConfirmingSuspension
+        });
+        if (!confirmed) return;
+
+        try {
+            const res = await usersApi.suspendUser(user.id);
+            setUsers(prev => prev.map(u => u.id === user.id ? { ...u, is_suspended: res.data.is_suspended } : u));
+        } catch (err) {
+            console.error('Failed to toggle suspension:', err);
+            setError(t.errSuspend);
+        }
+    };
+
     if (isLoading) return <LoadingSpinner fullScreen />;
 
     return (
@@ -159,6 +192,7 @@ export const UsersPage = () => {
                             <th>{t.colUsername}</th>
                             <th>{t.colEmail}</th>
                             <th>{t.colRoles}</th>
+                            <th>{t.colStatus}</th>
                             <th>{t.colActions}</th>
                         </tr>
                     </thead>
@@ -175,6 +209,11 @@ export const UsersPage = () => {
                                     </div>
                                 </td>
                                 <td>
+                                    <span className={`status-badge ${user.is_suspended ? 'suspended' : 'active'}`}>
+                                        {user.is_suspended ? t.statusSuspended : t.statusActive}
+                                    </span>
+                                </td>
+                                <td>
                                     <div className="action-buttons">
                                         <button
                                             className="btn-icon"
@@ -183,7 +222,14 @@ export const UsersPage = () => {
                                         >
                                             <UserCog size={18} />
                                         </button>
-                                        {canDeleteUsers && (
+                                            <button
+                                                className={`btn-icon ${user.is_suspended ? 'btn-icon-success' : 'btn-icon-warning'}`}
+                                                onClick={() => handleToggleSuspend(user)}
+                                                title={user.is_suspended ? t.activateUser : t.suspendUser}
+                                            >
+                                                {user.is_suspended ? <ShieldCheck size={18} /> : <ShieldOff size={18} />}
+                                            </button>
+                                            {canDeleteUsers && (
                                             <button
                                                 className="btn-icon btn-icon-danger"
                                                 onClick={() => handleDeleteUser(user)}

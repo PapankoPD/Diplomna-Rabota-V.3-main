@@ -48,7 +48,7 @@
     width: 340px;
     background: var(--bg-card);
     border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg), 0 0 0 2px var(--border-accent);
+    box-shadow: var(--shadow-lg), 0 0 0 1px var(--border-default);
     z-index: 1000;
     overflow: hidden;
     display: flex;
@@ -61,7 +61,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 14px 16px;
-    border-bottom: 2px solid var(--border-default);
+    border-bottom: 1px solid var(--border-default);
     background: var(--bg-surface);
 }
 
@@ -249,3 +249,42 @@
 .load-more-btn:hover {
     background: var(--bg-input);
 }
+
+/* ── Dark Theme Overrides ─────────────────────────────────────────── */
+.dark .notification-badge {
+    border-color: var(--bg-card);
+}
+
+.dark .notifications-dropdown {
+    background: var(--bg-card);
+    border-color: var(--gray-700);
+}
+
+.dark .notifications-header {
+    background: var(--bg-surface);
+    border-bottom-color: var(--gray-700);
+}
+
+.dark .notification-item {
+    border-bottom-color: var(--gray-700);
+}
+
+.dark .notification-item:hover {
+    background: var(--bg-hover);
+}
+
+.dark .notification-item.unread {
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.dark .notification-message {
+    color: var(--gray-900);
+}
+
+.dark .notifications-list::-webkit-scrollbar-thumb {
+    background: var(--gray-700);
+}
+
+.dark .empty-icon {
+    color: var(--gray-700);
+}

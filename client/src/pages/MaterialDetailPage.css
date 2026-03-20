@@ -126,7 +126,7 @@
     background: var(--bg-card);
     border-radius: var(--radius-lg);
     padding: 24px;
-    border: 2.5px solid var(--gray-100);
+    border: 1px solid var(--border-default);
     box-shadow: var(--shadow-sm);
     margin-bottom: 22px;
     position: relative;
@@ -159,8 +159,8 @@
 
 /* ── File preview ───────────────────────────────────────────────────────── */
 .file-preview-placeholder {
-    background: linear-gradient(135deg, #f5f3ff, #ede9fe);
-    border: 2px dashed #c7d2fe;
+    background: var(--bg-surface);
+    border: 1.5px dashed var(--border-default);
     border-radius: var(--radius-md);
     padding: 36px;
     text-align: center;
@@ -431,7 +431,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 11px 14px;
-    border: 2px solid var(--gray-100);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     gap: 8px;
     transition: background 0.15s, border-color 0.15s;
@@ -532,4 +532,110 @@
 .delete-version-btn:hover {
     background: #fee2e2;
     transform: scale(1.08);
+}
+
+/* ── Dark Theme Overrides ─────────────────────────────────────────── */
+.dark .back-link {
+    border-color: var(--gray-200);
+}
+
+.dark .back-link:hover {
+    background: var(--bg-hover);
+}
+
+.dark .meta-item {
+    background: var(--bg-surface);
+    color: var(--primary);
+    border-color: var(--gray-200);
+}
+
+.dark .content-card {
+    border-color: var(--gray-200);
+}
+
+.dark .file-preview-placeholder {
+    background: linear-gradient(135deg, #1e1b4b, #131c2e);
+    border-color: var(--gray-200);
+    color: var(--gray-400);
+}
+
+.dark .average-rating {
+    border-bottom-color: var(--gray-200);
+}
+
+.dark .stat-row {
+    border-bottom-color: var(--gray-200);
+}
+
+.dark .badge.public {
+    background: rgba(22, 163, 74, 0.1);
+    color: #4ade80;
+    border-color: rgba(74, 222, 128, 0.15);
+}
+
+.dark .badge.archived, .dark .btn-archive {
+    background: rgba(245, 158, 11, 0.1);
+    color: #fbbf24;
+    border-color: rgba(251, 191, 36, 0.15);
+}
+
+.dark .btn-archive:hover {
+    background: rgba(245, 158, 11, 0.2);
+}
+
+.dark .similar-item:hover {
+    background: var(--bg-hover);
+    border-color: var(--gray-200);
+}
+
+.dark .similar-icon {
+    background: linear-gradient(135deg, #1e1b4b, #293548);
+    border-color: var(--gray-200);
+}
+
+.dark .similar-info h4 {
+    color: var(--gray-900);
+}
+
+.dark .toggle-versions-btn {
+    background: var(--bg-surface);
+    border-color: var(--gray-200);
+    color: var(--primary);
+}
+
+.dark .version-item {
+    border-color: var(--gray-100);
+}
+
+.dark .version-item:hover {
+    background: var(--bg-hover);
+    border-color: var(--primary);
+}
+
+.dark .version-number {
+    background: var(--primary-dark);
+    color: white;
+}
+
+.dark .version-title {
+    color: var(--gray-800);
+}
+
+.dark .restore-btn {
+    background: rgba(22, 163, 74, 0.1);
+    border-color: rgba(74, 222, 128, 0.15);
+    color: #4ade80;
+}
+
+.dark .restore-btn:hover:not(:disabled) {
+    background: rgba(22, 163, 74, 0.2);
+}
+
+.dark .delete-version-btn {
+    background: var(--bg-danger);
+    border-color: var(--border-danger);
+}
+
+.dark .delete-version-btn:hover {
+    background: rgba(239, 68, 68, 0.2);
 }

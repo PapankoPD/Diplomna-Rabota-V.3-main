@@ -42,6 +42,41 @@ const uploadMiddleware = (req, res, next) => {
     });
 };
 
-module.exports = {
-    uploadMiddleware
+/**
+ * Flexible upload middleware that allows optional files
+ */
+const flexibleUploadMiddleware = (req, res, next) => {
+    const uploadSingle = upload.single('file');
+
+    uploadSingle(req, res, (err) => {
+        if (err) {
+            if (err.code === 'LIMIT_FILE_SIZE') {
+                return res.status(400).json({
+                    success: false,
+                    message: 'File size exceeds limit (50MB maximum)'
+                });
+            }
+
+            if (err.code === 'LIMIT_UNEXPECTED_FILE') {
+                return res.status(400).json({
+                    success: false,
+                    message: 'Unexpected file field. Use "file" as the field name.'
+                });
+            }
+
+            return res.status(400).json({
+                success: false,
+                message: err.message || 'File upload failed'
+            });
+        }
+
+        // We don't check for !req.file here, allowing optional uploads
+        next();
+    });
 };
+
+module.exports = {
+    uploadMiddleware,
+    flexibleUploadMiddleware
+};
+

@@ -12,7 +12,7 @@
 
 .input-wrapper {
     position: relative;
-    border: 2.5px solid #c7d2fe;
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-lg);
     background: var(--bg-card);
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -94,7 +94,7 @@
     gap: 12px;
     padding: 14px 16px;
     background: var(--gray-50);
-    border: 2px solid var(--gray-100);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-lg);
     transition: border-color 0.2s, background 0.2s;
 }
@@ -114,7 +114,7 @@
     justify-content: center;
     color: var(--primary);
     flex-shrink: 0;
-    border: 2px solid #c7d2fe;
+    border: 1px solid var(--border-default);
     font-weight: 900;
 }
 
@@ -282,7 +282,7 @@
 .edit-mode textarea {
     width: 100%;
     padding: 10px 12px;
-    border: 2.5px solid #c7d2fe;
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     margin-bottom: 10px;
     font-family: inherit;
@@ -321,7 +321,7 @@
 /* ── Login prompt ────────────────────────────────────────────────────── */
 .login-prompt {
     background: var(--primary-light);
-    border: 2px solid #c7d2fe;
+    border: 1px solid var(--border-default);
     padding: 14px;
     border-radius: var(--radius-md);
     text-align: center;
@@ -341,7 +341,7 @@
 
 .pagination button {
     padding: 8px 18px;
-    border: 2px solid var(--gray-200);
+    border: 1px solid var(--border-default);
     background: var(--bg-card);
     border-radius: var(--radius-pill);
     cursor: pointer;

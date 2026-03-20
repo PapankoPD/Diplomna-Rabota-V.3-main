@@ -22,7 +22,7 @@
 
 .confirm-modal-content {
     background: var(--bg-card);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-default);
     border-radius: 20px;
     width: 100%;
     max-width: 440px;
@@ -98,7 +98,7 @@
     gap: 12px;
     padding: 20px 24px 24px;
     background: rgba(0, 0, 0, 0.02);
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-default);
 }
 
 .confirm-modal-footer button {

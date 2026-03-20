@@ -106,7 +106,7 @@
 
 .archived-card {
     background: var(--bg-card);
-    border: 1px solid #e5e7eb;
+    border: 1px solid var(--border-default);
     border-radius: 16px;
     padding: 18px 20px;
     display: flex;
@@ -124,7 +124,7 @@
     width: 48px;
     height: 48px;
     border-radius: 12px;
-    background: linear-gradient(135deg, #ede9fe, #ddd6fe);
+    background: var(--primary-light);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -215,9 +215,9 @@
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    border: 1px solid #fca5a5;
-    background: #fff5f5;
-    color: #ef4444;
+    border: 1px solid var(--border-danger);
+    background: var(--bg-danger);
+    color: var(--text-danger);
     cursor: pointer;
     transition: background 0.2s, transform 0.15s;
 }

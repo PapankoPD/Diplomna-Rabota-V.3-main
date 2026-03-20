@@ -7,7 +7,7 @@ const { formatFileSize, getDownloadHeaders } = require('../utils/fileUtils');
 const { parseTaxonomyIds, assignTaxonomy } = require('../utils/taxonomyHelpers');
 const { authenticate } = require('../middleware/auth');
 const { requirePermission } = require('../middleware/rbac');
-const { uploadMiddleware } = require('../middleware/upload');
+const { uploadMiddleware, flexibleUploadMiddleware } = require('../middleware/upload');
 const { uploadMultiMiddleware } = require('../middleware/uploadMulti');
 const {
     requireViewPermission,
@@ -22,15 +22,83 @@ const {
     validateUUID,
     validatePagination
 } = require('../middleware/validation');
-// Versioning stubs (module not yet implemented — prevents ReferenceError crashes)
+/**
+ * Create a new version of the current material state
+ */
 const createVersion = async (materialId, userId, reason) => {
-    // No-op: version module not implemented yet
+    // 1. Get current material state
+    const materialResult = await query(
+        `SELECT m.*, u.username as uploader_username 
+         FROM materials m 
+         LEFT JOIN users u ON m.uploaded_by = u.id 
+         WHERE m.id = $1`,
+        [materialId]
+    );
+
+    if (materialResult.rows.length === 0) return;
+
+    const m = materialResult.rows[0];
+
+    // 2. Get current versions count to set version_number
+    // We get the max version number or default to 0
+    const countResult = await query(
+        'SELECT COALESCE(MAX(version_number), 0) as max_v FROM material_versions WHERE material_id = $1',
+        [materialId]
+    );
+    const nextVersion = parseInt(countResult.rows[0]?.max_v || 0) + 1;
+
+    // 3. Insert into material_versions
+    await query(
+        `INSERT INTO material_versions (
+            material_id, version_number, title, description,
+            file_path, file_name, file_size, change_reason,
+            changed_by, changed_by_username
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        [
+            materialId, nextVersion, m.title, m.description,
+            m.file_path, m.file_name, m.file_size, 
+            reason || 'Material update', userId, m.uploader_username
+        ]
+    );
 };
+
+/**
+ * Get version history for a material
+ */
 const getVersions = async (materialId) => {
-    return [];
+    const result = await query(
+        'SELECT * FROM material_versions WHERE material_id = $1 ORDER BY version_number DESC',
+        [materialId]
+    );
+    return result.rows;
 };
+
+/**
+ * Restore material to a specific version
+ */
 const restoreVersion = async (materialId, versionId, userId) => {
-    throw new Error('Version not found');
+    // 1. Get version details
+    const versionResult = await query(
+        'SELECT * FROM material_versions WHERE id = $1 AND material_id = $2',
+        [versionId, materialId]
+    );
+
+    if (versionResult.rows.length === 0) {
+        throw new Error('Version not found');
+    }
+
+    const v = versionResult.rows[0];
+
+    // 2. Take snapshot of current state before restoring
+    await createVersion(materialId, userId, `System: Restore to v${v.version_number}`);
+
+    // 3. Update material with version data
+    await query(
+        `UPDATE materials 
+         SET title = $1, description = $2, file_path = $3, file_name = $4, file_size = $5, updated_at = CURRENT_TIMESTAMP
+         WHERE id = $6`,
+        [v.title, v.description, v.file_path, v.file_name, v.file_size, materialId]
+    );
 };
 const { emitNotificationToUser } = require('../config/socketManager');
 
@@ -611,9 +679,9 @@ router.get('/:id', authenticate, validateUUID(), requireViewPermission, async (r
 
 /**
  * PUT /api/materials/:id
- * Update material metadata
+ * Update material metadata and optionally the file itself
  */
-router.put('/:id', authenticate, validateUUID(), requireEditPermission, validateMaterialUpdate, async (req, res) => {
+router.put('/:id', authenticate, validateUUID(), requireEditPermission, flexibleUploadMiddleware, validateMaterialUpdate, async (req, res) => {
     const client = await getClient();
 
     try {
@@ -645,7 +713,36 @@ router.put('/:id', authenticate, validateUUID(), requireEditPermission, validate
         if (isPublic !== undefined) {
             paramCount++;
             updates.push(`is_public = $${paramCount}`);
-            values.push(isPublic);
+            values.push(isPublic === 'true' || isPublic === true);
+        }
+
+        // If a new file was uploaded, update file fields
+        let oldFilePath = null;
+        if (req.file) {
+            // Get old file path to delete later
+            const oldFileResult = await client.query('SELECT file_path FROM materials WHERE id = $1', [materialId]);
+            if (oldFileResult.rows.length > 0) {
+                oldFilePath = oldFileResult.rows[0].file_path;
+            }
+
+            const file = req.file;
+            const newRelativePath = path.join(getStoragePath(), file.filename);
+
+            paramCount++;
+            updates.push(`file_name = $${paramCount}`);
+            values.push(file.originalname);
+
+            paramCount++;
+            updates.push(`file_path = $${paramCount}`);
+            values.push(newRelativePath);
+
+            paramCount++;
+            updates.push(`file_size = $${paramCount}`);
+            values.push(file.size);
+
+            paramCount++;
+            updates.push(`file_type = $${paramCount}`);
+            values.push(file.mimetype);
         }
 
         if (updates.length > 0) {
@@ -653,6 +750,7 @@ router.put('/:id', authenticate, validateUUID(), requireEditPermission, validate
             const updateQuery = `UPDATE materials SET ${updates.join(', ')} WHERE id = $${paramCount + 1} RETURNING *`;
             await client.query(updateQuery, values);
         }
+
 
         // Update categories if provided
         if (categoryIds !== undefined && Array.isArray(categoryIds)) {
@@ -703,11 +801,11 @@ router.delete('/:id', authenticate, validateUUID(), requireDeletePermission, asy
     try {
         const materialId = req.params.id;
 
-        // Get file path before deleting
-        const materialResult = await query(
-            'SELECT file_path FROM materials WHERE id = $1',
-            [materialId]
-        );
+        // Get file path before deleting, plus all version files
+        const [materialResult, versionsResult] = await Promise.all([
+            query('SELECT file_path FROM materials WHERE id = $1', [materialId]),
+            query('SELECT file_path FROM material_versions WHERE material_id = $1', [materialId])
+        ]);
 
         if (materialResult.rows.length === 0) {
             return res.status(404).json({
@@ -716,23 +814,30 @@ router.delete('/:id', authenticate, validateUUID(), requireDeletePermission, asy
             });
         }
 
-        const filePath = materialResult.rows[0].file_path;
+        const filesToDelete = [
+            materialResult.rows[0].file_path,
+            ...versionsResult.rows.map(v => v.file_path)
+        ];
 
-        // Delete from database (cascades to permissions and tags)
+        // Delete from database (cascades to permissions, tags, and versions)
         await query('DELETE FROM materials WHERE id = $1', [materialId]);
 
-        // Delete file from storage
-        try {
-            await deleteFile(filePath);
-        } catch (fileError) {
-            console.error('Failed to delete file from storage:', fileError);
-            // Continue anyway since DB record is deleted
+        // Delete all files from storage
+        for (const filePath of filesToDelete) {
+            if (filePath) {
+                try {
+                    await deleteFile(filePath);
+                } catch (fileError) {
+                    console.error(`Failed to delete file ${filePath} from storage:`, fileError);
+                }
+            }
         }
 
         res.json({
             success: true,
-            message: 'Material deleted successfully'
+            message: 'Material and its versions deleted successfully'
         });
+
     } catch (error) {
         console.error('Delete material error:', error);
         res.status(500).json({

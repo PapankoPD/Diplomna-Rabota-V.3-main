@@ -16,15 +16,17 @@ const translations = {
         titleLabel: "Title *",
         descLabel: "Description",
         currentFile: "Current File",
-        fileHint: "File cannot be changed in edit mode",
+        errUpdateFail: "Failed to update material. Please try again.",
+        newFileLabel: "Upload New Version (Optional)",
+        newFileDesc: "Select a new file to replace the current one. This will create a new version in the history.",
+        changeFile: "Change File",
         makePublic: "Make Public",
         publicDesc: "Allow all users to view and download this material",
         cancel: "Cancel",
         saving: "Saving...",
         saveChanges: "Save Changes",
         errNoTitle: "Please enter a title for the material.",
-        errLoadDetails: "Failed to load material details.",
-        errUpdateFail: "Failed to update material. Please try again."
+        errLoadDetails: "Failed to load material details."
     },
     bg: {
         pageTitle: "Редактиране на материал",
@@ -33,15 +35,17 @@ const translations = {
         titleLabel: "Заглавие *",
         descLabel: "Описание",
         currentFile: "Текущ файл",
-        fileHint: "Файлът не може да бъде променян в режим на редакция",
+        errUpdateFail: "Неуспешно обновяване на материала. Моля, опитайте отново.",
+        newFileLabel: "Качете нова версия (по избор)",
+        newFileDesc: "Изберете нов файл, за да замените текущия. Това ще създаде нова версия в историята.",
+        changeFile: "Промяна на файл",
         makePublic: "Публичен",
         publicDesc: "Позволете на всички потребители да преглеждат и изтеглят този материал",
         cancel: "Отказ",
         saving: "Запазване...",
         saveChanges: "Запазване на промените",
         errNoTitle: "Моля, въведете заглавие на материала.",
-        errLoadDetails: "Неуспешно зареждане на детайлите за материала.",
-        errUpdateFail: "Неуспешно обновяване на материала. Моля, опитайте отново."
+        errLoadDetails: "Неуспешно зареждане на детайлите за материала."
     }
 };
 
@@ -59,6 +63,7 @@ export const EditMaterialPage = () => {
     });
 
     const [fileInfo, setFileInfo] = useState(null);
+    const [newFile, setNewFile] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isSaving, setIsSaving] = useState(false);
     const [error, setError] = useState(null);
@@ -106,6 +111,13 @@ export const EditMaterialPage = () => {
         }));
     };
 
+    const handleFileChange = (e) => {
+        const file = e.target.files[0];
+        if (file) {
+            setNewFile(file);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError(null);
@@ -118,7 +130,16 @@ export const EditMaterialPage = () => {
         setIsSaving(true);
 
         try {
-            await materialsApi.updateMaterial(id, formData);
+            const submitData = new FormData();
+            submitData.append('title', formData.title.trim());
+            submitData.append('description', formData.description);
+            submitData.append('isPublic', formData.is_public);
+            
+            if (newFile) {
+                submitData.append('file', newFile);
+            }
+
+            await materialsApi.updateMaterial(id, submitData);
             navigate(`/materials/${id}`);
         } catch (err) {
             console.error('Update failed:', err);
@@ -181,7 +202,49 @@ export const EditMaterialPage = () => {
                                     <p className="file-size">{formatFileSize(fileInfo?.size)}</p>
                                 </div>
                             </div>
-                            <span className="file-hint">{t.fileHint}</span>
+                        </div>
+                    </div>
+
+                    <div className="form-group">
+                        <label htmlFor="file-upload">{t.newFileLabel}</label>
+                        <div className={`file-drop-area ${newFile ? 'has-file' : ''}`}>
+                            <input
+                                type="file"
+                                id="file-upload"
+                                onChange={handleFileChange}
+                                disabled={isSaving}
+                                className="file-input-hidden"
+                            />
+                            <div className="drop-area-content">
+                                {newFile ? (
+                                    <div className="selected-file-preview">
+                                        <FileText size={32} />
+                                        <div className="file-details">
+                                            <p className="name">{newFile.name}</p>
+                                            <p className="size">{formatFileSize(newFile.size)}</p>
+                                        </div>
+                                        <button 
+                                            type="button" 
+                                            className="change-file-btn"
+                                            onClick={() => document.getElementById('file-upload').click()}
+                                        >
+                                            {t.changeFile}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <>
+                                        <FileText size={32} />
+                                        <p>{t.newFileDesc}</p>
+                                        <button 
+                                            type="button" 
+                                            className="btn-browse"
+                                            onClick={() => document.getElementById('file-upload').click()}
+                                        >
+                                            {t.changeFile}
+                                        </button>
+                                    </>
+                                )}
+                            </div>
                         </div>
                     </div>
 

@@ -25,7 +25,7 @@ router.get('/', authenticate, requireRole('admin'), validatePagination, async (r
 
         // Get users with pagination
         const usersResult = await query(
-            `SELECT id, email, username, is_verified, created_at, updated_at
+            `SELECT id, email, username, is_verified, is_suspended, created_at, updated_at
              FROM users
              ORDER BY created_at DESC
              LIMIT $1 OFFSET $2`,
@@ -80,7 +80,7 @@ router.get('/:id', authenticate, requireOwnershipOrAdmin(), validateUUID(), asyn
         const userId = req.params.id;
 
         const userResult = await query(
-            `SELECT id, email, username, is_verified, created_at, updated_at
+            `SELECT id, email, username, is_verified, is_suspended, created_at, updated_at
              FROM users
              WHERE id = $1`,
             [userId]
@@ -300,6 +300,37 @@ router.get('/students/unassigned', authenticate, requireRole('admin'), async (re
     } catch (error) {
         console.error('Get unassigned students error:', error);
         res.status(500).json({ success: false, message: 'Failed to retrieve unassigned students' });
+    }
+});
+
+/**
+ * PUT /api/users/:id/suspend
+ * Toggle user suspension status (admin only)
+ */
+router.put('/:id/suspend', authenticate, requireRole('admin'), validateUUID(), async (req, res) => {
+    try {
+        const userId = req.params.id;
+
+        if (userId === req.user.userId) {
+            return res.status(400).json({ success: false, message: 'You cannot suspend your own account' });
+        }
+
+        const userResult = await query('SELECT is_suspended FROM users WHERE id = $1', [userId]);
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({ success: false, message: 'User not found' });
+        }
+
+        const newStatus = userResult.rows[0].is_suspended ? 0 : 1;
+        await query('UPDATE users SET is_suspended = $1 WHERE id = $2', [newStatus, userId]);
+
+        res.json({
+            success: true,
+            message: `User ${newStatus ? 'suspended' : 'reactivated'} successfully`,
+            data: { is_suspended: newStatus }
+        });
+    } catch (error) {
+        console.error('Toggle suspension error:', error);
+        res.status(500).json({ success: false, message: 'Failed to toggle suspension status' });
     }
 });
 

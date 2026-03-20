@@ -11,7 +11,7 @@
     background: var(--bg-card);
     border-radius: var(--radius-xl);
     padding: 36px;
-    border: 2.5px solid var(--gray-100);
+    border: 1px solid var(--border-default);
     box-shadow: var(--shadow-md);
     position: relative;
     overflow: hidden;
@@ -66,7 +66,7 @@
 .form-group input[type="text"],
 .form-group textarea {
     padding: 11px 14px;
-    border: 2.5px solid var(--gray-200);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     font-size: 14px;
     font-weight: 600;
@@ -83,7 +83,7 @@
 
 .form-select {
     padding: 11px 14px;
-    border: 2.5px solid var(--gray-200);
+    border: 1px solid var(--border-default);
     border-radius: var(--radius-md);
     font-size: 14px;
     font-weight: 600;
@@ -101,7 +101,7 @@
 
 /* ── Drop zone ───────────────────────────────────────────────────────── */
 .drop-zone {
-    border: 2.5px dashed #c7d2fe;
+    border: 1.5px dashed var(--border-default);
     border-radius: var(--radius-lg);
     padding: 36px;
     text-align: center;
@@ -170,6 +170,82 @@
     margin-top: 6px;
     font-weight: 600;
 }
+
+/* ── New Upload Area Styles (Shared) ─────────────────────────────────── */
+.file-input-hidden {
+    display: none;
+}
+
+.file-drop-area {
+    border: 1.5px dashed var(--border-default);
+    border-radius: var(--radius-lg);
+    padding: 30px;
+    text-align: center;
+    background: var(--bg-surface);
+    transition: all 0.2s;
+}
+
+.file-drop-area.has-file {
+    border-style: solid;
+    border-color: #86efac;
+    background: #f0fdf4;
+}
+
+.dark .file-drop-area.has-file {
+    background: rgba(22, 163, 74, 0.05);
+    border-color: rgba(74, 222, 128, 0.2);
+}
+
+.drop-area-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.selected-file-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.selected-file-preview .file-details {
+    text-align: center;
+}
+
+.selected-file-preview .name {
+    font-weight: 800;
+    color: var(--gray-900);
+    margin: 0;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.selected-file-preview .size {
+    font-size: 11px;
+    color: var(--gray-400);
+    margin: 4px 0 0 0;
+}
+
+.change-file-btn {
+    background: var(--primary);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: var(--radius-pill);
+    font-weight: 800;
+    font-size: 12px;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.change-file-btn:hover {
+    transform: scale(1.05);
+    background: var(--primary-dark);
+}
+
 
 /* ── Selected file ───────────────────────────────────────────────────── */
 .selected-file {
@@ -455,4 +531,102 @@
     border-radius: var(--radius-pill);
     background: linear-gradient(90deg, #6366f1, #a855f7);
     transition: width 0.3s ease;
+}
+
+/* ── Dark Theme Overrides ─────────────────────────────────────────── */
+.dark .upload-container {
+    border-color: var(--gray-700);
+}
+
+.dark .subtitle {
+    color: var(--gray-500);
+}
+
+.dark .form-group input[type="text"],
+.dark .form-group textarea,
+.dark .form-select {
+    background: var(--bg-surface);
+    border-color: var(--gray-700);
+    color: var(--gray-900);
+}
+
+.dark .drop-zone {
+    border-color: var(--gray-700);
+    background: var(--bg-surface);
+}
+
+.dark .drop-zone:hover,
+.dark .drop-zone.active {
+    border-color: var(--primary);
+    background: rgba(99, 102, 241, 0.05);
+}
+
+.dark .drop-text {
+    color: var(--gray-800);
+}
+
+.dark .btn-browse {
+    background: var(--bg-surface);
+    border-color: var(--gray-700);
+    color: var(--primary);
+}
+
+.dark .btn-browse:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.dark .selected-file {
+    background: rgba(22, 163, 74, 0.08);
+    border-color: rgba(74, 222, 128, 0.2);
+}
+
+.dark .file-name {
+    color: var(--gray-900);
+}
+
+.dark .file-list {
+    border-color: var(--gray-700);
+}
+
+.dark .file-list-header {
+    background: var(--bg-surface);
+    border-bottom-color: var(--gray-700);
+}
+
+.dark .file-list-title {
+    color: var(--gray-800);
+}
+
+.dark .file-list-item {
+    border-bottom-color: var(--gray-700);
+}
+
+.dark .file-list-item:hover {
+    background: var(--bg-hover);
+}
+
+.dark .progress-bar-track {
+    background: var(--gray-700);
+    border-color: var(--gray-600);
+}
+
+.dark .btn-cancel {
+    background: var(--bg-surface);
+    border-color: var(--gray-700);
+    color: var(--gray-800);
+}
+
+.dark .checkbox-title {
+    color: var(--gray-900);
+}
+
+.dark .file-drop-area {
+    background: var(--bg-surface);
+    border-color: var(--gray-700);
+}
+
+.dark .file-drop-area.has-file {
+    background: rgba(22, 163, 74, 0.08);
+    border-color: rgba(74, 222, 128, 0.2);
 }
