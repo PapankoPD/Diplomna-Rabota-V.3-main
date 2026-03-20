@@ -17,6 +17,7 @@ async function searchMaterials(queryTerm, options = {}) {
         offset = 0,
         categoryId = null,
         subjectId = null,
+        topicId = null,
         gradeId = null,
         fileType = null,
         isPublic = null,
@@ -66,6 +67,14 @@ async function searchMaterials(queryTerm, options = {}) {
             WHERE ms.material_id = m.id AND ms.subject_id = ?
         )`;
         params.push(subjectId);
+    }
+
+    if (topicId !== null) {
+        sql += ` AND EXISTS (
+            SELECT 1 FROM material_topics mt 
+            WHERE mt.material_id = m.id AND mt.topic_id = ?
+        )`;
+        params.push(topicId);
     }
 
     if (gradeId !== null) {
@@ -124,6 +133,7 @@ async function countSearchResults(queryTerm, options = {}) {
     const {
         categoryId = null,
         subjectId = null,
+        topicId = null,
         gradeId = null,
         fileType = null,
         isPublic = null,
@@ -155,6 +165,14 @@ async function countSearchResults(queryTerm, options = {}) {
             WHERE ms.material_id = m.id AND ms.subject_id = ?
         )`;
         params.push(subjectId);
+    }
+
+    if (topicId !== null) {
+        sql += ` AND EXISTS (
+            SELECT 1 FROM material_topics mt 
+            WHERE mt.material_id = m.id AND mt.topic_id = ?
+        )`;
+        params.push(topicId);
     }
 
     if (gradeId !== null) {
@@ -295,6 +313,7 @@ async function listMaterials(options = {}) {
         offset = 0,
         categoryId = null,
         subjectId = null,
+        topicId = null,
         gradeId = null,
         fileType = null,
         isPublic = null,
@@ -340,6 +359,14 @@ async function listMaterials(options = {}) {
             WHERE ms.material_id = m.id AND ms.subject_id = ?
         )`;
         params.push(subjectId);
+    }
+
+    if (topicId !== null) {
+        sql += ` AND EXISTS (
+            SELECT 1 FROM material_topics mt 
+            WHERE mt.material_id = m.id AND mt.topic_id = ?
+        )`;
+        params.push(topicId);
     }
 
     if (gradeId !== null) {
@@ -398,6 +425,7 @@ async function countMaterials(options = {}) {
     const {
         categoryId = null,
         subjectId = null,
+        topicId = null,
         gradeId = null,
         fileType = null,
         isPublic = null,
@@ -423,6 +451,14 @@ async function countMaterials(options = {}) {
             WHERE ms.material_id = m.id AND ms.subject_id = ?
         )`;
         params.push(subjectId);
+    }
+
+    if (topicId !== null) {
+        sql += ` AND EXISTS (
+            SELECT 1 FROM material_topics mt 
+            WHERE mt.material_id = m.id AND mt.topic_id = ?
+        )`;
+        params.push(topicId);
     }
 
     if (gradeId !== null) {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, FileText, Upload, Users, Shield, User, ChevronLeft, ChevronRight, School, Inbox, Archive, ChevronDown, BookOpen } from 'lucide-react';
+import { Home, FileText, Upload, Users, Shield, User, ChevronLeft, ChevronRight, School, Inbox, Archive, ChevronDown, BookOpen, Library } from 'lucide-react';
 
 import { useAuth } from '../../hooks/useAuth';
 import { useLanguage } from '../../contexts/LanguageContext';
@@ -14,8 +14,10 @@ const translations = {
         users: "Users",
         roles: "Roles",
         subjects: "Subjects",
+        topics: "Themes/Topics",
         teacherCodes: "Role Requests",
         manageClasses: "Manage Classes",
+        adminPanel: "Admin Panel",
         platformName: "Learning Platform",
         upload: "Upload",
         uploadMaterial: "Upload Material",
@@ -28,8 +30,10 @@ const translations = {
         users: "Потребители",
         roles: "Роли",
         subjects: "Предмети",
+        topics: "Теми/Уроци",
         teacherCodes: "Заявки за роли",
         manageClasses: "Управление на класове",
+        adminPanel: "Админ Панел",
         platformName: "Учебна платформа",
         upload: "Качване",
         uploadMaterial: "Качване на материал",
@@ -52,11 +56,7 @@ export const Sidebar = ({ isOpen, onToggle }) => {
         { to: '/dashboard', icon: Home, label: t.dashboard, show: true },
         { to: '/materials', icon: FileText, label: t.materials, show: true },
         { to: '/profile', icon: User, label: t.profile, show: true },
-        { to: '/admin/users', icon: Users, label: t.users, show: hasRole('admin') },
-        { to: '/admin/roles', icon: Shield, label: t.roles, show: hasRole('admin') },
-        { to: '/admin/subjects', icon: BookOpen, label: t.subjects, show: hasRole('admin') },
-        { to: '/admin/role-requests', icon: Inbox, label: t.teacherCodes, show: hasRole('admin') },
-        { to: '/admin/classes', icon: School, label: t.manageClasses, show: hasRole('admin') },
+        { to: '/admin', icon: Shield, label: t.adminPanel, show: hasRole('admin') },
     ];
 
     const showUploadMenu = hasPermission('materials:create');

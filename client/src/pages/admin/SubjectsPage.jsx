@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { taxonomyApi } from '../../api/taxonomyApi';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useConfirm } from '../../contexts/ConfirmContext';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Plus, Trash2, BookOpen, RefreshCw } from 'lucide-react';
+import { translateSubjectName, translateSubjectDescription, translateSubjectCode } from '../../utils/formatters';
 import './SubjectsPage.css';
 
 const translations = {
@@ -62,6 +64,7 @@ const translations = {
 
 export const SubjectsPage = () => {
     const { language } = useLanguage();
+    const confirm = useConfirm();
     const t = translations[language];
 
     const [subjects, setSubjects] = useState([]);
@@ -113,7 +116,11 @@ export const SubjectsPage = () => {
     };
 
     const handleDelete = async (subject) => {
-        if (!window.confirm(t.deleteConfirm(subject.name))) return;
+        const confirmed = await confirm({
+            message: t.deleteConfirm(subject.name),
+            isDanger: true
+        });
+        if (!confirmed) return;
         try {
             await taxonomyApi.deleteSubject(subject.id);
             await load();
@@ -219,9 +226,9 @@ export const SubjectsPage = () => {
                         <tbody>
                             {subjects.map(s => (
                                 <tr key={s.id}>
-                                    <td><strong>{s.name}</strong></td>
-                                    <td><span className="sp-code-badge">{s.code}</span></td>
-                                    <td className="sp-muted">{s.description || '—'}</td>
+                                    <td><strong>{translateSubjectName(s.name, language)}</strong></td>
+                                    <td><span className="sp-code-badge">{translateSubjectCode(s.code, language)}</span></td>
+                                    <td className="sp-muted">{translateSubjectDescription(s.description, language) || '—'}</td>
                                     <td className="sp-muted">{s.display_order ?? 0}</td>
                                     <td>
                                         <button

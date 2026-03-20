@@ -3,8 +3,9 @@ import { usersApi } from '../../api/usersApi';
 import { rolesApi } from '../../api/rolesApi';
 import { useAuth } from '../../hooks/useAuth';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useConfirm } from '../../contexts/ConfirmContext';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
-import { UserCog, Trash2, Check, X } from 'lucide-react';
+import { UserCog, Trash2, Check } from 'lucide-react';
 import './UsersPage.css';
 
 const translations = {
@@ -56,6 +57,7 @@ export const UsersPage = () => {
     const { hasPermission } = useAuth();
     const canDeleteUsers = hasPermission('users:delete');
     const { language } = useLanguage();
+    const confirm = useConfirm();
     const t = translations[language];
     const translateRole = (r) => t.roleNames?.[r] || r;
 
@@ -123,7 +125,11 @@ export const UsersPage = () => {
     };
 
     const handleDeleteUser = async (user) => {
-        if (!window.confirm(t.confirmDelete(user.username))) {
+        const confirmed = await confirm({
+            message: t.confirmDelete(user.username),
+            isDanger: true
+        });
+        if (!confirmed) {
             return;
         }
 
@@ -199,9 +205,6 @@ export const UsersPage = () => {
                     <div className="modal">
                         <div className="modal-header">
                             <h3>{t.editRolesFor(editingUser.username)}</h3>
-                            <button className="btn-close" onClick={() => setEditingUser(null)}>
-                                <X size={20} />
-                            </button>
                         </div>
                         <div className="modal-content">
                             <div className="roles-selection">

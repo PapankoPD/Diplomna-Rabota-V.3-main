@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { groupsApi } from '../api/groupsApi';
 import { useAuth } from '../hooks/useAuth';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useConfirm } from '../contexts/ConfirmContext';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { Users, Plus, Globe, Lock, UserPlus, LogOut, X, ChevronRight, ArrowLeft, Trash2 } from 'lucide-react';
 import './GroupsPage.css';
@@ -82,6 +83,7 @@ const translations = {
 export const GroupsPage = () => {
     const { user } = useAuth();
     const { language } = useLanguage();
+    const confirm = useConfirm();
     const t = translations[language];
 
     const [activeTab, setActiveTab] = useState('my');
@@ -151,7 +153,11 @@ export const GroupsPage = () => {
     };
 
     const handleRemoveMember = async (userId) => {
-        if (!window.confirm(t.confirmRemove)) return;
+        const confirmed = await confirm({
+            message: t.confirmRemove,
+            isDanger: true
+        });
+        if (!confirmed) return;
         try {
             await groupsApi.removeMember(selectedGroup.id, userId);
             handleViewGroup(selectedGroup.id);
@@ -291,9 +297,6 @@ export const GroupsPage = () => {
                     <div className="modal">
                         <div className="modal-header">
                             <h3>{t.modalTitle}</h3>
-                            <button className="btn-close" onClick={() => setShowCreateModal(false)}>
-                                <X size={20} />
-                            </button>
                         </div>
                         <form onSubmit={handleCreateGroup}>
                             <div className="modal-content">

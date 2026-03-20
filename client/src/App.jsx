@@ -18,8 +18,11 @@ import { UsersPage } from './pages/admin/UsersPage';
 import { RolesPage } from './pages/admin/RolesPage';
 import { RoleRequestsPage } from './pages/admin/RoleRequestsPage';
 import { SubjectsPage } from './pages/admin/SubjectsPage';
+import { TopicsPage } from './pages/admin/TopicsPage';
 import { AdminClassesPage } from './pages/admin/AdminClassesPage';
+import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 
+import { ConfirmProvider } from './contexts/ConfirmContext';
 import { LanguageProvider } from './contexts/LanguageContext';
 
 function App() {
@@ -27,44 +30,50 @@ function App() {
     <LanguageProvider>
       <ThemeProvider>
         <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* Public routes */}
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+          <ConfirmProvider>
+            <BrowserRouter>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
 
-            {/* Protected routes */}
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Navigate to="/dashboard" replace />} />
-              <Route path="dashboard" element={<DashboardPage />} />
-              <Route path="materials" element={<MaterialsPage />} />
-              <Route path="materials/:id" element={<MaterialDetailPage />} />
-              <Route path="materials/:id/edit" element={<EditMaterialPage />} />
-              <Route path="upload" element={<UploadMaterialPage />} />
-              <Route path="archived" element={<ArchivedMaterialsPage />} />
+                {/* Protected routes */}
+                <Route
+                  path="/"
+                  element={
+                    <ProtectedRoute>
+                      <DashboardLayout />
+                    </ProtectedRoute>
+                  }
+                >
+                  <Route index element={<Navigate to="/dashboard" replace />} />
+                  <Route path="dashboard" element={<DashboardPage />} />
+                  <Route path="materials" element={<MaterialsPage />} />
+                  <Route path="materials/:id" element={<MaterialDetailPage />} />
+                  <Route path="materials/:id/edit" element={<EditMaterialPage />} />
+                  <Route path="upload" element={<UploadMaterialPage />} />
+                  <Route path="archived" element={<ArchivedMaterialsPage />} />
 
-              <Route path="profile" element={<ProfilePage />} />
+                  <Route path="profile" element={<ProfilePage />} />
 
-              {/* Admin routes */}
-              <Route path="admin/users" element={<UsersPage />} />
-              <Route path="admin/roles" element={<RolesPage />} />
-              <Route path="admin/role-requests" element={<RoleRequestsPage />} />
-              <Route path="admin/subjects" element={<SubjectsPage />} />
-              <Route path="admin/classes" element={<AdminClassesPage />} />
-            </Route>
+                  {/* Admin routes */}
+                  <Route path="admin" element={<AdminDashboardPage />}>
+                    <Route index element={<Navigate to="users" replace />} />
+                    <Route path="users" element={<UsersPage />} />
+                    <Route path="roles" element={<RolesPage />} />
+                    <Route path="role-requests" element={<RoleRequestsPage />} />
+                    <Route path="subjects" element={<SubjectsPage />} />
+                    <Route path="topics" element={<TopicsPage />} />
+                    <Route path="classes" element={<AdminClassesPage />} />
+                  </Route>
+                </Route>
 
-            {/* Catch all */}
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+                {/* Catch all */}
+                <Route path="*" element={<Navigate to="/dashboard" replace />} />
+              </Routes>
+            </BrowserRouter>
+          </ConfirmProvider>
+        </AuthProvider>
     </ThemeProvider>
     </LanguageProvider>
   );

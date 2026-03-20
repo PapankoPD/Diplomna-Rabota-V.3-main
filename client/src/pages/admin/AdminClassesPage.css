@@ -13,7 +13,7 @@
 
 .admin-header h1 {
     font-size: 24px;
-    color: var(--gray-900);
+    color: var(--text-primary);
     margin: 0;
 }
 
@@ -34,7 +34,7 @@
     display: block;
     margin-bottom: 8px;
     font-weight: 500;
-    color: var(--gray-700);
+    color: var(--text-secondary);
 }
 
 .form-select {
@@ -105,15 +105,15 @@
     justify-content: space-between;
     align-items: center;
     padding: 16px;
-    background: var(--gray-50);
-    border: 1px solid var(--gray-200);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
     border-radius: 12px;
     transition: all 0.2s;
 }
 
 .class-item:hover {
-    border-color: var(--gray-300);
-    background: var(--bg-card);
+    border-color: var(--border-hover);
+    background: var(--bg-hover);
 }
 
 .class-info {
@@ -137,7 +137,7 @@
 .class-name {
     margin: 0;
     font-weight: 500;
-    color: var(--gray-900);
+    color: var(--text-primary);
     font-size: 16px;
 }
 
@@ -169,10 +169,10 @@
 .no-data {
     text-align: center;
     padding: 40px;
-    color: var(--gray-500);
-    background: var(--gray-50);
+    color: var(--text-secondary);
+    background: var(--bg-secondary);
     border-radius: 12px;
-    border: 1px dashed var(--gray-300);
+    border: 1px dashed var(--border-color);
 }
 
 .error-alert {
@@ -185,4 +185,166 @@
     color: #991b1b;
     border-radius: 4px;
     margin-bottom: 24px;
+}
+
+/* Manage Students Panel Styles */
+.btn-manage-students {
+    padding: 8px 12px;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+}
+
+.btn-manage-students:hover {
+    background: var(--bg-hover);
+    border-color: var(--border-hover);
+}
+
+.manager-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.manager-header h3 {
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.manager-header p {
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.manager-header button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    color: var(--text-secondary);
+    transition: color 0.2s;
+}
+
+.manager-header button:hover {
+    color: var(--text-primary);
+}
+
+.manager-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+}
+
+.current-students, .add-students {
+    background: var(--bg-secondary);
+    padding: 16px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.current-students h4, .add-students h4 {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    color: var(--text-primary);
+}
+
+.student-list-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    overflow-y: auto;
+}
+
+.current-students .student-list-container {
+    max-height: 400px;
+}
+
+.add-students .student-list-container {
+    max-height: 344px;
+}
+
+.student-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.student-list-item:hover {
+    border-color: var(--border-hover);
+}
+
+.student-list-item .student-username {
+    font-weight: 500;
+    font-size: 14px;
+    color: var(--text-primary);
+}
+
+.student-list-item .student-email {
+    color: var(--text-secondary);
+    font-size: 12px;
+}
+
+.btn-unenroll-student {
+    background: var(--bg-danger);
+    border: 1px solid var(--border-danger);
+    color: var(--text-danger);
+    padding: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-unenroll-student:hover {
+    background: #fca5a5;
+    color: #991b1b;
+}
+
+.btn-enroll-student {
+    background: var(--primary-color);
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+.btn-enroll-student:hover {
+    background: var(--primary-hover);
+}
+
+.search-students-input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    margin-bottom: 16px;
+    transition: all 0.2s;
+}
+
+.search-students-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+.empty-student-message {
+    color: var(--text-secondary);
+    font-size: 14px;
 }

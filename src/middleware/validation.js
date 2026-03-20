@@ -410,6 +410,7 @@ const validateTopicCreation = [
         .isLength({ min: 2, max: 150 })
         .withMessage('Topic name must be between 2 and 150 characters'),
     body('code')
+        .optional()
         .trim()
         .isLength({ min: 2, max: 30 })
         .withMessage('Topic code must be between 2 and 30 characters')

@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { taxonomyApi } from '../../api/taxonomyApi';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useConfirm } from '../../contexts/ConfirmContext';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Plus, X, GraduationCap, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { translateGradeName } from '../../utils/formatters';
 import './TaxonomyPage.css';
 
 const translations = {
@@ -98,6 +100,7 @@ const translations = {
 export const TaxonomyPage = () => {
     const navigate = useNavigate();
     const { language } = useLanguage();
+    const confirm = useConfirm();
     const t = translations[language];
 
     const [grades, setGrades] = useState([]);
@@ -178,7 +181,11 @@ export const TaxonomyPage = () => {
 
     /* ── Class delete ── */
     const handleDeleteClass = async (gradeId, cls) => {
-        if (!window.confirm(t.deleteClassConfirm(cls.name))) return;
+        const confirmed = await confirm({
+            message: t.deleteClassConfirm(cls.name),
+            isDanger: true
+        });
+        if (!confirmed) return;
         try {
             await taxonomyApi.deleteGradeClass(gradeId, cls.id);
             await refreshClasses(gradeId);
@@ -206,7 +213,11 @@ export const TaxonomyPage = () => {
 
     /* ── Grade delete ── */
     const handleDeleteGrade = async (grade) => {
-        if (!window.confirm(t.deleteGradeConfirm(grade.name))) return;
+        const confirmed = await confirm({
+            message: t.deleteGradeConfirm(grade.name),
+            isDanger: true
+        });
+        if (!confirmed) return;
         try {
             await taxonomyApi.deleteGrade(grade.id);
             setError(null);
@@ -265,7 +276,7 @@ export const TaxonomyPage = () => {
                                                 : <ChevronRight size={16} />}
                                         </span>
                                     </td>
-                                    <td className="td-name">{g.name}</td>
+                                    <td className="td-name">{translateGradeName(g.name, language)}</td>
                                     <td><span className="code-badge">{g.code}</span></td>
                                     <td>
                                         <span className={`category-badge cat-${g.category?.toLowerCase()}`}>
@@ -358,9 +369,6 @@ export const TaxonomyPage = () => {
                     <div className="modal">
                         <div className="modal-header">
                             <h3>{t.createGradeTitle}</h3>
-                            <button className="btn-close" onClick={() => setShowGradeModal(false)}>
-                                <X size={20} />
-                            </button>
                         </div>
                         <form onSubmit={handleCreateGrade}>
                             <div className="modal-content">

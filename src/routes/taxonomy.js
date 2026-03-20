@@ -232,11 +232,13 @@ router.post('/topics', authenticate, requirePermission('materials:admin'), valid
     try {
         const { subjectId, name, code, description, parentTopicId, difficultyLevel, displayOrder } = req.body;
 
+        const generatedCode = code ? code.toUpperCase() : `T-${Date.now().toString().slice(-6)}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
         const result = await query(
             `INSERT INTO topics (subject_id, name, code, description, parent_topic_id, difficulty_level, display_order)
              VALUES ($1, $2, $3, $4, $5, $6, $7)
              RETURNING id, subject_id, name, code, description, parent_topic_id, difficulty_level, display_order, created_at`,
-            [subjectId, name, code.toUpperCase(), description || null, parentTopicId || null, difficultyLevel || null, displayOrder || 0]
+            [subjectId, name, generatedCode, description || null, parentTopicId || null, difficultyLevel || null, displayOrder || 0]
         );
 
         res.status(201).json({

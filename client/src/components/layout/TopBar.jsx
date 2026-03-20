@@ -48,8 +48,24 @@ export const TopBar = () => {
         || location.pathname.startsWith('/materials/');
 
     const t = {
-        en: { searchMaterials: "Search materials..." },
-        bg: { searchMaterials: "Търсене на материали..." }
+        en: { 
+            searchMaterials: "Search materials...",
+            switchToDark: "Switch to dark mode",
+            switchToLight: "Switch to light mode",
+            switchToBg: "Switch to Bulgarian",
+            switchToEn: "Switch to English",
+            logout: "Logout",
+            roleNames: { admin: "admin", teacher: "teacher", student: "student" }
+        },
+        bg: { 
+            searchMaterials: "Търсене на материали...",
+            switchToDark: "Превключи към тъмен режим",
+            switchToLight: "Превключи към светъл режим",
+            switchToBg: "Превключи на Български",
+            switchToEn: "Switch to English",
+            logout: "Изход",
+            roleNames: { admin: "админ", teacher: "учител", student: "ученик" }
+        }
     }[language];
 
     return (
@@ -71,7 +87,7 @@ export const TopBar = () => {
                 <button
                     className="icon-btn lang-toggle-btn"
                     onClick={toggleLanguage}
-                    title={language === 'en' ? 'Превключи на Български' : 'Switch to English'}
+                    title={language === 'en' ? t.switchToBg : t.switchToEn}
                     style={{ fontSize: '14px', fontWeight: 'bold', fontFamily: 'inherit' }}
                 >
                     {language === 'en' ? 'BG' : 'EN'}
@@ -79,7 +95,7 @@ export const TopBar = () => {
                 <button
                     className="icon-btn theme-toggle-btn"
                     onClick={toggleTheme}
-                    title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+                    title={theme === 'light' ? t.switchToDark : t.switchToLight}
                 >
                     {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
                 </button>
@@ -102,12 +118,12 @@ export const TopBar = () => {
                             </div>
                             <div className="user-roles">
                                 {user?.roles?.map(role => (
-                                    <span key={role.id} className="role-badge">{role.name}</span>
+                                    <span key={role.id} className="role-badge">{t.roleNames[role.name] || role.name}</span>
                                 ))}
                             </div>
                             <button className="logout-btn" onClick={handleLogout}>
                                 <LogOut size={16} />
-                                Logout
+                                {t.logout}
                             </button>
                         </div>
                     )}

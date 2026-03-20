@@ -7,7 +7,7 @@ import { StarRating } from '../components/ratings/StarRating';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Search, FileText, Download, Filter, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { formatFileSize } from '../utils/formatters';
+import { formatFileSize, translateGradeName } from '../utils/formatters';
 import './SearchPage.css';
 
 const translations = {
@@ -273,7 +273,7 @@ export const SearchPage = () => {
                         <select value={gradeId} onChange={(e) => setGradeId(e.target.value)}>
                             <option value="">{t.allGrades}</option>
                             {grades.map(g => (
-                                <option key={g.id} value={g.id}>{g.name}</option>
+                                <option key={g.id} value={g.id}>{translateGradeName(g.name, language)}</option>
                             ))}
                         </select>
                     </div>

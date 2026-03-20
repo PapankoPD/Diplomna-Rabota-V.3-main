@@ -9,7 +9,7 @@ import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Search, Filter, Download, X, ChevronDown, GraduationCap, ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { formatFileSize, formatRelativeTime } from '../utils/formatters';
+import { formatFileSize, formatRelativeTime, translateGradeName, translateSubjectName } from '../utils/formatters';
 import './MaterialsPage.css';
 
 const FILE_TYPES = {
@@ -47,13 +47,15 @@ const translations = {
         lblFileType: "File Type",
         lblSubject: "Subject",
         allSubjects: "All Subjects",
+        lblTopic: "Theme/Topic",
+        allTopics: "All Themes",
         lblGrade: "Grade",
         allGrades: "All Grades",
         clearAll: "Clear All",
         noMaterials: "No materials found",
         clearAndTryAgain: "Clear filters and try again",
         by: "By",
-        addSubject: "Add subject",
+        addSubject: "Add theme/topic",
         previous: "Previous",
         next: "Next"
     },
@@ -72,13 +74,15 @@ const translations = {
         lblFileType: "Тип файл",
         lblSubject: "Предмет",
         allSubjects: "Всички предмети",
+        lblTopic: "Тема/Урок",
+        allTopics: "Всички теми",
         lblGrade: "Клас",
         allGrades: "Всички класове",
         clearAll: "Изчисти всички",
         noMaterials: "Не са намерени материали",
         clearAndTryAgain: "Изчистете филтрите и опитайте отново",
         by: "От",
-        addSubject: "Добави предмет",
+        addSubject: "Добави тема/урок",
         previous: "Предишна",
         next: "Следваща"
     }
@@ -107,6 +111,7 @@ export const MaterialsPage = () => {
     // Filter state
     const [fileType, setFileType] = useState('');
     const [subjectId, setSubjectId] = useState('');
+    const [topicId, setTopicId] = useState('');
     const [gradeId, setGradeId] = useState(() => searchParams.get('gradeId') || '');
     const [sortBy, setSortBy] = useState('created_at');
     const [sortOrder, setSortOrder] = useState('desc');
@@ -114,6 +119,7 @@ export const MaterialsPage = () => {
     // Filter options loaded from API
     const [subjects, setSubjects] = useState([]);
     const [grades, setGrades] = useState([]);
+    const [topics, setTopics] = useState([]);
 
     // Load filter options on mount
     useEffect(() => {
@@ -139,7 +145,29 @@ export const MaterialsPage = () => {
 
     useEffect(() => {
         loadMaterials();
-    }, [page, debouncedSearch, fileType, subjectId, gradeId, sortBy, sortOrder]);
+    }, [page, debouncedSearch, fileType, subjectId, topicId, gradeId, sortBy, sortOrder]);
+
+    // Load topics when subject changes
+    useEffect(() => {
+        const loadTopics = async () => {
+            if (!subjectId) {
+                setTopics([]);
+                setTopicId('');
+                return;
+            }
+            try {
+                // Determine subject code from ID
+                const subject = subjects.find(s => s.id === parseInt(subjectId));
+                if (subject) {
+                    const res = await taxonomyApi.getTopics(subject.code);
+                    setTopics(res.data?.topics || []);
+                }
+            } catch (err) {
+                console.error('Failed to load topics:', err);
+            }
+        };
+        loadTopics();
+    }, [subjectId, subjects]);
 
     const loadMaterials = async () => {
         setIsLoading(true);
@@ -154,11 +182,12 @@ export const MaterialsPage = () => {
             if (debouncedSearch) params.q = debouncedSearch;
             if (fileType) params.fileType = fileType;
             if (subjectId) params.subjectId = subjectId;
+            if (topicId) params.topicId = topicId;
             if (gradeId) params.gradeId = gradeId;
 
             // Use search endpoint ONLY if there's a text query or taxonomy filters
             let response;
-            if (debouncedSearch || fileType || subjectId || gradeId) {
+            if (debouncedSearch || fileType || subjectId || topicId || gradeId) {
                 response = await searchApi.searchMaterials(params);
             } else {
                 response = await materialsApi.getMaterials(params);
@@ -188,6 +217,7 @@ export const MaterialsPage = () => {
     const clearFilters = () => {
         setFileType('');
         setSubjectId('');
+        setTopicId('');
         setGradeId('');
         setSortBy('created_at');
         setSortOrder('desc');
@@ -238,7 +268,7 @@ export const MaterialsPage = () => {
         return pages;
     };
 
-    const hasActiveFilters = fileType || subjectId || gradeId || sortBy !== 'created_at' || search || activeClassName;
+    const hasActiveFilters = fileType || subjectId || topicId || gradeId || sortBy !== 'created_at' || search || activeClassName;
 
     if (isLoading && materials.length === 0) {
         return <LoadingSpinner fullScreen />;
@@ -319,28 +349,28 @@ export const MaterialsPage = () => {
                     </div>
                     <div className="filter-group">
                         <label>{t.lblSubject}</label>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <select
-                                value={subjectId}
-                                onChange={(e) => { setSubjectId(e.target.value); setPage(1); }}
-                                style={{ flex: 1 }}
-                            >
-                                <option value="">{t.allSubjects}</option>
-                                {subjects.map(s => (
-                                    <option key={s.id} value={s.id}>{s.name}</option>
-                                ))}
-                            </select>
-                            {isAdmin && (
-                                <button
-                                    type="button"
-                                    className="add-subject-btn"
-                                    title={t.addSubject}
-                                    onClick={() => navigate('/admin/subjects')}
-                                >
-                                    <Plus size={15} />
-                                </button>
-                            )}
-                        </div>
+                        <select
+                            value={subjectId}
+                            onChange={(e) => { setSubjectId(e.target.value); setPage(1); }}
+                        >
+                            <option value="">{t.allSubjects}</option>
+                            {subjects.map(s => (
+                                <option key={s.id} value={s.id}>{translateSubjectName(s.name, language)}</option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="filter-group">
+                        <label>{t.lblTopic}</label>
+                        <select
+                            value={topicId}
+                            onChange={(e) => { setTopicId(e.target.value); setPage(1); }}
+                            disabled={!subjectId}
+                        >
+                            <option value="">{t.allTopics}</option>
+                            {topics.map(topic => (
+                                <option key={topic.id} value={topic.id}>{topic.name}</option>
+                            ))}
+                        </select>
                     </div>
                     <div className="filter-group">
                         <label>{t.lblGrade}</label>
@@ -350,16 +380,29 @@ export const MaterialsPage = () => {
                         >
                             <option value="">{t.allGrades}</option>
                             {grades.map(g => (
-                                <option key={g.id} value={g.id}>{g.name}</option>
+                                <option key={g.id} value={g.id}>{translateGradeName(g.name, language)}</option>
                             ))}
                         </select>
                     </div>
-                    {hasActiveFilters && (
-                        <button className="clear-filters-btn" onClick={clearFilters}>
-                            <X size={14} />
-                            {t.clearAll}
-                        </button>
-                    )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: 'auto', alignSelf: 'flex-end', height: '38px' }}>
+                        {hasActiveFilters && (
+                            <button className="clear-filters-btn" style={{ height: '34px', alignSelf: 'center' }} onClick={clearFilters}>
+                                <X size={14} />
+                                {t.clearAll}
+                            </button>
+                        )}
+                        {isAdmin && (
+                            <button
+                                type="button"
+                                className="add-subject-btn"
+                                title={t.addSubject}
+                                onClick={() => navigate('/admin/topics')}
+                                style={{ height: '34px' }}
+                            >
+                                <Plus size={15} />
+                            </button>
+                        )}
+                    </div>
                 </div>
             )}
 

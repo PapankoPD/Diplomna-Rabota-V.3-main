@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { taxonomyApi } from '../../api/taxonomyApi';
 import { usersApi } from '../../api/usersApi';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useConfirm } from '../../contexts/ConfirmContext';
 import { School, Plus, Trash2, AlertCircle, Users, X, UserMinus } from 'lucide-react';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
+import { translateGradeName } from '../../utils/formatters';
 import './AdminClassesPage.css';
 
 // Letters available for classes
@@ -70,6 +72,7 @@ const translations = {
 
 export const AdminClassesPage = () => {
     const { language } = useLanguage();
+    const confirm = useConfirm();
     const t = translations[language];
 
     const [grades, setGrades] = useState([]);
@@ -178,7 +181,11 @@ export const AdminClassesPage = () => {
     };
 
     const handleDeleteClass = async (classId) => {
-        if (!window.confirm(t.confirmDeleteClass)) {
+        const confirmed = await confirm({
+            message: t.confirmDeleteClass,
+            isDanger: true
+        });
+        if (!confirmed) {
             return;
         }
 
@@ -299,7 +306,7 @@ export const AdminClassesPage = () => {
                     >
                         {grades.map(grade => (
                             <option key={grade.id} value={grade.id}>
-                                {grade.name}
+                                {translateGradeName(grade.name, language)}
                             </option>
                         ))}
                     </select>
@@ -356,7 +363,6 @@ export const AdminClassesPage = () => {
                                             <button
                                                 className="btn-manage-students"
                                                 onClick={() => openManageStudents(cls)}
-                                                style={{ padding: '8px 12px', background: 'var(--gray-100)', borderRadius: '6px', border: '1px solid var(--gray-300)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
                                             >
                                                 <Users size={16} /> {t.manageStudents}
                                             </button>
@@ -378,37 +384,34 @@ export const AdminClassesPage = () => {
                 {/* Manage Students Panel */}
                 {managingClass && (
                     <div className="students-manager">
-                        <div className="manager-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                        <div className="manager-header">
                             <div>
-                                <h3 style={{ margin: 0 }}>{t.managingStudents(managingClass.name)}</h3>
-                                <p style={{ margin: '4px 0 0', color: 'var(--gray-500)', fontSize: '14px' }}>{t.managingStudentsDesc}</p>
+                                <h3>{t.managingStudents(managingClass.name)}</h3>
+                                <p>{t.managingStudentsDesc}</p>
                             </div>
-                            <button onClick={closeManageStudents} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '8px', color: 'var(--gray-500)' }}>
-                                <X size={24} />
-                            </button>
                         </div>
 
-                        <div className="manager-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                        <div className="manager-grid">
                             {/* Current Students List */}
-                            <div className="current-students" style={{ background: 'var(--gray-50)', padding: '16px', borderRadius: '8px', border: '1px solid var(--gray-200)' }}>
-                                <h4 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>{t.enrolled(classStudents.length)}</h4>
+                            <div className="current-students">
+                                <h4>{t.enrolled(classStudents.length)}</h4>
                                 {isLoadingStudents ? (
                                     <LoadingSpinner size="small" />
                                 ) : classStudents.length === 0 ? (
-                                    <p style={{ color: 'var(--gray-500)', fontSize: '14px' }}>{t.noStudentsEnrolled}</p>
+                                    <p className="empty-student-message">{t.noStudentsEnrolled}</p>
                                 ) : (
-                                    <div className="student-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '400px', overflowY: 'auto' }}>
+                                    <div className="student-list-container">
                                         {classStudents.map(student => (
-                                            <div key={student.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'white', border: '1px solid var(--gray-200)', borderRadius: '6px' }}>
+                                            <div key={student.id} className="student-list-item">
                                                 <div>
-                                                    <div style={{ fontWeight: 500, fontSize: '14px' }}>{student.username}</div>
-                                                    <div style={{ color: 'var(--gray-500)', fontSize: '12px' }}>{student.email}</div>
+                                                    <div className="student-username">{student.username}</div>
+                                                    <div className="student-email">{student.email}</div>
                                                 </div>
                                                 <button
                                                     onClick={() => handleUnenrollStudent(student.id)}
                                                     disabled={isActionLoading}
                                                     title={t.removeStudentTitle}
-                                                    style={{ background: '#fef2f2', border: '1px solid #fca5a5', color: '#dc2626', padding: '6px', borderRadius: '4px', cursor: 'pointer' }}
+                                                    className="btn-unenroll-student"
                                                 >
                                                     <UserMinus size={16} />
                                                 </button>
@@ -419,31 +422,31 @@ export const AdminClassesPage = () => {
                             </div>
 
                             {/* Add Students Section */}
-                            <div className="add-students" style={{ background: 'var(--gray-50)', padding: '16px', borderRadius: '8px', border: '1px solid var(--gray-200)' }}>
-                                <h4 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>{t.addStudents}</h4>
+                            <div className="add-students">
+                                <h4>{t.addStudents}</h4>
                                 <input
                                     type="text"
                                     placeholder={t.searchPlaceholder}
                                     value={studentSearch}
                                     onChange={handleSearchChange}
-                                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid var(--gray-300)', marginBottom: '16px' }}
+                                    className="search-students-input"
                                 />
                                 
-                                <div className="student-list" style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '344px', overflowY: 'auto' }}>
+                                <div className="student-list-container">
                                     {unassignedStudents.length === 0 ? (
-                                        <p style={{ color: 'var(--gray-500)', fontSize: '14px' }}>{t.noUnassigned}</p>
+                                        <p className="empty-student-message">{t.noUnassigned}</p>
                                     ) : (
                                         unassignedStudents.map(student => (
-                                            <div key={student.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'white', border: '1px solid var(--gray-200)', borderRadius: '6px' }}>
+                                            <div key={student.id} className="student-list-item">
                                                 <div>
-                                                    <div style={{ fontWeight: 500, fontSize: '14px' }}>{student.username}</div>
-                                                    <div style={{ color: 'var(--gray-500)', fontSize: '12px' }}>{student.email}</div>
+                                                    <div className="student-username">{student.username}</div>
+                                                    <div className="student-email">{student.email}</div>
                                                 </div>
                                                 <button
                                                     onClick={() => handleEnrollStudent(student.id)}
                                                     disabled={isActionLoading}
                                                     title={t.enrollStudentTitle}
-                                                    style={{ background: 'var(--primary-color)', border: 'none', color: 'white', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontSize: '13px' }}
+                                                    className="btn-enroll-student"
                                                 >
                                                     {t.addBtn}
                                                 </button>

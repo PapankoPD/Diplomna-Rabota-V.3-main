@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { materialsApi } from '../api/materialsApi';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useConfirm } from '../contexts/ConfirmContext';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { Archive, RotateCcw, Trash2, FileText, Calendar, User } from 'lucide-react';
 import { formatFileSize, formatDateTime } from '../utils/formatters';
@@ -51,6 +52,7 @@ const translations = {
 export const ArchivedMaterialsPage = () => {
     const navigate = useNavigate();
     const { language } = useLanguage();
+    const confirm = useConfirm();
     const t = translations[language];
 
     const [materials, setMaterials] = useState([]);
@@ -89,7 +91,11 @@ export const ArchivedMaterialsPage = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm(t.confirmDelete)) return;
+        const confirmed = await confirm({
+            message: t.confirmDelete,
+            isDanger: true
+        });
+        if (!confirmed) return;
         setActionLoadingId(id);
         try {
             await materialsApi.deleteMaterial(id);

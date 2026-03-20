@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import Object from 'react'; // For formatting if needed
 import apiClient from '../../api/apiClient';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useConfirm } from '../../contexts/ConfirmContext';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
 import { Key, Plus, Trash2, Copy, Check, RefreshCw } from 'lucide-react';
 import './TeacherCodesPage.css';
@@ -59,6 +59,7 @@ const translations = {
 
 export const TeacherCodesPage = () => {
     const { language } = useLanguage();
+    const confirm = useConfirm();
     const t = translations[language];
 
     const [codes, setCodes] = useState([]);
@@ -94,7 +95,11 @@ export const TeacherCodesPage = () => {
     };
 
     const deleteCode = async (id) => {
-        if (!window.confirm(t.confirmDelete)) return;
+        const confirmed = await confirm({
+            message: t.confirmDelete,
+            isDanger: true
+        });
+        if (!confirmed) return;
         try {
             await apiClient.delete(`/admin/teacher-codes/${id}`);
             setCodes(prev => prev.filter(c => c.id !== id));

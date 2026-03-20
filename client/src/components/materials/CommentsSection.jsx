@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { commentsApi } from '../../api/commentsApi';
 import { useAuth } from '../../hooks/useAuth';
+import { useLanguage } from '../../contexts/LanguageContext';
+import { useConfirm } from '../../contexts/ConfirmContext';
 import { User, Send, Trash2, Edit2, CornerDownRight } from 'lucide-react';
 import { formatDateTime } from '../../utils/formatters';
 import './CommentsSection.css';
@@ -135,6 +137,13 @@ const CommentItem = ({
 
 export const CommentsSection = ({ materialId }) => {
     const { user } = useAuth();
+    const { language } = useLanguage();
+    const confirm = useConfirm();
+
+    const t = {
+        en: { deleteConfirm: 'Are you sure you want to delete this comment?' },
+        bg: { deleteConfirm: 'Сигурни ли сте, че искате да изтриете този коментар?' }
+    }[language] || { deleteConfirm: 'Are you sure you want to delete this comment?' };
     const [comments, setComments] = useState([]);
     const [commentTree, setCommentTree] = useState([]);
     const [newComment, setNewComment] = useState('');
@@ -222,7 +231,11 @@ export const CommentsSection = ({ materialId }) => {
     };
 
     const handleDelete = async (commentId) => {
-        if (!window.confirm('Are you sure you want to delete this comment?')) return;
+        const confirmed = await confirm({
+            message: t.deleteConfirm,
+            isDanger: true
+        });
+        if (!confirmed) return;
 
         try {
             await commentsApi.deleteComment(commentId);

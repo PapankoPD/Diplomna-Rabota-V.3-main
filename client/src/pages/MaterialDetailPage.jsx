@@ -5,6 +5,7 @@ import { ratingsApi } from '../api/ratingsApi';
 import { recommendationsApi } from '../api/recommendationsApi';
 import { useAuth } from '../hooks/useAuth';
 import { useLanguage } from '../contexts/LanguageContext';
+import { useConfirm } from '../contexts/ConfirmContext';
 import { StarRating } from '../components/ratings/StarRating';
 import { CommentsSection } from '../components/materials/CommentsSection';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
@@ -117,6 +118,7 @@ export const MaterialDetailPage = () => {
     const navigate = useNavigate();
     const { user } = useAuth();
     const { language } = useLanguage();
+    const confirm = useConfirm();
     const t = translations[language];
 
     const [material, setMaterial] = useState(null);
@@ -188,9 +190,11 @@ export const MaterialDetailPage = () => {
     };
 
     const handleRestoreVersion = async (versionId) => {
-        if (!window.confirm(t.confirmRestore)) {
-            return;
-        }
+        const confirmed = await confirm({
+            message: t.confirmRestore,
+            isDanger: false
+        });
+        if (!confirmed) return;
         setRestoringVersionId(versionId);
         try {
             await materialsApi.restoreVersion(id, versionId);
@@ -207,9 +211,11 @@ export const MaterialDetailPage = () => {
     };
 
     const handleDeleteVersion = async (versionId) => {
-        if (!window.confirm(t.confirmDeleteVersion)) {
-            return;
-        }
+        const confirmed = await confirm({
+            message: t.confirmDeleteVersion,
+            isDanger: true
+        });
+        if (!confirmed) return;
         try {
             await materialsApi.deleteVersion(id, versionId);
             setVersions(prev => prev.filter(v => v.id !== versionId));
@@ -295,9 +301,11 @@ export const MaterialDetailPage = () => {
     };
 
     const handleDelete = async () => {
-        if (!window.confirm(t.confirmDeleteMaterial)) {
-            return;
-        }
+        const confirmed = await confirm({
+            message: t.confirmDeleteMaterial,
+            isDanger: true
+        });
+        if (!confirmed) return;
 
         try {
             await materialsApi.deleteMaterial(id);
@@ -309,9 +317,11 @@ export const MaterialDetailPage = () => {
     };
 
     const handleArchive = async () => {
-        if (!window.confirm(t.confirmArchive)) {
-            return;
-        }
+        const confirmed = await confirm({
+            message: t.confirmArchive,
+            isDanger: true
+        });
+        if (!confirmed) return;
         try {
             await materialsApi.archiveMaterial(id);
             navigate('/materials');

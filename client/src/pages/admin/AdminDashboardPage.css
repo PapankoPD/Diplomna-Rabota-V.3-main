@@ -1,0 +1,85 @@
+.admin-dashboard {
+    display: flex;
+    flex-direction: column;
+    /* We don't want padding here because the content area 
+       needs to span the full width allowed by DashboardLayout */
+}
+
+/* Header config */
+.admin-dashboard-header {
+    background: var(--bg-surface);
+    padding: 24px 32px 20px;
+    border-bottom: 1px solid var(--border-default);
+}
+.admin-dashboard-header h1 {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin: 0 0 6px 0;
+}
+.admin-dashboard-header p {
+    color: var(--text-muted);
+    font-size: 14px;
+    margin: 0;
+}
+
+/* Horizontal Tabs Navigation */
+.admin-dashboard-nav {
+    display: flex;
+    background: var(--bg-surface);
+    padding: 0 32px;
+    gap: 8px;
+    border-bottom: 1px solid var(--border-default);
+    overflow-x: auto;
+    scrollbar-width: thin;
+}
+
+.admin-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 16px;
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+
+.admin-nav-item:hover {
+    color: var(--text-primary);
+    background: var(--bg-hover);
+    border-radius: 8px 8px 0 0;
+}
+
+.admin-nav-item.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.admin-nav-item.active svg {
+    color: var(--primary);
+}
+
+/* Outlet Content Container */
+.admin-dashboard-content {
+    flex: 1;
+    /* Allows the child admin tools to have their own paddings and background rules */
+}
+
+/* 
+Overrides for children rendered inside this outlet 
+Because admin pages typically had a `.roles-page`, `.users-page` that had heavy padding 
+and their own huge headers, we override them when nested.
+*/
+.admin-dashboard-content > div {
+    /* If an admin child has an outer padding, we can strip it here to avoid double padding */
+    padding: 24px 32px;
+}
+
+/* Let's hide the big h1 inside the admin pages since we have the superheader up top */
+.admin-dashboard-content h1 {
+    display: none;
+}

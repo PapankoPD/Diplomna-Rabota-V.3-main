@@ -9,7 +9,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
 import { Upload, X, FileText, AlertCircle, BookOpen } from 'lucide-react';
 import { validateFileSize, validateFileType, ACCEPTED_FILE_TYPES } from '../utils/validators';
-import { formatFileSize } from '../utils/formatters';
+import { formatFileSize, translateGradeName, translateSubjectName } from '../utils/formatters';
 import './UploadMaterialPage.css';
 
 const translations = {
@@ -418,7 +418,7 @@ export const UploadMaterialPage = () => {
                             >
                                 <option value="">{t.selectSubject}</option>
                                 {((isTeacher || isAdmin) ? teacherSubjects : categories).map(cat => (
-                                    <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                    <option key={cat.id} value={cat.id}>{translateSubjectName(cat.name, language)}</option>
                                 ))}
                             </select>
                         )}
@@ -445,7 +445,7 @@ export const UploadMaterialPage = () => {
                                 >
                                     <option value="">{t.selectGrade}</option>
                                     {teacherGrades.map(grade => (
-                                        <option key={grade.id} value={grade.id}>{grade.name}</option>
+                                        <option key={grade.id} value={grade.id}>{translateGradeName(grade.name, language)}</option>
                                     ))}
                                 </select>
                             )}

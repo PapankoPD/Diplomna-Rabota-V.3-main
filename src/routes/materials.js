@@ -338,6 +338,8 @@ router.get('/', authenticate, validatePagination, async (req, res) => {
         const search = req.query.search || '';
         const category = req.query.category || '';
         const fileType = req.query.fileType || '';
+        const subjectId = req.query.subjectId || '';
+        const topicId = req.query.topicId || '';
         const gradeId = req.query.grade || ''; // Assuming grade filtering works by ID or code
         const validSortFields = ['created_at', 'title', 'download_count', 'average_rating'];
         const sortBy = validSortFields.includes(req.query.sortBy) ? req.query.sortBy : 'created_at';
@@ -380,6 +382,26 @@ router.get('/', authenticate, validatePagination, async (req, res) => {
             paramCount++;
             whereConditions.push(`m.file_type LIKE $${paramCount}`);
             params.push(`%${fileType}%`);
+        }
+
+        // Filter by subject if provided
+        if (subjectId) {
+            paramCount++;
+            whereConditions.push(`EXISTS (
+                SELECT 1 FROM material_subjects ms
+                WHERE ms.material_id = m.id AND ms.subject_id = $${paramCount}
+            )`);
+            params.push(subjectId);
+        }
+
+        // Filter by topic if provided
+        if (topicId) {
+            paramCount++;
+            whereConditions.push(`EXISTS (
+                SELECT 1 FROM material_topics mt
+                WHERE mt.material_id = m.id AND mt.topic_id = $${paramCount}
+            )`);
+            params.push(topicId);
         }
 
         // Filter by grade if provided
