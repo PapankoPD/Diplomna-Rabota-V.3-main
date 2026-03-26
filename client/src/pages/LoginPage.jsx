@@ -16,9 +16,10 @@ const translations = {
         signingIn: "Signing in...",
         signIn: "Sign In",
         noAccount: "Don't have an account?",
-        signUp: "Sign up",
+        errPassword: "Please enter your password",
         errEmail: "Please enter a valid email address",
-        errPassword: "Please enter your password"
+        forgotPassword: "Forgot Password?",
+        signUp: "Sign Up"
     },
     bg: {
         welcome: "Добре дошли отново",
@@ -30,9 +31,10 @@ const translations = {
         signingIn: "Влизане...",
         signIn: "Вход",
         noAccount: "Нямате профил?",
-        signUp: "Регистрирайте се",
+        errPassword: "Моля, въведете вашата парола",
         errEmail: "Моля, въведете валиден имейл адрес",
-        errPassword: "Моля, въведете вашата парола"
+        forgotPassword: "Забравена парола?",
+        signUp: "Регистрация"
     }
 };
 
@@ -105,6 +107,9 @@ export const LoginPage = () => {
                             placeholder={t.passwordPlaceholder}
                             disabled={isLoading}
                         />
+                        <div className="forgot-password-link">
+                            <Link to="/forgot-password">{t.forgotPassword}</Link>
+                        </div>
                     </div>
 
                     <button type="submit" className="login-btn" disabled={isLoading}>

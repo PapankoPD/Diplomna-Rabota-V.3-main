@@ -45,7 +45,7 @@ export const Sidebar = ({ isOpen, onToggle }) => {
     const { hasPermission, hasRole } = useAuth();
     const { language } = useLanguage();
     const t = translations[language];
-    
+
     const [uploadOpen, setUploadOpen] = useState(false);
     const location = useLocation();
 

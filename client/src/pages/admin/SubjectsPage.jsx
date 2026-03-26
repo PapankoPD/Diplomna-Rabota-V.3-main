@@ -171,16 +171,6 @@ export const SubjectsPage = () => {
                                     disabled={isSaving}
                                 />
                             </div>
-                            <div className="sp-field sp-field--xs">
-                                <label>{t.orderLabel}</label>
-                                <input
-                                    type="number"
-                                    value={form.displayOrder}
-                                    onChange={e => setForm(f => ({ ...f, displayOrder: e.target.value }))}
-                                    disabled={isSaving}
-                                    min={0}
-                                />
-                            </div>
                         </div>
                         <div className="sp-field">
                             <label>{t.descLabel}</label>
@@ -219,7 +209,6 @@ export const SubjectsPage = () => {
                                 <th>{t.colName}</th>
                                 <th>{t.colCode}</th>
                                 <th>{t.colDesc}</th>
-                                <th>{t.colOrder}</th>
                                 <th>{t.colActions}</th>
                             </tr>
                         </thead>
@@ -229,7 +218,6 @@ export const SubjectsPage = () => {
                                     <td><strong>{translateSubjectName(s.name, language)}</strong></td>
                                     <td><span className="sp-code-badge">{translateSubjectCode(s.code, language)}</span></td>
                                     <td className="sp-muted">{translateSubjectDescription(s.description, language) || '—'}</td>
-                                    <td className="sp-muted">{s.display_order ?? 0}</td>
                                     <td>
                                         <button
                                             className="sp-delete-btn"

@@ -23,7 +23,7 @@
 
 /* ── Header ────────────────────────────────────────────────────────────── */
 .sidebar-header {
-    padding: 22px 20px;
+    padding: 22px 8px 22px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -37,6 +37,8 @@
     white-space: nowrap;
     letter-spacing: -0.3px;
     color: #f8fafc;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .sidebar-toggle {
@@ -50,6 +52,7 @@
     align-items: center;
     justify-content: center;
     transition: background 0.2s, transform 0.2s var(--spring);
+    flex-shrink: 0;
 }
 
 .sidebar-toggle:hover {

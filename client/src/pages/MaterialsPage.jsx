@@ -368,7 +368,7 @@ export const MaterialsPage = () => {
                         >
                             <option value="">{t.allTopics}</option>
                             {topics.map(topic => (
-                                <option key={topic.id} value={topic.id}>{topic.name}</option>
+                                <option key={topic.id} value={topic.id}>{topic.topic_name}</option>
                             ))}
                         </select>
                     </div>

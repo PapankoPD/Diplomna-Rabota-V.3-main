@@ -479,7 +479,7 @@ router.delete('/grades/:id', authenticate, requirePermission('materials:admin'),
 router.get('/classes', authenticate, async (req, res) => {
     try {
         const queryText = `
-            SELECT gc.id, gc.name, g.name AS grade_name, g.id AS grade_id
+            SELECT gc.id, gc.name, g.name AS grade_name, g.id AS grade_id, g.code AS grade_code
             FROM grade_classes gc
             JOIN grades g ON gc.grade_id = g.id
             WHERE gc.is_active = 1

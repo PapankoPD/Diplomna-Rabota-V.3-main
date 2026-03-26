@@ -14,7 +14,7 @@
     border: 1px solid var(--border-default);
     box-shadow: var(--shadow-md);
     position: relative;
-    overflow: hidden;
+    /* overflow: hidden; removed so dropdown doesn't clip */
 }
 
 .upload-container::before {
@@ -25,6 +25,7 @@
     right: 0;
     height: 5px;
     background: linear-gradient(90deg, #6366f1, #a855f7, #ec4899);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
 
 .upload-container h1 {
@@ -295,6 +296,120 @@
 .remove-file-btn:hover {
     color: var(--text-danger);
     background: var(--bg-danger);
+}
+
+/* ── Visibility dropdown menu ────────────────────────────────────────── */
+.visibility-dropdown-container {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+}
+
+.btn-visibility-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 12px 16px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-md);
+    color: var(--gray-700);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-visibility-toggle:hover:not(:disabled) {
+    border-color: var(--primary);
+}
+
+.btn-visibility-toggle:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.visibility-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    width: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border-default);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-lg);
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    padding: 8px;
+    gap: 4px;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.2s;
+}
+
+.dropdown-item:hover:not(:disabled) {
+    background: var(--bg-surface);
+}
+
+.dropdown-item:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.dropdown-item.active {
+    background: var(--primary-light);
+    border-color: #c7d2fe;
+}
+
+.dropdown-item-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.dropdown-item-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--gray-900);
+}
+
+.dropdown-item-desc {
+    font-size: 12px;
+    color: var(--gray-500);
+    line-height: 1.3;
+}
+
+.check-icon {
+    color: var(--primary);
+}
+
+.dropdown-item-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    color: var(--primary);
+}
+
+.dropdown-item.active .dropdown-item-icon {
+    background: var(--primary);
+    color: white;
 }
 
 /* ── Checkbox ────────────────────────────────────────────────────────── */
@@ -629,4 +744,44 @@
 .dark .file-drop-area.has-file {
     background: rgba(22, 163, 74, 0.08);
     border-color: rgba(74, 222, 128, 0.2);
+}
+
+.dark .btn-visibility-toggle {
+    background: var(--bg-surface);
+    border-color: var(--gray-700);
+    color: var(--gray-100);
+}
+
+.dark .btn-visibility-toggle:hover:not(:disabled) {
+    border-color: var(--primary);
+}
+
+.dark .visibility-dropdown-menu {
+    background: var(--bg-surface);
+    border-color: var(--gray-700);
+}
+
+.dark .dropdown-item {
+    color: var(--gray-100);
+}
+
+.dark .dropdown-item:hover:not(:disabled) {
+    background: var(--bg-hover);
+}
+
+.dark .dropdown-item.active {
+    background: rgba(99, 102, 241, 0.15);
+    border-color: var(--primary);
+}
+
+.dark .dropdown-item-title {
+    color: var(--gray-100);
+}
+
+.dark .dropdown-item-desc {
+    color: var(--gray-400);
+}
+
+.dark .dropdown-item-icon {
+    background: var(--bg-hover);
 }

@@ -4,8 +4,9 @@ import { rolesApi } from '../../api/rolesApi';
 import { useAuth } from '../../hooks/useAuth';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useConfirm } from '../../contexts/ConfirmContext';
+import { taxonomyApi } from '../../api/taxonomyApi';
 import { LoadingSpinner } from '../../components/common/LoadingSpinner';
-import { UserCog, Trash2, Check, ShieldOff, ShieldCheck } from 'lucide-react';
+import { UserCog, Trash2, Check, ShieldOff, ShieldCheck, BookOpen } from 'lucide-react';
 import './UsersPage.css';
 
 const translations = {
@@ -28,10 +29,16 @@ const translations = {
         colStatus: "Status",
         statusActive: "Active",
         statusSuspended: "Suspended",
-        suspendUser: "Suspend User",
-        activateUser: "Activate User",
+        suspendUser: "Suspend",
+        activateUser: "Activate",
         confirmSuspend: (username) => `Are you sure you want to suspend "${username}"? They will not be able to log in.`,
         confirmActivate: (username) => `Are you sure you want to reactivate "${username}"?`,
+        manageClassesTitle: "Manage Classes",
+        manageClassesFor: (username) => `Manage Classes for ${username}`,
+        classesLimit: "Select up to 6 classes.",
+        errClassesLimit: "You can only select a maximum of 6 classes.",
+        noClassesFound: "No classes available in the system.",
+        errLoadClasses: "Failed to load classes.",
         roleNames: {
             admin: "admin",
             teacher: "teacher",
@@ -56,11 +63,17 @@ const translations = {
         errSuspend: "Неуспешно превключване на статуса на блокиране.",
         colStatus: "Статус",
         statusActive: "Активен",
-        statusSuspended: "Махни блокирането",
-        suspendUser: "Блокирай потребител",
-        activateUser: "Активирай потребител",
+        statusSuspended: "Блокиран",
+        suspendUser: "Блокирай",
+        activateUser: "Активирай",
         confirmSuspend: (username) => `Сигурни ли сте, че искате да блокирате "${username}"? Те няма да могат да влизат в системата.`,
         confirmActivate: (username) => `Сигурни ли сте, че искате да активирате "${username}"?`,
+        manageClassesTitle: "Управление на класове",
+        manageClassesFor: (username) => `Управление на класове за ${username}`,
+        classesLimit: "Изберете до 6 класа.",
+        errClassesLimit: "Можете да изберете максимум 6 класа.",
+        noClassesFound: "Няма налични класове в системата.",
+        errLoadClasses: "Неуспешно зареждане на класове.",
         roleNames: {
             admin: "админ",
             teacher: "учител",
@@ -83,6 +96,11 @@ export const UsersPage = () => {
 
     const [editingUser, setEditingUser] = useState(null);
     const [selectedRoles, setSelectedRoles] = useState([]);
+
+    const [managingClassesUser, setManagingClassesUser] = useState(null);
+    const [allClasses, setAllClasses] = useState([]);
+    const [selectedClasses, setSelectedClasses] = useState([]);
+    
     const [error, setError] = useState(null);
 
     useEffect(() => {
@@ -140,6 +158,53 @@ export const UsersPage = () => {
         }
     };
 
+    const handleManageClassesClick = async (user) => {
+        setManagingClassesUser(user);
+        setSelectedClasses([]);
+        setError(null);
+        try {
+            const [classesRes, assignedRes] = await Promise.all([
+                taxonomyApi.getAllClasses(),
+                usersApi.getTeacherClasses(user.id)
+            ]);
+            
+            const fetchedClasses = classesRes.data?.classes || [];
+            const activeClassesCode = ['8', '9', '10', '11', '12'];
+            const filteredClasses = fetchedClasses.filter(c => activeClassesCode.includes(c.grade_code));
+
+            setAllClasses(filteredClasses);
+            setSelectedClasses((assignedRes.data?.classes || []).map(c => c.class_id));
+        } catch (err) {
+            console.error('Failed to load classes info:', err);
+            setError(t.errLoadClasses);
+        }
+    };
+
+    const handleClassToggle = (classId) => {
+        setSelectedClasses(prev => {
+            if (prev.includes(classId)) {
+                return prev.filter(id => id !== classId);
+            }
+            if (prev.length >= 6) {
+                setError(t.errClassesLimit);
+                return prev;
+            }
+            setError(null);
+            return [...prev, classId];
+        });
+    };
+
+    const handleSaveClasses = async () => {
+        try {
+            setError(null);
+            await usersApi.updateTeacherClasses(managingClassesUser.id, selectedClasses);
+            setManagingClassesUser(null);
+        } catch (err) {
+            console.error('Failed to update teacher classes:', err);
+            setError(err.response?.data?.message || t.errUpdate);
+        }
+    };
+
     const handleDeleteUser = async (user) => {
         const confirmed = await confirm({
             message: t.confirmDelete(user.username),
@@ -162,6 +227,7 @@ export const UsersPage = () => {
         const isConfirmingSuspension = !user.is_suspended;
         const confirmed = await confirm({
             message: isConfirmingSuspension ? t.confirmSuspend(user.username) : t.confirmActivate(user.username),
+            confirmText: isConfirmingSuspension ? t.suspendUser : t.activateUser,
             isDanger: isConfirmingSuspension
         });
         if (!confirmed) return;
@@ -222,6 +288,15 @@ export const UsersPage = () => {
                                         >
                                             <UserCog size={18} />
                                         </button>
+                                            {user.roles.some(r => r.name === 'teacher') && (
+                                                <button
+                                                    className="btn-icon"
+                                                    onClick={() => handleManageClassesClick(user)}
+                                                    title={t.manageClassesTitle}
+                                                >
+                                                    <BookOpen size={18} />
+                                                </button>
+                                            )}
                                             <button
                                                 className={`btn-icon ${user.is_suspended ? 'btn-icon-success' : 'btn-icon-warning'}`}
                                                 onClick={() => handleToggleSuspend(user)}
@@ -270,6 +345,41 @@ export const UsersPage = () => {
                         <div className="modal-footer">
                             <button className="btn-cancel" onClick={() => setEditingUser(null)}>{t.cancel}</button>
                             <button className="btn-primary" onClick={handleSaveRoles}>{t.saveChanges}</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {managingClassesUser && (
+                <div className="modal-overlay">
+                    <div className="modal">
+                        <div className="modal-header">
+                            <h3>{t.manageClassesFor(managingClassesUser.username)}</h3>
+                        </div>
+                        <div className="modal-content">
+                            <p className="modal-desc" style={{ marginBottom: 15, fontSize: 13, color: 'var(--gray-400)' }}>
+                                {t.classesLimit} ({selectedClasses.length}/6)
+                            </p>
+                            {allClasses.length === 0 ? (
+                                <p>{t.noClassesFound}</p>
+                            ) : (
+                                <div className="roles-selection" style={{ maxHeight: 300, overflowY: 'auto', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+                                    {allClasses.map(cls => (
+                                        <label key={cls.id} className="role-checkbox" style={{ margin: 0 }}>
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedClasses.includes(cls.id)}
+                                                onChange={() => handleClassToggle(cls.id)}
+                                            />
+                                            <span>{cls.name}</span>
+                                        </label>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                        <div className="modal-footer">
+                            <button className="btn-cancel" onClick={() => setManagingClassesUser(null)}>{t.cancel}</button>
+                            <button className="btn-primary" onClick={handleSaveClasses}>{t.saveChanges}</button>
                         </div>
                     </div>
                 </div>

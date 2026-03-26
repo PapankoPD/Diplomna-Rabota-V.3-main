@@ -17,6 +17,10 @@ const translations = {
         email: "Email",
         emailPlaceholder: "Enter your email",
         role: "Role",
+        assignedClass: "Assigned Class",
+        unassignedClass: "Not assigned yet",
+        assignedSubjects: "Assigned Subjects",
+        teacherClasses: "Assigned Classes",
         saving: "Saving...",
         saveChanges: "Save Changes",
         changePassword: "Change Password",
@@ -24,8 +28,8 @@ const translations = {
         pwdMatchErr: "New passwords do not match.",
         pwdSuccess: "Password changed successfully!",
         pwdFail: "Failed to change password.",
-        currentPwd: "Current Password",
-        currentPwdPlaceholder: "Enter current password",
+        currentPwd: "Current Password (optional)",
+        currentPwdPlaceholder: "Enter current password (if you remember it)",
         newPwd: "New Password",
         newPwdPlaceholder: "Enter new password",
         confirmPwd: "Confirm New Password",
@@ -43,6 +47,10 @@ const translations = {
         email: "Имейл",
         emailPlaceholder: "Въведете имейл",
         role: "Роля",
+        assignedClass: "Разпределен клас",
+        unassignedClass: "Все още не е разпределен",
+        assignedSubjects: "Преподавани предмети",
+        teacherClasses: "Класове",
         saving: "Запазване...",
         saveChanges: "Запази промените",
         changePassword: "Промяна на паролата",
@@ -50,8 +58,8 @@ const translations = {
         pwdMatchErr: "Новите пароли не съвпадат.",
         pwdSuccess: "Паролата е променена успешно!",
         pwdFail: "Неуспешна промяна на паролата.",
-        currentPwd: "Текуща парола",
-        currentPwdPlaceholder: "Въведете текущата парола",
+        currentPwd: "Текуща парола (опционално)",
+        currentPwdPlaceholder: "Въведете текущата парола (ако я помните)",
         newPwd: "Нова парола",
         newPwdPlaceholder: "Въведете новата парола",
         confirmPwd: "Потвърдете новата парола",
@@ -187,6 +195,41 @@ export const ProfilePage = () => {
                             />
                         </div>
 
+                        {user?.roles?.some(r => r.name === 'student') && (
+                            <div className="form-group">
+                                <label>{t.assignedClass}</label>
+                                <input
+                                    type="text"
+                                    value={user?.studentClass ? user.studentClass.class_name : t.unassignedClass}
+                                    disabled
+                                    className="disabled-input"
+                                />
+                            </div>
+                        )}
+
+                        {user?.roles?.some(r => r.name === 'teacher') && (
+                            <>
+                                <div className="form-group">
+                                    <label>{t.assignedSubjects}</label>
+                                    <input
+                                        type="text"
+                                        value={user?.teacherSubjects?.length > 0 ? user.teacherSubjects.map(s => s.subject_name).join(', ') : t.unassignedClass}
+                                        disabled
+                                        className="disabled-input"
+                                    />
+                                </div>
+                                <div className="form-group">
+                                    <label>{t.teacherClasses}</label>
+                                    <input
+                                        type="text"
+                                        value={user?.teacherClasses?.length > 0 ? user.teacherClasses.map(c => c.class_name).join(', ') : t.unassignedClass}
+                                        disabled
+                                        className="disabled-input"
+                                    />
+                                </div>
+                            </>
+                        )}
+
                         <button type="submit" className="save-btn" disabled={isProfileSaving}>
                             <Save size={16} />
                             {isProfileSaving ? t.saving : t.saveChanges}
@@ -216,7 +259,6 @@ export const ProfilePage = () => {
                                 value={currentPassword}
                                 onChange={(e) => setCurrentPassword(e.target.value)}
                                 placeholder={t.currentPwdPlaceholder}
-                                required
                             />
                         </div>
 

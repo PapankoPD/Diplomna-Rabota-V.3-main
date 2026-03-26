@@ -30,4 +30,14 @@ export const usersApi = {
         const response = await apiClient.put(`/users/${id}/suspend`);
         return response.data;
     },
+
+    getTeacherClasses: async (id) => {
+        const response = await apiClient.get(`/users/${id}/teacher-classes`);
+        return response.data;
+    },
+
+    updateTeacherClasses: async (id, classIds) => {
+        const response = await apiClient.put(`/users/${id}/teacher-classes`, { classIds });
+        return response.data;
+    },
 };

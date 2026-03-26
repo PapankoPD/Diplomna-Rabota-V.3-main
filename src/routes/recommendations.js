@@ -128,18 +128,18 @@ router.get('/trending-for-me', authenticate, async (req, res) => {
         if (roleNames.includes('student')) {
             // Find the student's class enrollment(s)
             const classResult = await query(
-                `SELECT class_id FROM student_enrollments WHERE student_id = $1 LIMIT 1`,
+                `SELECT class_id FROM student_class_enrollments WHERE student_id = $1 LIMIT 1`,
                 [userId]
             );
 
             if (classResult.rows.length > 0) {
                 const classId = classResult.rows[0].class_id;
-                // Most downloaded materials in that class
+                // Most downloaded materials in that class OR general public materials
                 const result = await query(
                     `SELECT m.id, m.title, m.description, m.file_type, m.download_count
                      FROM materials m
-                     JOIN class_materials cm ON cm.material_id = m.id
-                     WHERE cm.class_id = $1
+                     LEFT JOIN material_grade_classes mgc ON mgc.material_id = m.id
+                     WHERE (mgc.class_id = $1 OR (m.is_public = 1 AND mgc.class_id IS NULL))
                      AND m.is_archived = 0
                      ORDER BY m.download_count DESC
                      LIMIT $2`,
@@ -338,6 +338,42 @@ router.get('/for-you', authenticate, async (req, res) => {
             success: false,
             message: 'Failed to get contextual recommendations'
         });
+    }
+});
+
+/**
+ * GET /api/recommendations/top-rated
+ * Get the highest-rated materials (for bar chart widget)
+ */
+router.get('/top-rated', async (req, res) => {
+    try {
+        const { query } = require('../config/database');
+        const limit = parseInt(req.query.limit || '5');
+
+        const result = await query(
+            `SELECT m.id, m.title, m.average_rating, m.rating_count
+             FROM materials m
+             WHERE m.average_rating > 0
+             AND (m.is_archived = 0 OR m.is_archived IS NULL)
+             ORDER BY m.average_rating DESC, m.rating_count DESC
+             LIMIT $1`,
+            [limit]
+        );
+
+        res.json({
+            success: true,
+            data: {
+                materials: result.rows.map(r => ({
+                    id: r.id,
+                    title: r.title,
+                    averageRating: parseFloat(r.average_rating) || 0,
+                    ratingCount: r.rating_count || 0
+                }))
+            }
+        });
+    } catch (error) {
+        console.error('Get top-rated error:', error);
+        res.status(500).json({ success: false, message: 'Failed to get top-rated materials' });
     }
 });
 

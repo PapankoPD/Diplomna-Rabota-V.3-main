@@ -36,5 +36,10 @@ export const recommendationsApi = {
     getTrendingForMe: async (limit = 5) => {
         const response = await apiClient.get('/recommendations/trending-for-me', { params: { limit } });
         return response.data;
+    },
+
+    getTopRated: async (limit = 5) => {
+        const response = await apiClient.get('/recommendations/top-rated', { params: { limit } });
+        return response.data;
     }
 };

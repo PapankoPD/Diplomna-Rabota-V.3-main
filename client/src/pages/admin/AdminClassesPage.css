@@ -86,7 +86,9 @@
 }
 
 .btn-add:hover:not(:disabled) {
-    background-color: var(--primary-hover);
+    background-color: white;
+    color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-color);
 }
 
 .btn-add:disabled {

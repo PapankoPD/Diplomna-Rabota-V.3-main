@@ -7,7 +7,7 @@ import apiClient from '../api/apiClient';
 import { useAuth } from '../hooks/useAuth';
 import { useLanguage } from '../contexts/LanguageContext';
 import { LoadingSpinner } from '../components/common/LoadingSpinner';
-import { Upload, X, FileText, AlertCircle, BookOpen } from 'lucide-react';
+import { Upload, X, FileText, AlertCircle, BookOpen, Eye, ChevronDown, Check, Lock } from 'lucide-react';
 import { validateFileSize, validateFileType, ACCEPTED_FILE_TYPES } from '../utils/validators';
 import { formatFileSize, translateGradeName, translateSubjectName } from '../utils/formatters';
 import './UploadMaterialPage.css';
@@ -45,6 +45,8 @@ const translations = {
         uploading: "Uploading...",
         makePublic: "Make Public",
         publicDesc: "Allow all users to view and download this material",
+        forEveryone: "For Everyone",
+        forEveryoneDesc: "Upload without class restriction — visible to all students",
         cancel: "Cancel",
         uploadBtn: "Upload",
         material: "Material",
@@ -52,7 +54,13 @@ const translations = {
         errMaxFiles: "Maximum 10 files per upload. Extra files were ignored.",
         errNoFiles: "Please select at least one file to upload.",
         errNoTitle: "Please enter a title for the material.",
-        errUploadFail: "Failed to upload material. Please try again."
+        errUploadFail: "Failed to upload material. Please try again.",
+        visibilityOptions: "Visibility Options",
+        privateDesc: "Visible only to assigned class students",
+        topicLabel: "Topic",
+        selectTopic: "Select a topic...",
+        loadingTopics: "Loading topics...",
+        noTopics: "No topics found for this subject."
     },
     bg: {
         pageTitle: "Качване на материал",
@@ -86,6 +94,8 @@ const translations = {
         uploading: "Качване...",
         makePublic: "Публичен",
         publicDesc: "Позволете на всички потребители да преглеждат и изтеглят този материал",
+        forEveryone: "За всички",
+        forEveryoneDesc: "Качване без ограничение на клас — видимо за всички ученици",
         cancel: "Отказ",
         uploadBtn: "Качване",
         material: "Материал",
@@ -93,7 +103,13 @@ const translations = {
         errMaxFiles: "Максимум 10 файла на качване. Допълнителните файлове бяха игнорирани.",
         errNoFiles: "Моля, изберете поне един файл за качване.",
         errNoTitle: "Моля, въведете заглавие на материала.",
-        errUploadFail: "Неуспешно качване на материала. Моля, опитайте отново."
+        errUploadFail: "Неуспешно качване на материала. Моля, опитайте отново.",
+        visibilityOptions: "Опции за видимост",
+        privateDesc: "Видим само за учениците от разпределения клас",
+        topicLabel: "Тема/Урок",
+        selectTopic: "Изберете тема...",
+        loadingTopics: "Зареждане на теми...",
+        noTopics: "Няма намерени теми за този предмет."
     }
 };
 
@@ -112,14 +128,30 @@ export const UploadMaterialPage = () => {
         description: '',
         is_public: true,
         category_id: '',
+        topic_id: '',
         grade_id: '',
-        class_id: ''
+        class_id: '',
+        is_private: false
     });
+
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const dropdownRef = useRef(null);
+
+    React.useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const [categories, setCategories] = useState([]);
     const [teacherSubjects, setTeacherSubjects] = useState(null);
     const [teacherGrades, setTeacherGrades] = useState(null);
     const [teacherClasses, setTeacherClasses] = useState(null); // null = loading
+    const [subjectTopics, setSubjectTopics] = useState(null);
 
     React.useEffect(() => {
         const fetchCategories = async () => {
@@ -261,16 +293,34 @@ export const UploadMaterialPage = () => {
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
-        setFormData(prev => {
-            const newData = {
+
+        if (name === 'category_id') {
+            setFormData(prev => ({
                 ...prev,
-                [name]: type === 'checkbox' ? checked : value
-            };
-            if (name === 'grade_id') {
-                newData.class_id = ''; // reset class when grade changes
+                [name]: type === 'checkbox' ? checked : value,
+                topic_id: ''
+            }));
+            const selectedSubject = ((isTeacher || isAdmin) ? teacherSubjects : categories)?.find(s => String(s.id) === value);
+            if (selectedSubject) {
+                setSubjectTopics(null);
+                taxonomyApi.getTopics(selectedSubject.code, false, false)
+                    .then(res => setSubjectTopics(res.data?.topics || []))
+                    .catch(() => setSubjectTopics([]));
+            } else {
+                setSubjectTopics(null);
             }
-            return newData;
-        });
+        } else {
+            setFormData(prev => {
+                const newData = {
+                    ...prev,
+                    [name]: type === 'checkbox' ? checked : value
+                };
+                if (name === 'grade_id') {
+                    newData.class_id = ''; // reset class when grade changes
+                }
+                return newData;
+            });
+        }
     };
 
     const handleSubmit = async (e) => {
@@ -312,7 +362,11 @@ export const UploadMaterialPage = () => {
                 data.append('subjectIds', JSON.stringify([formData.category_id]));
             }
 
-            if (formData.class_id) {
+            if (formData.topic_id) {
+                data.append('topicIds', JSON.stringify([parseInt(formData.topic_id)]));
+            }
+
+            if (formData.class_id && !formData.is_private && !formData.for_everyone) {
                 data.append('classId', formData.class_id);
             }
 
@@ -424,8 +478,38 @@ export const UploadMaterialPage = () => {
                         )}
                     </div>
 
-                    {/* Grade dropdown — teachers and admins only */}
-                    {(isTeacher || isAdmin) && (
+
+                    {/* Topic Dropdown */}
+                    {formData.category_id && (
+                        <div className="form-group">
+                            <label htmlFor="topic_id">{t.topicLabel}</label>
+                            {subjectTopics === null ? (
+                                <p style={{ color: 'var(--gray-400)', fontSize: 14 }}>{t.loadingTopics}</p>
+                            ) : subjectTopics.length === 0 ? (
+                                <div className="error-alert" style={{ marginTop: 0 }}>
+                                    <BookOpen size={18} />
+                                    <span>{t.noTopics}</span>
+                                </div>
+                            ) : (
+                                <select
+                                    id="topic_id"
+                                    name="topic_id"
+                                    value={formData.topic_id}
+                                    onChange={handleInputChange}
+                                    disabled={isUploading}
+                                    className="form-select"
+                                >
+                                    <option value="">{t.selectTopic}</option>
+                                    {subjectTopics.map(topic => (
+                                        <option key={topic.id} value={topic.id}>{topic.topic_name}</option>
+                                    ))}
+                                </select>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Grade dropdown — teachers and admins only (hidden when 'for everyone' or 'private') */}
+                    {(isTeacher || isAdmin) && !formData.for_everyone && !formData.is_private && (
                         <div className="form-group">
                             <label htmlFor="grade_id">{t.gradeLabel}</label>
                             {teacherGrades === null ? (
@@ -452,8 +536,8 @@ export const UploadMaterialPage = () => {
                         </div>
                     )}
 
-                    {/* Class dropdown — teachers and admins only */}
-                    {(isTeacher || isAdmin) && formData.grade_id && (
+                    {/* Class dropdown — teachers and admins only (hidden when 'for everyone' or 'private') */}
+                    {(isTeacher || isAdmin) && !formData.for_everyone && !formData.is_private && formData.grade_id && (
                         <div className="form-group">
                             <label htmlFor="class_id">{t.classLabel}</label>
                             {teacherClasses === null ? (
@@ -569,20 +653,87 @@ export const UploadMaterialPage = () => {
                         </div>
                     )}
 
-                    <div className="form-group checkbox-group">
-                        <label className="checkbox-label">
-                            <input
-                                type="checkbox"
-                                name="is_public"
-                                checked={formData.is_public}
-                                onChange={handleInputChange}
-                                disabled={isUploading}
-                            />
-                            <span className="checkbox-text">
-                                <span className="checkbox-title">{t.makePublic}</span>
-                                <span className="checkbox-desc">{t.publicDesc}</span>
-                            </span>
-                        </label>
+                    <div className="visibility-dropdown-container" ref={dropdownRef}>
+                        <button
+                            type="button"
+                            className="btn-visibility-toggle"
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            disabled={isUploading}
+                        >
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                {formData.is_private ? (
+                                    <><Lock size={18} /> <span>{t.privateOption}</span></>
+                                ) : formData.for_everyone ? (
+                                    <><Upload size={18} /> <span>{t.forEveryone}</span></>
+                                ) : (
+                                    <><Eye size={18} /> <span>{t.makePublic}</span></>
+                                )}
+                            </div>
+                            <ChevronDown size={18} style={{ transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }} />
+                        </button>
+
+                        {isDropdownOpen && (
+                            <div className="visibility-dropdown-menu">
+                                <button
+                                    type="button"
+                                    className={`dropdown-item ${formData.is_private ? 'active' : ''}`}
+                                    onClick={() => {
+                                        setFormData(prev => ({
+                                            ...prev,
+                                            is_public: false,
+                                            for_everyone: false,
+                                            is_private: true
+                                        }));
+                                    }}
+                                    disabled={isUploading}
+                                >
+                                    <div className="dropdown-item-icon"><Lock size={18} /></div>
+                                    <div className="dropdown-item-content">
+                                        <div className="dropdown-item-title">{t.privateOption}</div>
+                                        <div className="dropdown-item-desc">{t.privateDesc}</div>
+                                    </div>
+                                    {formData.is_private && <Check size={18} className="check-icon" />}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className={`dropdown-item ${formData.is_public && !formData.is_private ? 'active' : ''}`}
+                                    onClick={() => {
+                                        setFormData(prev => ({ ...prev, is_public: true, is_private: false }));
+                                    }}
+                                    disabled={isUploading}
+                                >
+                                    <div className="dropdown-item-icon"><Eye size={18} /></div>
+                                    <div className="dropdown-item-content">
+                                        <div className="dropdown-item-title">{t.makePublic}</div>
+                                        <div className="dropdown-item-desc">{t.publicDesc}</div>
+                                    </div>
+                                    {formData.is_public && !formData.is_private && <Check size={18} className="check-icon" />}
+                                </button>
+
+                                {(isTeacher || isAdmin) && (
+                                    <button
+                                        type="button"
+                                        className={`dropdown-item ${formData.for_everyone && !formData.is_private ? 'active' : ''}`}
+                                        onClick={() => {
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                for_everyone: true,
+                                                is_private: false
+                                            }));
+                                        }}
+                                        disabled={isUploading}
+                                    >
+                                        <div className="dropdown-item-icon"><Upload size={18} /></div>
+                                        <div className="dropdown-item-content">
+                                            <div className="dropdown-item-title">{t.forEveryone}</div>
+                                            <div className="dropdown-item-desc">{t.forEveryoneDesc}</div>
+                                        </div>
+                                        {formData.for_everyone && <Check size={18} className="check-icon" />}
+                                    </button>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <div className="form-actions">

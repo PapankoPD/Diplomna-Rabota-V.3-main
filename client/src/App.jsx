@@ -6,6 +6,7 @@ import { DashboardLayout } from './components/layout/DashboardLayout';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { MaterialsPage } from './pages/MaterialsPage';
 import { MaterialDetailPage } from './pages/MaterialDetailPage';
@@ -36,6 +37,7 @@ function App() {
                 {/* Public routes */}
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
                 {/* Protected routes */}
                 <Route

@@ -339,9 +339,12 @@ router.get('/stats', authenticate, async (req, res) => {
                 const studentClassId = classCheck.rows[0].class_id;
                 totalMaterialsQuery = `
                     SELECT COUNT(DISTINCT m.id) AS count FROM materials m
-                    WHERE EXISTS (
-                        SELECT 1 FROM material_grade_classes mgc
-                        WHERE mgc.material_id = m.id AND mgc.class_id = $1
+                    WHERE (
+                        EXISTS (
+                            SELECT 1 FROM material_grade_classes mgc
+                            WHERE mgc.material_id = m.id AND mgc.class_id = $1
+                        ) 
+                        OR (m.is_public = 1 AND NOT EXISTS (SELECT 1 FROM material_grade_classes mgc2 WHERE mgc2.material_id = m.id))
                     ) AND (m.is_archived = 0 OR m.is_archived IS NULL)
                 `;
                 totalMaterialsParams = [studentClassId];
@@ -485,8 +488,13 @@ router.get('/', authenticate, validatePagination, async (req, res) => {
         // Apply strict student filtering
         if (isStrictStudent) {
             if (studentClassId) {
-                // Show ONLY materials that are specifically assigned to their class
-                whereConditions.push(`EXISTS (SELECT 1 FROM material_grade_classes mgc WHERE mgc.material_id = m.id AND mgc.class_id = ${studentClassId})`);
+                // Show materials assigned to their class OR public materials not assigned to any class
+                paramCount++;
+                whereConditions.push(`(
+                    EXISTS (SELECT 1 FROM material_grade_classes mgc WHERE mgc.material_id = m.id AND mgc.class_id = $${paramCount})
+                    OR (m.is_public = 1 AND NOT EXISTS (SELECT 1 FROM material_grade_classes mgc2 WHERE mgc2.material_id = m.id))
+                )`);
+                params.push(studentClassId);
             } else {
                 // If student has no class, only show public materials that are NOT assigned to ANY class
                 whereConditions.push(`(m.is_public = 1 AND NOT EXISTS (SELECT 1 FROM material_grade_classes mgc3 WHERE mgc3.material_id = m.id))`);
@@ -686,7 +694,7 @@ router.put('/:id', authenticate, validateUUID(), requireEditPermission, flexible
 
     try {
         const materialId = req.params.id;
-        const { title, description, categoryIds, isPublic } = req.body;
+        const { title, description, categoryIds, isPublic, forEveryone } = req.body;
 
         await client.query('BEGIN');
 
@@ -764,6 +772,10 @@ router.put('/:id', authenticate, validateUUID(), requireEditPermission, flexible
                     [materialId, categoryId]
                 );
             }
+        }
+
+        if (forEveryone === 'true' || forEveryone === true) {
+            await client.query('DELETE FROM material_grade_classes WHERE material_id = $1', [materialId]);
         }
 
         await client.query('COMMIT');

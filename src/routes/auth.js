@@ -291,6 +291,38 @@ router.post('/login', authLimiter, validateLogin, async (req, res) => {
             [user.id]
         );
 
+        // Get student's class info (if any)
+        const classResult = await query(
+            `SELECT c.id as class_id, c.name as class_name, g.id as grade_id, g.name as grade_name
+             FROM student_class_enrollments sce
+             JOIN grade_classes c ON sce.class_id = c.id
+             JOIN grades g ON c.grade_id = g.id
+             WHERE sce.student_id = $1`,
+            [user.id]
+        );
+        const studentClass = classResult.rows.length > 0 ? classResult.rows[0] : null;
+
+        // Get teacher's assigned classes (if any)
+        const teacherClassesResult = await query(
+            `SELECT c.id as class_id, c.name as class_name, g.id as grade_id, g.name as grade_name
+             FROM teacher_class_assignments tca
+             JOIN grade_classes c ON tca.class_id = c.id
+             JOIN grades g ON c.grade_id = g.id
+             WHERE tca.teacher_id = $1`,
+            [user.id]
+        );
+        const teacherClasses = teacherClassesResult.rows;
+
+        // Get teacher's assigned subjects (if any)
+        const teacherSubjectsResult = await query(
+            `SELECT s.id as subject_id, s.name as subject_name
+             FROM teacher_subjects ts
+             JOIN subjects s ON ts.subject_id = s.id
+             WHERE ts.teacher_id = $1`,
+            [user.id]
+        );
+        const teacherSubjects = teacherSubjectsResult.rows;
+
         res.json({
             success: true,
             message: 'Login successful',
@@ -300,7 +332,10 @@ router.post('/login', authLimiter, validateLogin, async (req, res) => {
                     email: user.email,
                     username: user.username,
                     roles: rolesResult.rows,
-                    permissions: permissionsResult.rows
+                    permissions: permissionsResult.rows,
+                    studentClass,
+                    teacherClasses,
+                    teacherSubjects
                 },
                 accessToken,
                 refreshToken
@@ -509,13 +544,48 @@ router.get('/me', authenticate, async (req, res) => {
             [req.user.userId]
         );
 
+        // Get student's class info (if any)
+        const classResult = await query(
+            `SELECT c.id as class_id, c.name as class_name, g.id as grade_id, g.name as grade_name
+             FROM student_class_enrollments sce
+             JOIN grade_classes c ON sce.class_id = c.id
+             JOIN grades g ON c.grade_id = g.id
+             WHERE sce.student_id = $1`,
+            [req.user.userId]
+        );
+        const studentClass = classResult.rows.length > 0 ? classResult.rows[0] : null;
+
+        // Get teacher's assigned classes (if any)
+        const teacherClassesResult = await query(
+            `SELECT c.id as class_id, c.name as class_name, g.id as grade_id, g.name as grade_name
+             FROM teacher_class_assignments tca
+             JOIN grade_classes c ON tca.class_id = c.id
+             JOIN grades g ON c.grade_id = g.id
+             WHERE tca.teacher_id = $1`,
+            [req.user.userId]
+        );
+        const teacherClasses = teacherClassesResult.rows;
+
+        // Get teacher's assigned subjects (if any)
+        const teacherSubjectsResult = await query(
+            `SELECT s.id as subject_id, s.name as subject_name
+             FROM teacher_subjects ts
+             JOIN subjects s ON ts.subject_id = s.id
+             WHERE ts.teacher_id = $1`,
+            [req.user.userId]
+        );
+        const teacherSubjects = teacherSubjectsResult.rows;
+
         res.json({
             success: true,
             data: {
                 user: {
                     ...user,
                     roles: rolesResult.rows,
-                    permissions: permissionsResult.rows
+                    permissions: permissionsResult.rows,
+                    studentClass,
+                    teacherClasses,
+                    teacherSubjects
                 }
             }
         });
@@ -662,10 +732,10 @@ router.put('/password', authenticate, async (req, res) => {
         const userId = req.user.userId;
         const { currentPassword, newPassword } = req.body;
 
-        if (!currentPassword || !newPassword) {
+        if (!newPassword) {
             return res.status(400).json({
                 success: false,
-                message: 'Current password and new password are required'
+                message: 'New password is required'
             });
         }
 
@@ -689,13 +759,15 @@ router.put('/password', authenticate, async (req, res) => {
             });
         }
 
-        // Verify current password
-        const isValid = await verifyPassword(currentPassword, userResult.rows[0].password_hash);
-        if (!isValid) {
-            return res.status(401).json({
-                success: false,
-                message: 'Current password is incorrect'
-            });
+        // ONLY verify current password IF it was provided
+        if (currentPassword) {
+            const isValid = await verifyPassword(currentPassword, userResult.rows[0].password_hash);
+            if (!isValid) {
+                return res.status(401).json({
+                    success: false,
+                    message: 'Current password is incorrect'
+                });
+            }
         }
 
         // Hash new password and update
@@ -714,6 +786,71 @@ router.put('/password', authenticate, async (req, res) => {
         res.status(500).json({
             success: false,
             message: 'Failed to change password'
+        });
+    }
+});
+
+/**
+ * POST /api/auth/reset-forgotten-password
+ * Reset password if forgotten (requires email + username verification)
+ */
+router.post('/reset-forgotten-password', authLimiter, async (req, res) => {
+    try {
+        const { email, username, newPassword } = req.body;
+
+        if (!email || !username || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                message: 'Email, username and new password are required'
+            });
+        }
+
+        if (newPassword.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: 'New password must be at least 8 characters'
+            });
+        }
+
+        // Verify user exists with both email AND username for extra security
+        const userResult = await query(
+            'SELECT id, is_suspended FROM users WHERE email = $1 AND username = $2',
+            [email, username]
+        );
+
+        if (userResult.rows.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: 'Account not found with provided email and username.'
+            });
+        }
+
+        const user = userResult.rows[0];
+
+        // Block suspended users from resetting
+        if (user.is_suspended === 1) {
+            return res.status(403).json({
+                success: false,
+                message: 'This account is suspended and cannot reset its password.'
+            });
+        }
+
+        // Hash and update
+        const newHash = await hashPassword(newPassword);
+        await query(
+            'UPDATE users SET password_hash = $1, failed_login_attempts = 0, locked_until = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = $2',
+            [newHash, user.id]
+        );
+
+        res.json({
+            success: true,
+            message: 'Password has been reset successfully. You can now log in.'
+        });
+    } catch (error) {
+        console.error('Reset forgotten password error:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Failed to reset password'
         });
     }
 });

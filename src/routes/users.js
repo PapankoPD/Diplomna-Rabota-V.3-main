@@ -261,6 +261,70 @@ router.delete('/:id', authenticate, requirePermission('users:delete'), validateU
 });
 
 /**
+ * GET /api/users/:id/teacher-classes
+ * Get classes assigned to a teacher
+ */
+router.get('/:id/teacher-classes', authenticate, requireRole('admin'), validateUUID(), async (req, res) => {
+    try {
+        const userId = req.params.id;
+        const result = await query(
+            `SELECT c.id as class_id, c.name as class_name, g.id as grade_id, g.name as grade_name
+             FROM teacher_class_assignments tca
+             JOIN grade_classes c ON tca.class_id = c.id
+             JOIN grades g ON c.grade_id = g.id
+             WHERE tca.teacher_id = $1`,
+            [userId]
+        );
+        res.json({ success: true, data: { classes: result.rows } });
+    } catch (error) {
+        console.error('Get teacher classes error:', error);
+        res.status(500).json({ success: false, message: 'Failed to retrieve teacher classes' });
+    }
+});
+
+/**
+ * PUT /api/users/:id/teacher-classes
+ * Update user's teacher class assignments (max 6)
+ */
+router.put('/:id/teacher-classes', authenticate, requireRole('admin'), validateUUID(), async (req, res) => {
+    const client = await getClient();
+    try {
+        const userId = req.params.id;
+        const { classIds } = req.body;
+        
+        if (!Array.isArray(classIds)) {
+            return res.status(400).json({ success: false, message: 'classIds must be an array' });
+        }
+        
+        if (classIds.length > 6) {
+            return res.status(400).json({ success: false, message: 'A teacher can be assigned to a maximum of 6 classes.' });
+        }
+
+        await client.query('BEGIN');
+
+        // Delete existing
+        await client.query('DELETE FROM teacher_class_assignments WHERE teacher_id = $1', [userId]);
+
+        // Insert new
+        for (const classId of classIds) {
+            await client.query(
+                'INSERT INTO teacher_class_assignments (teacher_id, class_id) VALUES ($1, $2)',
+                [userId, classId]
+            );
+        }
+
+        await client.query('COMMIT');
+        res.json({ success: true, message: 'Teacher classes updated successfully' });
+    } catch (error) {
+        await client.query('ROLLBACK');
+        console.error('Update teacher classes error:', error);
+        res.status(500).json({ success: false, message: 'Failed to update teacher classes' });
+    } finally {
+        client.release();
+    }
+});
+
+/**
  * GET /api/users/students/unassigned
  * Get students not assigned to a class (or allow search by username/email)
  */

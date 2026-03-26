@@ -89,17 +89,21 @@ const checkMaterialAccess = async (materialId, userId, permissionType = 'view') 
                     );
                     
                     if (studentClassId) {
-                        if (classAssignmentsCheck.rows.some(row => row.class_id === studentClassId)) {
-                            return true;
-                        } else {
-                            // Fall through to explicit permission checking just in case
-                        }
-                    } else {
+                        // If material has no classes, it's globally public
                         if (classAssignmentsCheck.rows.length === 0) {
                             return true;
-                        } else {
-                            // Fall through
                         }
+                        // Otherwise, check if student's class is one of the assigned classes
+                        if (classAssignmentsCheck.rows.some(row => row.class_id === studentClassId)) {
+                            return true;
+                        }
+                        // Fall through to explicit permission checking if neither matches
+                    } else {
+                        // If student has no class, they can only view globally public materials
+                        if (classAssignmentsCheck.rows.length === 0) {
+                            return true;
+                        }
+                        // Fall through
                     }
                     // If assigned to a different class, fall through to explicit permission checks
                 } else {

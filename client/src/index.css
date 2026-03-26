@@ -56,6 +56,8 @@ code {
 
   /* Aliases */
   --primary-color: var(--primary);
+  --primary-hover: var(--primary-dark);
+  --secondary-hover: var(--primary-color);
   --text-primary: var(--gray-900);
   --text-secondary: var(--gray-500);
   --border-color: var(--gray-200);
