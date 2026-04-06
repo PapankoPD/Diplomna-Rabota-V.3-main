@@ -104,31 +104,48 @@ const { emitNotificationToUser } = require('../config/socketManager');
 
 /**
  * POST /api/materials
- * Upload a new material
+ * Upload a new material (with one or more files)
  */
-router.post('/', authenticate, requirePermission('materials:create'), uploadMiddleware, validateMaterialUpload, async (req, res) => {
+router.post('/', authenticate, requirePermission('materials:create'), uploadMultiMiddleware, validateMaterialUpload, async (req, res) => {
     const client = await getClient();
 
     try {
         const { title, description, isPublic } = req.body;
         const taxonomy = parseTaxonomyIds(req);
-        const file = req.file;
+        // flexibleUploadMiddleware or uploadMultiMiddleware populates req.files
+        const files = req.files || [];
+        if (req.file) files.push(req.file); // Handle both formats just in case
+
+        if (files.length === 0) {
+            return res.status(400).json({ success: false, message: 'At least one file is required' });
+        }
+
         const userId = req.user.userId;
 
-        // Calculate relative path for storage
-        const relativePath = path.join(getStoragePath(), file.filename);
-
         await client.query('BEGIN');
+
+        // Use the first file for the backwards-compatible material columns
+        const firstFile = files[0];
+        const relativePath = path.join(getStoragePath(), firstFile.filename);
 
         // Insert material
         const materialResult = await client.query(
             `INSERT INTO materials (title, description, file_name, file_path, file_type, file_size, uploaded_by, is_public)
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
              RETURNING id, title, description, file_name, file_type, file_size, is_public, created_at`,
-            [title, description || null, file.originalname, relativePath, file.mimetype, file.size, userId, isPublic === 'true' || isPublic === true]
+            [title, description || null, firstFile.originalname, relativePath, firstFile.mimetype, firstFile.size, userId, isPublic === 'true' || isPublic === true]
         );
 
         const material = materialResult.rows[0];
+
+        // Insert into material_files for each file
+        for (const file of files) {
+            const relPath = path.join(getStoragePath(), file.filename);
+            await client.query(
+                `INSERT INTO material_files (material_id, file_name, file_path, file_type, file_size) VALUES ($1, $2, $3, $4, $5)`,
+                [material.id, file.originalname, relPath, file.mimetype, file.size]
+            );
+        }
 
         // Assign taxonomy (subjects, topics, grades, categories)
         await assignTaxonomy(client, material.id, taxonomy);
@@ -181,13 +198,15 @@ router.post('/', authenticate, requirePermission('materials:create'), uploadMidd
         await client.query('ROLLBACK');
         console.error('Material upload error:', error);
 
-        // Clean up uploaded file on error
-        if (req.file) {
-            try {
-                const relativePath = path.join(getStoragePath(), req.file.filename);
-                await deleteFile(relativePath);
-            } catch (cleanupError) {
-                console.error('Failed to clean up file:', cleanupError);
+        // Clean up uploaded files on error
+        if (req.files) {
+            for (const file of req.files) {
+                try {
+                    const relativePath = path.join(getStoragePath(), file.filename);
+                    await deleteFile(relativePath);
+                } catch (cleanupError) {
+                    console.error('Failed to clean up file:', cleanupError);
+                }
             }
         }
 
@@ -660,6 +679,16 @@ router.get('/:id', authenticate, validateUUID(), requireViewPermission, async (r
 
         const material = result.rows[0];
 
+        // Fetch associated files
+        const filesResult = await query(
+            'SELECT id, file_name, file_path, file_type, file_size, created_at FROM material_files WHERE material_id = $1 ORDER BY id ASC',
+            [materialId]
+        );
+        const materialFiles = filesResult.rows.map(f => ({
+            ...f,
+            file_size_formatted: formatFileSize(f.file_size)
+        }));
+
         // Track view activity (async, don't wait)
         const { trackView } = require('../utils/activityTracker');
         trackView(req.user.userId, materialId, duration).catch(err =>
@@ -672,7 +701,8 @@ router.get('/:id', authenticate, validateUUID(), requireViewPermission, async (r
                 material: {
                     ...material,
                     file_size_formatted: formatFileSize(material.file_size),
-                    categories: typeof material.categories === 'string' ? JSON.parse(material.categories) : material.categories
+                    categories: typeof material.categories === 'string' ? JSON.parse(material.categories) : material.categories,
+                    files: materialFiles
                 }
             }
         });
@@ -866,6 +896,7 @@ router.delete('/:id', authenticate, validateUUID(), requireDeletePermission, asy
 router.get('/:id/download', authenticate, validateUUID(), requireViewPermission, async (req, res) => {
     try {
         const materialId = req.params.id;
+        const fileId = req.query.fileId;
 
         // Get material info
         const result = await query(
@@ -880,12 +911,24 @@ router.get('/:id/download', authenticate, validateUUID(), requireViewPermission,
             });
         }
 
-        const { title, file_name, file_path, file_type } = result.rows[0];
+        let { title, file_name, file_path, file_type } = result.rows[0];
+
+        if (fileId) {
+            const fileResult = await query(
+                'SELECT file_name, file_path, file_type FROM material_files WHERE id = $1 AND material_id = $2',
+                [fileId, materialId]
+            );
+            if (fileResult.rows.length === 0) {
+                return res.status(404).json({ success: false, message: 'File not found' });
+            }
+            ({ file_name, file_path, file_type } = fileResult.rows[0]);
+        }
+
         const fullPath = path.resolve(getFullPath(file_path));
 
         // Use the material title as the download filename, keeping the original extension
         const ext = path.extname(file_name);
-        const downloadName = title ? `${title}${ext}` : file_name;
+        const downloadName = (title && !fileId) ? `${title}${ext}` : file_name;
 
         // Check if file exists
         const fs = require('fs');

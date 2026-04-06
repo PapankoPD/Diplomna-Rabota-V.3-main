@@ -35,8 +35,13 @@ export const materialsApi = {
         return response.data;
     },
 
-    downloadMaterial: async (id) => {
+    downloadMaterial: async (id, fileId = null) => {
+        const params = {};
+        if (fileId) {
+            params.fileId = fileId;
+        }
         const response = await apiClient.get(`/materials/${id}/download`, {
+            params,
             responseType: 'blob',
             headers: {
                 'Cache-Control': 'no-cache',

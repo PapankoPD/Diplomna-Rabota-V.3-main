@@ -125,7 +125,7 @@ export const MaterialDetailPage = () => {
     const [similarMaterials, setSimilarMaterials] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [userRating, setUserRating] = useState(0);
-    const [isDownloading, setIsDownloading] = useState(false);
+    const [downloadingFiles, setDownloadingFiles] = useState({});
     const [error, setError] = useState(null);
 
     // Version history state
@@ -225,10 +225,11 @@ export const MaterialDetailPage = () => {
         }
     };
 
-    const handleDownload = async () => {
-        setIsDownloading(true);
+    const handleDownload = async (fileId = null, originalFileName = null) => {
+        const downloadKey = fileId || 'main';
+        setDownloadingFiles(prev => ({ ...prev, [downloadKey]: true }));
         try {
-            const response = await materialsApi.downloadMaterial(id);
+            const response = await materialsApi.downloadMaterial(id, fileId);
 
             // response.data is already a Blob when responseType is 'blob'
             const blob = response.data;
@@ -250,12 +251,17 @@ export const MaterialDetailPage = () => {
             const url = window.URL.createObjectURL(blob);
             const link = document.createElement('a');
             link.href = url;
-            // Use the material title as the download name, keeping the original file extension
-            const fileName = material.file_name || material.material?.file_name || '';
-            const title = material.title || material.material?.title || '';
-            const dotIndex = fileName.lastIndexOf('.');
-            const ext = dotIndex !== -1 ? fileName.substring(dotIndex) : '';
-            const downloadName = (title || fileName || 'download') + (title ? ext : '');
+            
+            // Use the specified filename or fallback to material metadata
+            let downloadName = originalFileName;
+            if (!downloadName) {
+                const fileName = material.file_name || material.material?.file_name || '';
+                const title = material.title || material.material?.title || '';
+                const dotIndex = fileName.lastIndexOf('.');
+                const ext = dotIndex !== -1 ? fileName.substring(dotIndex) : '';
+                downloadName = (title || fileName || 'download') + (title ? ext : '');
+            }
+            
             link.setAttribute('download', downloadName);
             document.body.appendChild(link);
             link.click();
@@ -283,7 +289,7 @@ export const MaterialDetailPage = () => {
             }
 
         } finally {
-            setIsDownloading(false);
+            setDownloadingFiles(prev => ({ ...prev, [downloadKey]: false }));
         }
     };
 
@@ -431,24 +437,64 @@ export const MaterialDetailPage = () => {
                     </div>
 
                     <div className="content-card preview-section">
-                        <h2>{t.filePreview}</h2>
-                        <div className="file-preview-placeholder">
-                            <FileText size={48} />
-                            <p>{material.file_name}</p>
-                            <button
-                                className="download-btn-large"
-                                onClick={handleDownload}
-                                disabled={isDownloading}
-                            >
-                                {isDownloading ? (
-                                    <LoadingSpinner size="small" />
-                                ) : (
-                                    <>
-                                        <Download size={20} />
-                                        {t.downloadFile}
-                                    </>
-                                )}
-                            </button>
+                        <h2>{t.filePreview} ({material.files?.length || 1})</h2>
+                        <div className="file-list-preview" style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                            {material.files && material.files.length > 0 ? (
+                                material.files.map((file) => (
+                                    <div key={file.id} className="file-preview-placeholder" style={{ padding: '20px', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: '12px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', overflow: 'hidden' }}>
+                                            <FileText size={32} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                                            <div style={{ textAlign: 'left', overflow: 'hidden' }}>
+                                                <p style={{ margin: 0, fontWeight: 700, fontSize: '15px', color: 'var(--gray-900)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={file.file_name}>
+                                                    {file.file_name}
+                                                </p>
+                                                <small style={{ color: 'var(--gray-500)', fontSize: '13px', fontWeight: 600 }}>{file.file_size_formatted}</small>
+                                            </div>
+                                        </div>
+                                        <button
+                                            className="download-btn-small"
+                                            onClick={() => handleDownload(file.id, file.file_name)}
+                                            disabled={downloadingFiles[file.id]}
+                                            style={{ padding: '10px 20px', borderRadius: 'var(--radius-pill)', background: 'linear-gradient(135deg, #16a34a, #15803d)', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, fontSize: '14px', flexShrink: 0, boxShadow: '0 4px 10px rgba(22, 163, 74, 0.25)' }}
+                                        >
+                                            {downloadingFiles[file.id] ? (
+                                                <LoadingSpinner size="small" color="white" />
+                                            ) : (
+                                                <>
+                                                    <Download size={16} />
+                                                    {t.downloadFile}
+                                                </>
+                                            )}
+                                        </button>
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="file-preview-placeholder" style={{ padding: '20px', background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: '12px', display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: '20px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '15px', overflow: 'hidden' }}>
+                                        <FileText size={32} style={{ color: 'var(--primary)', flexShrink: 0 }} />
+                                        <div style={{ textAlign: 'left', overflow: 'hidden' }}>
+                                            <p style={{ margin: 0, fontWeight: 700, fontSize: '15px', color: 'var(--gray-900)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={material.file_name}>
+                                                {material.file_name}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        className="download-btn-small"
+                                        onClick={() => handleDownload(null, material.file_name)}
+                                        disabled={downloadingFiles['main']}
+                                        style={{ padding: '10px 20px', borderRadius: 'var(--radius-pill)', background: 'linear-gradient(135deg, #16a34a, #15803d)', color: 'white', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', fontWeight: 800, fontSize: '14px', flexShrink: 0, boxShadow: '0 4px 10px rgba(22, 163, 74, 0.25)' }}
+                                    >
+                                        {downloadingFiles['main'] ? (
+                                            <LoadingSpinner size="small" color="white" />
+                                        ) : (
+                                            <>
+                                                <Download size={16} />
+                                                {t.downloadFile}
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
 

@@ -39,6 +39,8 @@ async function searchMaterials(queryTerm, options = {}) {
             m.file_size,
             m.is_public,
             m.download_count,
+            m.average_rating,
+            m.rating_count,
             m.uploaded_by,
             m.created_at,
             m.updated_at,
@@ -334,6 +336,8 @@ async function listMaterials(options = {}) {
             m.file_size,
             m.is_public,
             m.download_count,
+            m.average_rating,
+            m.rating_count,
             m.uploaded_by,
             m.created_at,
             m.updated_at,
@@ -536,8 +540,12 @@ function getSortColumn(sortBy) {
     const sortMap = {
         'relevance': 'relevance_score',
         'date': 'm.created_at',
+        'created_at': 'm.created_at',
         'updated': 'm.updated_at',
         'downloads': 'm.download_count',
+        'download_count': 'm.download_count',
+        'average_rating': 'm.average_rating',
+        'rating': 'm.average_rating',
         'title': 'm.title',
         'size': 'm.file_size'
     };

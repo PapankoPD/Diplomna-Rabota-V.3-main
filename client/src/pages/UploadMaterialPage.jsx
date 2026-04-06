@@ -56,7 +56,8 @@ const translations = {
         errNoTitle: "Please enter a title for the material.",
         errUploadFail: "Failed to upload material. Please try again.",
         visibilityOptions: "Visibility Options",
-        privateDesc: "Visible only to assigned class students",
+        privateOption: "Private (Class Only)",
+        privateDesc: "Visible only to students in the selected class",
         topicLabel: "Topic",
         selectTopic: "Select a topic...",
         loadingTopics: "Loading topics...",
@@ -105,7 +106,8 @@ const translations = {
         errNoTitle: "Моля, въведете заглавие на материала.",
         errUploadFail: "Неуспешно качване на материала. Моля, опитайте отново.",
         visibilityOptions: "Опции за видимост",
-        privateDesc: "Видим само за учениците от разпределения клас",
+        privateOption: "Частен (само за клас)",
+        privateDesc: "Видим само за учениците от избрания клас",
         topicLabel: "Тема/Урок",
         selectTopic: "Изберете тема...",
         loadingTopics: "Зареждане на теми...",
@@ -157,12 +159,17 @@ export const UploadMaterialPage = () => {
         const fetchCategories = async () => {
             try {
                 if (isTeacher || isAdmin) {
+                    // Admins see ALL subjects; teachers see only their assigned ones
+                    const subjectsFetch = isAdmin
+                        ? taxonomyApi.getSubjects()
+                        : authApi.getMySubjects();
                     const [subjRes, classRes, gradesRes] = await Promise.all([
-                        authApi.getMySubjects(),
+                        subjectsFetch,
                         taxonomyApi.getAllClasses(),
                         taxonomyApi.getGrades()
                     ]);
-                    setTeacherSubjects(subjRes.data?.subjects || []);
+                    const loadedSubjects = subjRes.data?.subjects || subjRes.data || [];
+                    setTeacherSubjects(loadedSubjects);
                     
                     const allGrades = gradesRes.data?.grades || [];
                     const allowedGrades = ['8', '9', '10', '11', '12'];
@@ -342,19 +349,13 @@ export const UploadMaterialPage = () => {
 
         try {
             const data = new FormData();
-            const isBatch = files.length > 1;
+            
+            // Always append all files using 'files' field
+            files.forEach(file => {
+                data.append('files', file);
+            });
 
-            if (isBatch) {
-                // Multi-file: use 'files' field for batch endpoint
-                files.forEach(file => {
-                    data.append('files', file);
-                });
-            } else {
-                // Single file: use 'file' field for single endpoint
-                data.append('file', files[0]);
-            }
-
-            data.append('title', formData.title);
+            data.append('title', formData.title || files[0].name.split('.').slice(0, -1).join('.'));
             data.append('description', formData.description);
             data.append('isPublic', formData.is_public);
 
@@ -366,7 +367,7 @@ export const UploadMaterialPage = () => {
                 data.append('topicIds', JSON.stringify([parseInt(formData.topic_id)]));
             }
 
-            if (formData.class_id && !formData.is_private && !formData.for_everyone) {
+            if (formData.class_id && !formData.for_everyone) {
                 data.append('classId', formData.class_id);
             }
 
@@ -378,11 +379,8 @@ export const UploadMaterialPage = () => {
                 }
             };
 
-            if (isBatch) {
-                await materialsApi.uploadMultipleMaterials(data, onUploadProgress);
-            } else {
-                await materialsApi.uploadMaterial(data, onUploadProgress);
-            }
+            // Single endpoint handles multiple files now
+            await materialsApi.uploadMaterial(data, onUploadProgress);
 
             setUploadProgress(100);
 
@@ -456,7 +454,7 @@ export const UploadMaterialPage = () => {
 
                         {(isTeacher || isAdmin) && teacherSubjects === null ? (
                             <p style={{ color: 'var(--gray-400)', fontSize: 14 }}>{t.loadingSubjects}</p>
-                        ) : (isTeacher || isAdmin) && teacherSubjects?.length === 0 ? (
+                        ) : isTeacher && !isAdmin && teacherSubjects?.length === 0 ? (
                             <div className="error-alert" style={{ marginTop: 0 }}>
                                 <BookOpen size={18} />
                                 <span>{t.noSubjects}</span>
@@ -508,8 +506,8 @@ export const UploadMaterialPage = () => {
                         </div>
                     )}
 
-                    {/* Grade dropdown — teachers and admins only (hidden when 'for everyone' or 'private') */}
-                    {(isTeacher || isAdmin) && !formData.for_everyone && !formData.is_private && (
+                    {/* Grade dropdown — teachers and admins only (hidden when 'for everyone') */}
+                    {(isTeacher || isAdmin) && !formData.for_everyone && (
                         <div className="form-group">
                             <label htmlFor="grade_id">{t.gradeLabel}</label>
                             {teacherGrades === null ? (
@@ -536,8 +534,8 @@ export const UploadMaterialPage = () => {
                         </div>
                     )}
 
-                    {/* Class dropdown — teachers and admins only (hidden when 'for everyone' or 'private') */}
-                    {(isTeacher || isAdmin) && !formData.for_everyone && !formData.is_private && formData.grade_id && (
+                    {/* Class dropdown — teachers and admins only (hidden when 'for everyone') */}
+                    {(isTeacher || isAdmin) && !formData.for_everyone && formData.grade_id && (
                         <div className="form-group">
                             <label htmlFor="class_id">{t.classLabel}</label>
                             {teacherClasses === null ? (

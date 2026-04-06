@@ -25,6 +25,7 @@ import { AdminDashboardPage } from './pages/admin/AdminDashboardPage';
 
 import { ConfirmProvider } from './contexts/ConfirmContext';
 import { LanguageProvider } from './contexts/LanguageContext';
+import { PrivacyNotice } from './components/common/PrivacyNotice';
 
 function App() {
   return (
@@ -32,6 +33,7 @@ function App() {
       <ThemeProvider>
         <AuthProvider>
           <ConfirmProvider>
+            <PrivacyNotice />
             <BrowserRouter>
               <Routes>
                 {/* Public routes */}
