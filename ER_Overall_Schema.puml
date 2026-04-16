@@ -1,0 +1,176 @@
+@startuml ER_Part1_Auth_Materials
+title 3.4.1 - Потребители, Роли и Материали
+hide circle
+skinparam monochrome false
+skinparam linetype ortho
+skinparam nodesep 40
+skinparam ranksep 50
+skinparam defaultFontSize 14
+skinparam defaultFontName Arial
+
+skinparam entity {
+  BackgroundColor #EEF2FF
+  BorderColor     #4F46E5
+  FontColor       #1E1B4B
+  FontSize        14
+  AttributeFontSize 13
+}
+
+skinparam arrow {
+  Color #4F46E5
+  FontSize 12
+}
+
+entity "USERS" as USR {
+  * id : INTEGER <<PK>>
+  --
+  email : TEXT
+  username : TEXT
+  password_hash : TEXT
+  is_verified : INTEGER
+}
+
+entity "ROLES" as ROL {
+  * id : INTEGER <<PK>>
+  --
+  name : TEXT
+}
+
+entity "PERMISSIONS" as PRM {
+  * id : INTEGER <<PK>>
+  --
+  name : TEXT
+  resource : TEXT
+  action : TEXT
+}
+
+entity "USER_ROLES" as UR {
+  * user_id : INTEGER <<FK>>
+  * role_id : INTEGER <<FK>>
+}
+
+entity "ROLE_PERMISSIONS" as RP {
+  * role_id : INTEGER <<FK>>
+  * permission_id : INTEGER <<FK>>
+}
+
+entity "MATERIALS" as MAT {
+  * id : INTEGER <<PK>>
+  --
+  title : TEXT
+  uploaded_by : INTEGER <<FK>>
+  is_public : INTEGER
+  download_count : INTEGER
+}
+
+entity "MATERIAL_FILES" as MF {
+  * id : INTEGER <<PK>>
+  --
+  material_id : INTEGER <<FK>>
+  file_name : TEXT
+  file_type : TEXT
+  file_size : INTEGER
+}
+
+entity "MATERIAL_VERSIONS" as MV {
+  * id : INTEGER <<PK>>
+  --
+  material_id : INTEGER <<FK>>
+  version_number : INTEGER
+  changed_by : INTEGER <<FK>>
+}
+
+USR  ||--o{ UR   : " "
+ROL  ||--o{ UR   : " "
+ROL  ||--o{ RP   : " "
+PRM  ||--o{ RP   : " "
+USR  ||--o{ MAT  : "качва"
+MAT  ||--o{ MF   : "файлове"
+MAT  ||--o{ MV   : "версии"
+
+@enduml
+
+
+@startuml ER_Part2_Taxonomy_Access
+title 3.4.2 - Предмети, Теми и Контрол на достъп
+hide circle
+skinparam monochrome false
+skinparam linetype ortho
+skinparam nodesep 40
+skinparam ranksep 50
+skinparam defaultFontSize 14
+skinparam defaultFontName Arial
+
+skinparam entity {
+  BackgroundColor #F0FDF4
+  BorderColor     #16A34A
+  FontColor       #14532D
+  FontSize        14
+  AttributeFontSize 13
+}
+
+skinparam arrow {
+  Color #16A34A
+  FontSize 12
+}
+
+entity "MATERIALS" as MAT {
+  * id : INTEGER <<PK>>
+  --
+  title : TEXT
+}
+
+entity "SUBJECTS" as SUB {
+  * id : INTEGER <<PK>>
+  --
+  name : TEXT
+  code : TEXT
+}
+
+entity "TOPICS" as TOP {
+  * id : INTEGER <<PK>>
+  --
+  subject_id : INTEGER <<FK>>
+  name : TEXT
+  difficulty_level : INTEGER
+}
+
+entity "MATERIAL_SUBJECTS" as MS {
+  * material_id : INTEGER <<FK>>
+  * subject_id : INTEGER <<FK>>
+}
+
+entity "MATERIAL_TOPICS" as MT {
+  * material_id : INTEGER <<FK>>
+  * topic_id : INTEGER <<FK>>
+}
+
+entity "GRADES" as GRD {
+  * id : INTEGER <<PK>>
+  --
+  name : TEXT
+  category : TEXT
+}
+
+entity "GRADE_CLASSES" as GC {
+  * id : INTEGER <<PK>>
+  --
+  grade_id : INTEGER <<FK>>
+  name : TEXT
+}
+
+entity "MATERIAL_GRADE_CLASSES" as MGC {
+  * material_id : INTEGER <<FK>>
+  * grade_class_id : INTEGER <<FK>>
+}
+
+SUB  ||--o{ TOP  : "теми"
+MAT  ||--o{ MS   : " "
+SUB  ||--o{ MS   : " "
+MAT  ||--o{ MT   : " "
+TOP  ||--o{ MT   : " "
+GRD  ||--o{ GC   : "паралелки"
+MAT  ||--o{ MGC  : " "
+GC   ||--o{ MGC  : "видимост"
+
+@enduml

@@ -1,0 +1,98 @@
+@startuml Backend_Architecture
+title 3.3. Детайлен архитектурен дизайн на Сървърната част
+skinparam monochrome false
+skinparam defaultFontSize 14
+skinparam defaultFontName Arial
+skinparam nodesep 30
+skinparam ranksep 40
+
+skinparam rectangle {
+  BackgroundColor #EEF2FF
+  BorderColor #4F46E5
+  FontColor #1E1B4B
+  FontSize 14
+  RoundCorner 10
+}
+
+skinparam package {
+  BackgroundColor #F8FAFC
+  BorderColor #94A3B8
+  FontColor #334155
+  FontSize 14
+}
+
+skinparam arrow {
+  Color #4F46E5
+  FontSize 12
+}
+
+' == КЛИЕНТ ==
+rectangle "React Client\n(Browser)" as CLIENT #DBEAFE
+
+' == СЛОЙ 1: ROUTES ==
+package "Слой 1: Маршрути (Routes)" {
+  rectangle "/api/auth" as R_AUTH
+  rectangle "/api/materials" as R_MAT
+  rectangle "/api/users" as R_USR
+  rectangle "/api/search" as R_SRH
+  rectangle "/api/admin" as R_ADM
+}
+
+' == СЛОЙ 2: MIDDLEWARE ==
+package "Слой 2: Middleware (Филтри)" {
+  rectangle "CORS\nFilter" as MW_CORS #FEF9C3
+  rectangle "Auth Guard\n(JWT Verify)" as MW_AUTH #FEF9C3
+  rectangle "RBAC\n(Role Check)" as MW_RBAC #FEF9C3
+  rectangle "File\nValidator" as MW_FILE #FEF9C3
+  rectangle "Input\nSanitizer" as MW_SAN #FEF9C3
+}
+
+' == СЛОЙ 3: CONTROLLERS ==
+package "Слой 3: Контролери (Business Logic)" {
+  rectangle "AuthController\n[login, register\nlogout, verify]" as C_AUTH
+  rectangle "MaterialController\n[upload, list\ndetail, delete]" as C_MAT
+  rectangle "UserController\n[profile, update\nroles, archive]" as C_USR
+  rectangle "SearchController\n[FTS5 query\nfilter, sort]" as C_SRH
+}
+
+' == СЛОЙ 4: DATABASE ==
+package "Слой 4: База данни (SQLite + better-sqlite3)" {
+  rectangle "users\nroles\npermissions" as DB_AUTH #D1FAE5
+  rectangle "materials\nmaterial_files\nversions" as DB_MAT #D1FAE5
+  rectangle "subjects\ntopics\ngrades" as DB_CAT #D1FAE5
+}
+
+' == STORAGE ==
+rectangle "File System\n/uploads" as FS #FEE2E2
+
+' ========= СТРЕЛКИ =========
+
+CLIENT --> R_AUTH
+CLIENT --> R_MAT
+CLIENT --> R_USR
+CLIENT --> R_SRH
+CLIENT --> R_ADM
+
+R_AUTH --> MW_CORS
+R_MAT  --> MW_CORS
+R_USR  --> MW_CORS
+R_SRH  --> MW_CORS
+R_ADM  --> MW_CORS
+
+MW_CORS --> MW_AUTH
+MW_AUTH --> MW_RBAC
+MW_RBAC --> MW_SAN
+MW_SAN  --> MW_FILE
+
+MW_SAN  --> C_AUTH
+MW_SAN  --> C_USR
+MW_SAN  --> C_SRH
+MW_FILE --> C_MAT
+
+C_AUTH --> DB_AUTH : SQL
+C_MAT  --> DB_MAT  : SQL
+C_USR  --> DB_AUTH : SQL
+C_SRH  --> DB_CAT  : FTS5
+C_MAT  --> FS      : multer
+
+@enduml
