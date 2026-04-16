@@ -1,0 +1,195 @@
+' Отворете този файл във VS Code и натиснете Alt + D за преглед.
+' Експортирайте като PNG (Десен бутон върху визуализацията -> Export Current Diagram).
+
+@startuml ER_Auth_Logic
+title 3.5.1 Таблици за Автентикация и Права
+hide circle
+skinparam linetype ortho
+skinparam monochrome true
+skinparam class {
+  BackgroundColor White
+  ArrowColor Black
+  BorderColor Black
+}
+
+entity "users" {
+  * id : INTEGER <<PK>>
+  --
+  email : TEXT
+  username : TEXT
+  password_hash : TEXT
+  is_verified : INTEGER
+  failed_login_attempts : INTEGER
+  locked_until : DATETIME
+}
+
+entity "roles" {
+  * id : INTEGER <<PK>>
+  --
+  name : TEXT
+  description : TEXT
+}
+
+entity "permissions" {
+  * id : INTEGER <<PK>>
+  --
+  name : TEXT
+  resource : TEXT
+  action : TEXT
+}
+
+entity "user_roles" {
+  * user_id : INTEGER <<FK>>
+  * role_id : INTEGER <<FK>>
+}
+
+entity "role_permissions" {
+  * role_id : INTEGER <<FK>>
+  * permission_id : INTEGER <<FK>>
+}
+
+users ||--o{ user_roles
+roles ||--o{ user_roles
+roles ||--o{ role_permissions
+permissions ||--o{ role_permissions
+@enduml
+
+
+@startuml ER_Materials
+title 3.5.2 Таблици за Ресурси и Файлове
+hide circle
+skinparam linetype ortho
+skinparam monochrome true
+skinparam class {
+  BackgroundColor White
+  ArrowColor Black
+  BorderColor Black
+}
+
+entity "materials" {
+  * id : INTEGER <<PK>>
+  --
+  title : TEXT
+  description : TEXT
+  file_name : TEXT
+  file_path : TEXT
+  file_size : INTEGER
+  file_type : TEXT
+  uploaded_by : INTEGER <<FK>>
+  is_public : INTEGER
+  download_count : INTEGER
+}
+
+entity "material_files" {
+  * id : INTEGER <<PK>>
+  --
+  material_id : INTEGER <<FK>>
+  file_name : TEXT
+  file_path : TEXT
+  file_type : TEXT
+  file_size : INTEGER
+}
+
+entity "material_versions" {
+  * id : INTEGER <<PK>>
+  --
+  material_id : INTEGER <<FK>>
+  version_number : INTEGER
+  change_reason : TEXT
+  changed_by : INTEGER <<FK>>
+}
+
+materials ||--o{ material_files : "съдържа"
+materials ||--o{ material_versions : "пази история"
+@enduml
+
+
+@startuml ER_Taxonomy
+title 3.5.3 Таблици за Таксономия и Категории
+hide circle
+skinparam linetype ortho
+skinparam monochrome true
+skinparam class {
+  BackgroundColor White
+  ArrowColor Black
+  BorderColor Black
+}
+
+entity "subjects" {
+  * id : INTEGER <<PK>>
+  --
+  name : TEXT
+  code : TEXT
+  is_active : INTEGER
+}
+
+entity "topics" {
+  * id : INTEGER <<PK>>
+  --
+  subject_id : INTEGER <<FK>>
+  name : TEXT
+  parent_topic_id : INTEGER
+  difficulty_level : INTEGER
+}
+
+entity "material_subjects" {
+  * material_id : INTEGER <<FK>>
+  * subject_id : INTEGER <<FK>>
+}
+
+entity "material_topics" {
+  * material_id : INTEGER <<FK>>
+  * topic_id : INTEGER <<FK>>
+}
+
+subjects ||--o{ topics : "съдържа"
+subjects ||--o{ material_subjects : "определя"
+topics ||--o{ material_topics : "конкретизира"
+@enduml
+
+
+@startuml ER_Access
+title 3.5.4 Таблици за Класове и Права за достъп
+hide circle
+skinparam linetype ortho
+skinparam monochrome true
+skinparam class {
+  BackgroundColor White
+  ArrowColor Black
+  BorderColor Black
+}
+
+entity "grades" {
+  * id : INTEGER <<PK>>
+  --
+  name : TEXT
+  code : TEXT
+  category : TEXT
+}
+
+entity "grade_classes" {
+  * id : INTEGER <<PK>>
+  --
+  grade_id : INTEGER <<FK>>
+  name : TEXT
+}
+
+entity "material_grade_classes" {
+  * material_id : INTEGER <<FK>>
+  * grade_class_id : INTEGER <<FK>>
+}
+
+entity "material_permissions" {
+  * id : INTEGER <<PK>>
+  --
+  material_id : INTEGER <<FK>>
+  user_id : INTEGER <<FK>>
+  role_id : INTEGER <<FK>>
+  group_id : INTEGER <<FK>>
+  permission_type : TEXT
+}
+
+grades ||--o{ grade_classes : "има паралелки"
+grade_classes ||--o{ material_grade_classes : "ресурсът е видим за"
+material_permissions }o--o{ grade_classes : "контрол на достъпа"
+@enduml

@@ -1,0 +1,42 @@
+@startuml ER_Taxonomy
+title 3.5.3 Таблици за Таксономия и Категории
+hide circle
+skinparam linetype ortho
+skinparam monochrome true
+skinparam class {
+  BackgroundColor White
+  ArrowColor Black
+  BorderColor Black
+}
+
+entity "subjects" {
+  * id : INTEGER <<PK>>
+  --
+  name : TEXT
+  code : TEXT
+  is_active : INTEGER
+}
+
+entity "topics" {
+  * id : INTEGER <<PK>>
+  --
+  subject_id : INTEGER <<FK>>
+  name : TEXT
+  parent_topic_id : INTEGER
+  difficulty_level : INTEGER
+}
+
+entity "material_subjects" {
+  * material_id : INTEGER <<FK>>
+  * subject_id : INTEGER <<FK>>
+}
+
+entity "material_topics" {
+  * material_id : INTEGER <<FK>>
+  * topic_id : INTEGER <<FK>>
+}
+
+subjects ||--o{ topics : "съдържа"
+subjects ||--o{ material_subjects : "определя"
+topics ||--o{ material_topics : "конкретизира"
+@enduml

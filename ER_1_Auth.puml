@@ -1,0 +1,52 @@
+@startuml ER_Auth_Logic
+title 3.5.1 Таблици за Автентикация и Права
+hide circle
+skinparam linetype ortho
+skinparam monochrome true
+skinparam class {
+  BackgroundColor White
+  ArrowColor Black
+  BorderColor Black
+}
+
+entity "users" {
+  * id : INTEGER <<PK>>
+  --
+  email : TEXT
+  username : TEXT
+  password_hash : TEXT
+  is_verified : INTEGER
+  failed_login_attempts : INTEGER
+  locked_until : DATETIME
+}
+
+entity "roles" {
+  * id : INTEGER <<PK>>
+  --
+  name : TEXT
+  description : TEXT
+}
+
+entity "permissions" {
+  * id : INTEGER <<PK>>
+  --
+  name : TEXT
+  resource : TEXT
+  action : TEXT
+}
+
+entity "user_roles" {
+  * user_id : INTEGER <<FK>>
+  * role_id : INTEGER <<FK>>
+}
+
+entity "role_permissions" {
+  * role_id : INTEGER <<FK>>
+  * permission_id : INTEGER <<FK>>
+}
+
+users ||--o{ user_roles
+roles ||--o{ user_roles
+roles ||--o{ role_permissions
+permissions ||--o{ role_permissions
+@enduml

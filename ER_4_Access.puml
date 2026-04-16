@@ -1,0 +1,45 @@
+@startuml ER_Access
+title 3.5.4 Таблици за Класове и Права за достъп
+hide circle
+skinparam linetype ortho
+skinparam monochrome true
+skinparam class {
+  BackgroundColor White
+  ArrowColor Black
+  BorderColor Black
+}
+
+entity "grades" {
+  * id : INTEGER <<PK>>
+  --
+  name : TEXT
+  code : TEXT
+  category : TEXT
+}
+
+entity "grade_classes" {
+  * id : INTEGER <<PK>>
+  --
+  grade_id : INTEGER <<FK>>
+  name : TEXT
+}
+
+entity "material_grade_classes" {
+  * material_id : INTEGER <<FK>>
+  * grade_class_id : INTEGER <<FK>>
+}
+
+entity "material_permissions" {
+  * id : INTEGER <<PK>>
+  --
+  material_id : INTEGER <<FK>>
+  user_id : INTEGER <<FK>>
+  role_id : INTEGER <<FK>>
+  group_id : INTEGER <<FK>>
+  permission_type : TEXT
+}
+
+grades ||--o{ grade_classes : "има паралелки"
+grade_classes ||--o{ material_grade_classes : "ресурсът е видим за"
+material_permissions }o--o{ grade_classes : "контрол на достъпа"
+@enduml

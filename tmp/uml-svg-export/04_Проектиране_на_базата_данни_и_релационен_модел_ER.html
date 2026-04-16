@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <title>3.4. Проектиране на базата данни и релационен модел (ER)</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+    }
+    #container {
+      display: inline-block;
+      padding: 24px;
+      background: #ffffff;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <div id="container">
+    <div class="mermaid">
+erDiagram
+    USERS ||--o{ USER_ROLES : "има"
+    ROLES ||--o{ USER_ROLES : "участва в"
+    ROLES ||--o{ ROLE_PERMISSIONS : "получава"
+    PERMISSIONS ||--o{ ROLE_PERMISSIONS : "описва"
+
+    USERS ||--o{ MATERIALS : "качва"
+    MATERIALS ||--o{ MATERIAL_FILES : "съдържа"
+    MATERIALS ||--o{ MATERIAL_VERSIONS : "версии"
+
+    MATERIALS ||--o{ MATERIAL_SUBJECTS : "категоризира се"
+    SUBJECTS ||--o{ MATERIAL_SUBJECTS : "участва в"
+    SUBJECTS ||--o{ TOPICS : "съдържа"
+    TOPICS ||--o{ MATERIAL_TOPICS : "участва в"
+    MATERIALS ||--o{ MATERIAL_TOPICS : "описва се с"
+    GRADES ||--o{ GRADE_CLASSES : "има"
+    MATERIALS ||--o{ MATERIAL_GRADE_CLASSES : "видим за"
+    GRADE_CLASSES ||--o{ MATERIAL_GRADE_CLASSES : "получава"
+
+    USERS ||--o{ STUDENT_CLASS_ENROLLMENTS : "записан е"
+    GRADE_CLASSES ||--o{ STUDENT_CLASS_ENROLLMENTS : "включва"
+    USERS ||--o{ TEACHER_CLASS_ASSIGNMENTS : "преподава в"
+    GRADE_CLASSES ||--o{ TEACHER_CLASS_ASSIGNMENTS : "присвоен на"
+
+    USERS ||--o{ NOTIFICATIONS : "получава"
+    MATERIALS ||--o{ MATERIAL_PERMISSIONS : "има"
+    USERS ||--o{ MATERIAL_PERMISSIONS : "индивидуален достъп"
+    ROLES ||--o{ MATERIAL_PERMISSIONS : "ролев достъп"
+    GROUPS ||--o{ USER_GROUPS : "съдържа"
+    USERS ||--o{ USER_GROUPS : "членува"
+    GROUPS ||--o{ MATERIAL_PERMISSIONS : "групов достъп"
+
+    USERS {
+        int id PK
+        string email
+        string username
+        string password_hash
+    }
+    ROLES {
+        int id PK
+        string name
+        string description
+    }
+    PERMISSIONS {
+        int id PK
+        string name
+        string resource
+        string action
+    }
+    MATERIALS {
+        int id PK
+        string title
+        string file_name
+        string file_type
+        int uploaded_by FK
+        bool is_public
+    }
+    MATERIAL_FILES {
+        int id PK
+        int material_id FK
+        string file_name
+        string file_path
+        int file_size
+    }
+    SUBJECTS {
+        int id PK
+        string name
+        string code
+    }
+    TOPICS {
+        int id PK
+        int subject_id FK
+        string name
+        int difficulty_level
+    }
+    GRADES {
+        int id PK
+        string name
+        string code
+    }
+    GRADE_CLASSES {
+        int id PK
+        int grade_id FK
+        string name
+    }
+    </div>
+  </div>
+  <script>
+    window.addEventListener('load', async () => {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'default',
+        securityLevel: 'loose',
+        flowchart: { htmlLabels: true, curve: 'basis' }
+      });
+
+      try {
+        await mermaid.run();
+        document.body.setAttribute('data-rendered', 'true');
+      } catch (error) {
+        document.body.setAttribute('data-rendered', 'error');
+        document.body.setAttribute('data-message', error && error.message ? error.message : String(error));
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <title>3.2. Детайлен архитектурен дизайн на клиентската част (Frontend)</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+    }
+    #container {
+      display: inline-block;
+      padding: 24px;
+      background: #ffffff;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <div id="container">
+    <div class="mermaid">
+flowchart LR
+    subgraph app[React приложение]
+        main[main.jsx]
+        root[App.jsx]
+        router[BrowserRouter + ProtectedRoute]
+        layout[DashboardLayout]
+        pages[Страници<br/>Login, Register, Dashboard, Materials,<br/>Upload, Profile, Admin]
+        components[Преизползваеми компоненти<br/>TopBar, Sidebar, Modal, Rating, PrivacyNotice]
+        contexts[Контексти<br/>Auth, Theme, Language, Confirm]
+        hooks[Hooks / Utils]
+        apis[API клиенти<br/>authApi, materialsApi, searchApi,<br/>usersApi, taxonomyApi, notificationsApi]
+
+        main --> root --> router --> layout
+        layout --> pages
+        pages --> components
+        pages --> contexts
+        pages --> hooks
+        pages --> apis
+    end
+
+    subgraph api_layer[Интеграция]
+        axios[Axios / apiClient]
+        token[JWT token storage]
+        backend[Express REST API]
+    end
+
+    apis --> axios --> backend
+    contexts --> token
+    token --> axios
+
+    classDef front fill:#e0f2fe,stroke:#0284c7,stroke-width:1.8px,color:#082f49;
+    classDef infra fill:#ede9fe,stroke:#7c3aed,stroke-width:1.8px,color:#2e1065;
+    class main,root,router,layout,pages,components,contexts,hooks,apis front;
+    class axios,token,backend infra;
+    </div>
+  </div>
+  <script>
+    window.addEventListener('load', async () => {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'default',
+        securityLevel: 'loose',
+        flowchart: { htmlLabels: true, curve: 'basis' }
+      });
+
+      try {
+        await mermaid.run();
+        document.body.setAttribute('data-rendered', 'true');
+      } catch (error) {
+        document.body.setAttribute('data-rendered', 'error');
+        document.body.setAttribute('data-message', error && error.message ? error.message : String(error));
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <title>3.3. Детайлен архитектурен дизайн на сървърната част (Backend)</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+    }
+    #container {
+      display: inline-block;
+      padding: 24px;
+      background: #ffffff;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <div id="container">
+    <div class="mermaid">
+flowchart TB
+    request[HTTP заявка]
+
+    subgraph express_api[Express приложение]
+        appjs[app.js / server.js]
+        sec[Security middleware<br/>helmet, cors, rate limit, sanitize]
+        auth[Authentication<br/>JWT verify]
+        rbac[Authorization<br/>roles, permissions, ownership]
+        validation[Validation middleware]
+        upload[Upload middleware<br/>Multer + file validation]
+        routes[Маршрути<br/>auth, users, roles, materials,<br/>taxonomy, search, groups, admin, notifications]
+        logic[Помощни модули и бизнес логика<br/>search.js, taxonomyHelpers, activityTracker,<br/>notificationHelpers, accessControl]
+        data[Database config + Storage config]
+
+        appjs --> sec --> auth --> rbac --> validation --> routes --> logic --> data
+    end
+
+    subgraph persistence[Персистентност]
+        sqlite[(SQLite / better-sqlite3)]
+        uploads[(uploads/materials)]
+        fts[(FTS5, индекси, тригери)]
+    end
+
+    request --> appjs
+    data --> sqlite
+    data --> uploads
+    sqlite --> fts
+
+    classDef api fill:#dcfce7,stroke:#16a34a,stroke-width:1.8px,color:#052e16;
+    classDef persist fill:#fef3c7,stroke:#d97706,stroke-width:1.8px,color:#451a03;
+    class request,appjs,sec,auth,rbac,validation,upload,routes,logic,data api;
+    class sqlite,uploads,fts persist;
+    </div>
+  </div>
+  <script>
+    window.addEventListener('load', async () => {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'default',
+        securityLevel: 'loose',
+        flowchart: { htmlLabels: true, curve: 'basis' }
+      });
+
+      try {
+        await mermaid.run();
+        document.body.setAttribute('data-rendered', 'true');
+      } catch (error) {
+        document.body.setAttribute('data-rendered', 'error');
+        document.body.setAttribute('data-message', error && error.message ? error.message : String(error));
+      }
+    });
+  </script>
+</body>
+</html>

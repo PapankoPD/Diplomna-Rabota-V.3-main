@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <title>3.6. Осигуряване на транзакционна цялостност и системна оптимизация</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+    }
+    #container {
+      display: inline-block;
+      padding: 24px;
+      background: #ffffff;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <div id="container">
+    <div class="mermaid">
+sequenceDiagram
+    actor Teacher as Преподавател
+    participant FE as React клиент
+    participant API as Express API
+    participant Auth as JWT + RBAC
+    participant DB as SQLite
+    participant FS as File Storage
+    participant FTS as Индекси / FTS / Тригери
+
+    Teacher->>FE: Попълва форма и избира файлове
+    FE->>API: POST /api/materials + JWT + multipart/form-data
+    API->>Auth: authenticate + requirePermission(materials:create)
+
+    alt Невалиден токен или липса на право
+        Auth-->>FE: 401 / 403
+        FE-->>Teacher: Показва грешка
+    else Валидирана заявка
+        API->>DB: BEGIN
+        API->>FS: Записва файловете на диск чрез Multer
+        API->>DB: INSERT INTO materials
+        API->>DB: INSERT INTO material_files
+        API->>DB: INSERT INTO material_subjects / topics / grades
+        API->>DB: INSERT INTO material_grade_classes
+        DB->>FTS: Обновяване на индекси и тригери
+
+        alt Успешна транзакция
+            API->>DB: COMMIT
+            API-->>FE: 201 Created
+            FE-->>Teacher: Материалът е качен успешно
+        else Грешка при запис
+            API->>DB: ROLLBACK
+            API->>FS: Изтрива вече качените файлове
+            API-->>FE: 500 Failed to upload material
+            FE-->>Teacher: Известява за неуспешно качване
+        end
+    end
+    </div>
+  </div>
+  <script>
+    window.addEventListener('load', async () => {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'default',
+        securityLevel: 'loose',
+        flowchart: { htmlLabels: true, curve: 'basis' }
+      });
+
+      try {
+        await mermaid.run();
+        document.body.setAttribute('data-rendered', 'true');
+      } catch (error) {
+        document.body.setAttribute('data-rendered', 'error');
+        document.body.setAttribute('data-message', error && error.message ? error.message : String(error));
+      }
+    });
+  </script>
+</body>
+</html>

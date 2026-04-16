@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <title>3.1. Архитектурен модел на системата</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+    }
+    #container {
+      display: inline-block;
+      padding: 24px;
+      background: #ffffff;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <div id="container">
+    <div class="mermaid">
+flowchart TB
+    user[Краен потребител<br/>Администратор / Преподавател / Ученик]
+
+    subgraph presentation[Презентационен слой]
+        browser[Уеб браузър]
+        frontend[React + Vite клиент]
+        ui[Страници, компоненти, контексти, API клиенти]
+        browser --> frontend --> ui
+    end
+
+    subgraph logic[Слой на бизнес логиката]
+        express[Node.js + Express API]
+        middleware[Middleware слой<br/>Auth, RBAC, Validation, Security]
+        routes[Routes / Controllers<br/>auth, materials, users, taxonomy, search]
+        services[Бизнес правила<br/>качване, търсене, разрешения, известия]
+        express --> middleware --> routes --> services
+    end
+
+    subgraph data[Слой за данни]
+        db[(SQLite база данни)]
+        storage[(Файлова система<br/>uploads/materials)]
+        realtime[Socket / Notifications]
+        index[(FTS индекси и DB тригери)]
+    end
+
+    user --> browser
+    ui -->|HTTPS / JSON / multipart-form-data| express
+    services --> db
+    services --> storage
+    services --> realtime
+    db --> index
+
+    classDef blue fill:#dbeafe,stroke:#1f6feb,stroke-width:1.8px,color:#0f172a;
+    classDef green fill:#dcfce7,stroke:#16a34a,stroke-width:1.8px,color:#0f172a;
+    classDef amber fill:#fef3c7,stroke:#d97706,stroke-width:1.8px,color:#0f172a;
+    class user,browser,frontend,ui blue;
+    class express,middleware,routes,services green;
+    class db,storage,realtime,index amber;
+    </div>
+  </div>
+  <script>
+    window.addEventListener('load', async () => {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'default',
+        securityLevel: 'loose',
+        flowchart: { htmlLabels: true, curve: 'basis' }
+      });
+
+      try {
+        await mermaid.run();
+        document.body.setAttribute('data-rendered', 'true');
+      } catch (error) {
+        document.body.setAttribute('data-rendered', 'error');
+        document.body.setAttribute('data-message', error && error.message ? error.message : String(error));
+      }
+    });
+  </script>
+</body>
+</html>

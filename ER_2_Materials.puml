@@ -1,0 +1,47 @@
+@startuml ER_Materials
+title 3.5.2 Таблици за Ресурси и Файлове
+hide circle
+skinparam linetype ortho
+skinparam monochrome true
+skinparam class {
+  BackgroundColor White
+  ArrowColor Black
+  BorderColor Black
+}
+
+entity "materials" {
+  * id : INTEGER <<PK>>
+  --
+  title : TEXT
+  description : TEXT
+  file_name : TEXT
+  file_path : TEXT
+  file_size : INTEGER
+  file_type : TEXT
+  uploaded_by : INTEGER <<FK>>
+  is_public : INTEGER
+  download_count : INTEGER
+}
+
+entity "material_files" {
+  * id : INTEGER <<PK>>
+  --
+  material_id : INTEGER <<FK>>
+  file_name : TEXT
+  file_path : TEXT
+  file_type : TEXT
+  file_size : INTEGER
+}
+
+entity "material_versions" {
+  * id : INTEGER <<PK>>
+  --
+  material_id : INTEGER <<FK>>
+  version_number : INTEGER
+  change_reason : TEXT
+  changed_by : INTEGER <<FK>>
+}
+
+materials ||--o{ material_files : "съдържа"
+materials ||--o{ material_versions : "пази история"
+@enduml

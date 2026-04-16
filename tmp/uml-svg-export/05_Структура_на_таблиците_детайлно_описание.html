@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+  <meta charset="UTF-8">
+  <title>3.5. Структура на таблиците (детайлно описание)</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #ffffff;
+      font-family: "Segoe UI", Tahoma, sans-serif;
+    }
+    #container {
+      display: inline-block;
+      padding: 24px;
+      background: #ffffff;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+</head>
+<body>
+  <div id="container">
+    <div class="mermaid">
+classDiagram
+    direction TB
+
+    class Users {
+        +id : INTEGER
+        +email : TEXT
+        +username : TEXT
+        +password_hash : TEXT
+        +is_verified : INTEGER
+        +failed_login_attempts : INTEGER
+        +locked_until : DATETIME
+    }
+
+    class Roles {
+        +id : INTEGER
+        +name : TEXT
+        +description : TEXT
+    }
+
+    class Permissions {
+        +id : INTEGER
+        +name : TEXT
+        +resource : TEXT
+        +action : TEXT
+    }
+
+    class Materials {
+        +id : INTEGER
+        +title : TEXT
+        +description : TEXT
+        +file_name : TEXT
+        +file_path : TEXT
+        +file_type : TEXT
+        +file_size : INTEGER
+        +uploaded_by : INTEGER
+        +is_public : INTEGER
+        +download_count : INTEGER
+    }
+
+    class MaterialFiles {
+        +id : INTEGER
+        +material_id : INTEGER
+        +file_name : TEXT
+        +file_path : TEXT
+        +file_type : TEXT
+        +file_size : INTEGER
+    }
+
+    class MaterialVersions {
+        +id : INTEGER
+        +material_id : INTEGER
+        +version_number : INTEGER
+        +changed_by : INTEGER
+        +change_reason : TEXT
+    }
+
+    class Subjects {
+        +id : INTEGER
+        +name : TEXT
+        +code : TEXT
+        +is_active : INTEGER
+    }
+
+    class Topics {
+        +id : INTEGER
+        +subject_id : INTEGER
+        +name : TEXT
+        +parent_topic_id : INTEGER
+        +difficulty_level : INTEGER
+    }
+
+    class Grades {
+        +id : INTEGER
+        +name : TEXT
+        +code : TEXT
+        +category : TEXT
+    }
+
+    class GradeClasses {
+        +id : INTEGER
+        +grade_id : INTEGER
+        +name : TEXT
+    }
+
+    class MaterialPermissions {
+        +id : INTEGER
+        +material_id : INTEGER
+        +user_id : INTEGER
+        +role_id : INTEGER
+        +group_id : INTEGER
+        +permission_type : TEXT
+    }
+
+    class Notifications {
+        +id : INTEGER
+        +user_id : INTEGER
+        +type : TEXT
+        +message : TEXT
+        +is_read : INTEGER
+    }
+
+    Users --> Materials : качва
+    Users --> Roles : чрез user_roles
+    Roles --> Permissions : чрез role_permissions
+    Materials --> MaterialFiles : има много
+    Materials --> MaterialVersions : пази история
+    Materials --> Subjects : чрез material_subjects
+    Materials --> Topics : чрез material_topics
+    Materials --> GradeClasses : чрез material_grade_classes
+    Materials --> MaterialPermissions : контрол на достъпа
+    Users --> Notifications : получава
+    Subjects --> Topics : 1 към много
+    Grades --> GradeClasses : 1 към много
+    </div>
+  </div>
+  <script>
+    window.addEventListener('load', async () => {
+      mermaid.initialize({
+        startOnLoad: true,
+        theme: 'default',
+        securityLevel: 'loose',
+        flowchart: { htmlLabels: true, curve: 'basis' }
+      });
+
+      try {
+        await mermaid.run();
+        document.body.setAttribute('data-rendered', 'true');
+      } catch (error) {
+        document.body.setAttribute('data-rendered', 'error');
+        document.body.setAttribute('data-message', error && error.message ? error.message : String(error));
+      }
+    });
+  </script>
+</body>
+</html>
