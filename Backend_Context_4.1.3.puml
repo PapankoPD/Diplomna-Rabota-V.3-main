@@ -1,0 +1,52 @@
+@startuml Backend_Context_4.1.3
+title 4.1.3. Сървърна среда и рамка на приложението
+skinparam monochrome false
+skinparam defaultFontSize 13
+skinparam defaultFontName Arial
+skinparam nodesep 20
+skinparam ranksep 30
+
+skinparam rectangle {
+  RoundCorner 12
+  FontSize 13
+  BorderThickness 2
+}
+
+skinparam arrow {
+  Color #475569
+  FontSize 11
+  Thickness 1.5
+}
+
+' ── Runtime ──────────────────────────────
+rectangle "Node.js v18+\n(JavaScript Runtime)" as NODE #DBEAFE
+
+' ── Framework ────────────────────────────
+rectangle "Express.js\n(Web Framework)" as EXP #EEF2FF
+
+' ── Middleware stack ──────────────────────
+rectangle "cors\n(CORS Policy)" as MW1 #FEF9C3
+rectangle "helmet\n(HTTP Headers)" as MW2 #FEF9C3
+rectangle "multer\n(File Upload)" as MW3 #FEF9C3
+rectangle "express-rate-limit\n(Brute Force)" as MW4 #FEF9C3
+
+' ── Auth ─────────────────────────────────
+rectangle "jsonwebtoken\n(JWT Auth)" as JWT #FEE2E2
+
+' ── Database ─────────────────────────────
+rectangle "SQLite3\n(better-sqlite3)" as DB #D1FAE5
+
+' ── File System ──────────────────────────
+rectangle "/uploads\n(File Storage)" as FS #F3F4F6
+
+' ── Connections ──────────────────────────
+NODE --> EXP       : "вгражда"
+EXP  --> MW1
+EXP  --> MW2
+EXP  --> MW3
+EXP  --> MW4
+EXP  --> JWT       : "auth middleware"
+EXP  --> DB        : "SQL заявки"
+MW3  --> FS        : "запис на файлове"
+
+@enduml
